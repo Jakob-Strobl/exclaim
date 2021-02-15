@@ -43,6 +43,7 @@ pub enum Op {
     ClosureClose,   // ] 
     Comma,          // , Keeping here if its used in future 
     Dot,            // . (Access fields)
+    Each,           // :
     Equality,       // ==
     Inequality,     // !=
     Or,             // || 
