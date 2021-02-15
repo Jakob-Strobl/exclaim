@@ -120,6 +120,7 @@ mod states {
 
     static STATE_OPEN_BLOCK: State = State(
         |stack| {
+            // Context, we already know stack.peek() == '{'
             match stack.lookahead().unwrap_or(&' ') {
                 '{' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockOpen 
@@ -138,6 +139,7 @@ mod states {
 
     static STATE_CLOSE_BLOCK: State = State(
         |stack| {
+            // Context, we already know stack.peek() == '}'
             match stack.lookahead().unwrap() {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
@@ -194,14 +196,15 @@ mod states {
                     &STATE_BLOCK
                 },
                 '|' => {
-                    stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Pipe));
-                    &STATE_BLOCK
+                    &STATE_BLOCK_PIPE_OR
                 },
                 '"' => {
                     stack.skip_current();
                     &STATE_BLOCK_STRING_LITERAL
                 },
+                '&' => {
+                    &STATE_BLOCK_AND
+                }
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
@@ -223,6 +226,7 @@ mod states {
 
     static STATE_OPEN_BLOCK_FROM_BLOCK: State = State(
         |stack| {
+            // Context, we already know stack.peek() == '{'
             match stack.lookahead().unwrap_or(&' ') {
                 '{' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockOpen 
@@ -241,6 +245,7 @@ mod states {
 
     static STATE_CLOSE_BLOCK_FROM_BLOCK: State = State(
         |stack| {
+            // Context, we already know stack.peek() == '}'
             match stack.lookahead().unwrap() {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
@@ -267,9 +272,7 @@ mod states {
                 },
                 '\\' => { // ESCAPE CHARACTER
                     stack.skip_current();   // Skip escape
-                    println!("PEEK AT ESCAPE {}", stack.peek());
                     stack.push();           // Push character escaped
-                    println!("PEEK AT ESCAPE {}", stack.peek());
                     &STATE_BLOCK_STRING_LITERAL
                 },
                 _ => {
@@ -277,6 +280,41 @@ mod states {
                     &STATE_BLOCK_STRING_LITERAL
                 }
             }
+        }
+    );
+
+    static STATE_BLOCK_AND: State = State(
+        |stack| {
+            // Context, we already know stack.peek() == '&'
+            match stack.lookahead().unwrap_or(&' ') {
+                '&' => {
+                    stack.push(); // &
+                    stack.push(); // &&
+                    stack.accept_token(TokenKind::Operator(Op::And));
+                    &STATE_BLOCK
+                }
+                _ => {
+                    panic!("Lexer: Expected Operator And(&&). A single '&' is not a valid token. Stack: \"{}\"", stack.view_stack());
+                }
+            }
+        }
+    );
+
+    static STATE_BLOCK_PIPE_OR: State = State(
+        |stack| {
+            // Context, we already know stack.peek() == '|'
+            match stack.lookahead().unwrap_or(&' ') {
+                '|' => {
+                    stack.push(); // |
+                    stack.push(); // || Or
+                    stack.accept_token(TokenKind::Operator(Op::Or));
+                }
+                _ => {
+                    stack.push(); // | Pipe
+                    stack.accept_token(TokenKind::Operator(Op::Pipe));
+                }
+            }
+            &STATE_BLOCK
         }
     );
 
