@@ -209,6 +209,7 @@ mod states {
                         stack.skip();
                         &STATE_BLOCK
                     } else {
+                        // TODO print surrounding text
                         panic!("Lexer: Encountered unknown character '{}'", ch);
                     }
                 }
@@ -259,6 +260,7 @@ mod states {
                 stack.push();
                 &STATE_LABEL
             } else if ch.is_numeric() {
+                // TODO print surrounding text
                 panic!("Lexer: The expected label contains digit '{}' with stack \"{}\"", ch, stack.view_stack());
             } else {
                 // Accept Label 
@@ -275,6 +277,7 @@ mod states {
                 stack.push();
                 &STATE_DIGIT
             } else if ch.is_alphabetic() {
+                // TODO print surrounding text
                 panic!("Lexer: The expected number contains invalid digit '{}' with stack \"{}\"", ch, stack.view_stack());
             } else {
                 // Accept Number 
@@ -497,7 +500,81 @@ mod tests {
     }
 
     #[test]
-    fn lexer_expr_action() {
+    fn lexer_block_digit() {
+        let input = "{{ 1234 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::OpenBlock),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1234),
+                String::from("1234"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::CloseBlock),
+                String::from("}}"),
+                Location::new(0,8)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    #[should_panic(expected = "Lexer: The expected number contains invalid digit 'a' with stack \"1234\"")]
+    fn lexer_block_invalid_digit() {
+        let input = "{{ 1234a }}";
+        let lexer = Lexer::from(input);
+
+        lexer.tokenize();
+    }
+
+    
+    #[test]
+    fn lexer_block_label() {
+        let input = "{{label}}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::OpenBlock),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("label"),
+                Location::new(0,2)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::CloseBlock),
+                String::from("}}"),
+                Location::new(0,7)
+            ),
+        ];
+    }
+
+    #[test]
+    #[should_panic(expected = "Lexer: The expected label contains digit '1' with stack \"b\"")]
+    fn lexer_block_invalid_label() {
+        let input = "{{ b1234 }}";
+        let lexer = Lexer::from(input);
+
+        lexer.tokenize();
+    }
+
+
+    #[test]
+    fn lexer_block_action() {
         let input = "{{ render! }}";
         let lexer = Lexer::from(input);
 
@@ -530,7 +607,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_expr_assign() {
+    fn lexer_block_assign() {
         let input = "{{ pages = site }}";
         let lexer = Lexer::from(input);
 
@@ -568,7 +645,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_expr_dot() {
+    fn lexer_block_dot() {
         let input = "{{ site.posts }}";
         let lexer = Lexer::from(input);
 
@@ -606,7 +683,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_expr_pipe() {
+    fn lexer_block_pipe() {
         let input = "{{ posts | reverse | take }}";
         let lexer = Lexer::from(input);
 
@@ -651,52 +728,6 @@ mod tests {
         ];
 
         assert_eq!(tokens, expected);
-    }
-
-    #[test]
-    fn lexer_expr_digit() {
-        let input = "{{ 1234 }}";
-        let lexer = Lexer::from(input);
-
-        let tokens = lexer.tokenize();
-
-        let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::OpenBlock),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1234),
-                String::from("1234"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::CloseBlock),
-                String::from("}}"),
-                Location::new(0,8)
-            ),
-        ];
-
-        assert_eq!(tokens, expected);
-    }
-
-    #[test]
-    #[should_panic(expected = "Lexer: The expected number contains invalid digit 'a' with stack \"1234\"")]
-    fn lexer_expr_invalid_digit() {
-        let input = "{{ 1234a }}";
-        let lexer = Lexer::from(input);
-
-        lexer.tokenize();
-    }
-
-    #[test]
-    #[should_panic(expected = "Lexer: The expected label contains digit '1' with stack \"b\"")]
-    fn lexer_expr_invalid_label() {
-        let input = "{{ b1234 }}";
-        let lexer = Lexer::from(input);
-
-        lexer.tokenize();
     }
 
     #[test]
