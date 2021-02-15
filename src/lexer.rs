@@ -122,7 +122,7 @@ mod states {
         |stack| {
             match stack.lookahead().unwrap_or(&' ') {
                 '{' => {
-                    // Accept string literal if the stack is not empty, because next token is a OpenBlock 
+                    // Accept string literal if the stack is not empty, because next token is a BlockOpen 
                     if !stack.empty() {
                         stack.accept_token(TokenKind::StringLiteral);
                     }
@@ -140,7 +140,7 @@ mod states {
         |stack| {
             match stack.lookahead().unwrap() {
                 '}' => {
-                    // Accept string literal if the stack is not empty, because next token is a CloseBlock 
+                    // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
                         stack.accept_token(TokenKind::StringLiteral);
                     }
@@ -158,7 +158,7 @@ mod states {
         |stack| {
             stack.push(); // {
             stack.push(); // {{
-            stack.accept_token(TokenKind::Operator(Op::OpenBlock));
+            stack.accept_token(TokenKind::Operator(Op::BlockOpen));
             &STATE_BLOCK
         }
     );
@@ -167,7 +167,7 @@ mod states {
         |stack| {
             stack.push(); // }
             stack.push(); // }}
-            stack.accept_token(TokenKind::Operator(Op::CloseBlock));
+            stack.accept_token(TokenKind::Operator(Op::BlockClose));
             &STATE_START
         }
     );
@@ -221,7 +221,7 @@ mod states {
         |stack| {
             match stack.lookahead().unwrap_or(&' ') {
                 '{' => {
-                    // Accept string literal if the stack is not empty, because next token is a OpenBlock 
+                    // Accept string literal if the stack is not empty, because next token is a BlockOpen 
                     if !stack.empty() {
                         stack.accept_token(TokenKind::StringLiteral);
                     }
@@ -239,7 +239,7 @@ mod states {
         |stack| {
             match stack.lookahead().unwrap() {
                 '}' => {
-                    // Accept string literal if the stack is not empty, because next token is a CloseBlock 
+                    // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
                         stack.accept_token(TokenKind::StringLiteral);
                     }
@@ -428,7 +428,7 @@ mod tests {
         let expected = vec![
             token_string_literal("test ", (0, 0)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0, 5)
             )
@@ -447,7 +447,7 @@ mod tests {
         let expected = vec![
             token_string_literal("this is { a test ",  (0, 0)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0, 17)
             ), 
@@ -467,7 +467,7 @@ mod tests {
         let expected = vec![
             token_string_literal("This is a not a closed block }, and neither is this ",  (0, 0)),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0, 52)
             ), 
@@ -485,12 +485,12 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0),
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,2)
             ),
@@ -508,7 +508,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -518,7 +518,7 @@ mod tests {
                 Location::new(0,3)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,8)
             ),
@@ -546,7 +546,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -556,7 +556,7 @@ mod tests {
                 Location::new(0,2)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,7)
             ),
@@ -582,7 +582,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -597,7 +597,7 @@ mod tests {
                 Location::new(0,9)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,11)
             ),
@@ -615,7 +615,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -635,7 +635,7 @@ mod tests {
                 Location::new(0,11)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,16)
             ),
@@ -653,7 +653,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -673,7 +673,7 @@ mod tests {
                 Location::new(0,8)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,14)
             ),
@@ -691,7 +691,7 @@ mod tests {
 
         let expected = vec![
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(0,0)
             ),
@@ -721,7 +721,7 @@ mod tests {
                 Location::new(0,21)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,26)
             ),
@@ -740,7 +740,7 @@ mod tests {
         let expected = vec![
             token_string_literal("<h1>Tests</h1>\n",  (0, 0)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(1,0)
             ),
@@ -755,13 +755,13 @@ mod tests {
                 Location::new(1,9)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(1,11)
             ),
             token_string_literal("\n", (1, 13)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(2,0)
             ),
@@ -806,13 +806,13 @@ mod tests {
                 Location::new(2,29)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(2,31)
             ),
             token_string_literal("\n<li>", (2, 33)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(3,4)
             ),
@@ -832,13 +832,13 @@ mod tests {
                 Location::new(3,13)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(3,18)
             ),
             token_string_literal("</li>\n", (3, 20)),
             Token::new(
-                TokenKind::Operator(Op::OpenBlock),
+                TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
                 Location::new(4,0)
             ),
@@ -848,7 +848,7 @@ mod tests {
                 Location::new(4,2)
             ),
             Token::new(
-                TokenKind::Operator(Op::CloseBlock),
+                TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(4,3)
             ),

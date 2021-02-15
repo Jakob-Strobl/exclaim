@@ -33,13 +33,19 @@ pub enum TokenKind {
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Op {
     Action,         // !
+    And,            // &&
     Assign,         // =
-    CloseBlock,     // }}
-    CloseBlockPrime,// }
+    BlockClose,     // }}
+    BlockClosePrime,// }
+    BlockOpen,      // {{
+    BlockOpenPrime, // {
+    ClosureOpen,    // [
+    ClosureClose,   // ] 
     Comma,          // , Keeping here if its used in future 
     Dot,            // . (Access fields)
-    OpenBlock,      // {{
-    OpenBlockPrime, // {
+    Equality,       // ==
+    Inequality,     // !=
+    Or,             // || 
     Pipe,           // | (Chain function operations)
 }
 
