@@ -419,7 +419,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_open_block() {
+    fn lexer_block_open() {
         let input = "test {{";
         let lexer = Lexer::from(input);
 
@@ -438,7 +438,7 @@ mod tests {
     }   
 
     #[test]
-    fn lexer_open_block_trick() {
+    fn lexer_block_open_trick() {
         let input = "this is { a test {{{";
         let lexer = Lexer::from(input);
 
@@ -458,7 +458,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_invalid_close_block() {
+    fn lexer_invalid_block_close() {
         let input = "This is a not a closed block }, and neither is this }}";
         let lexer = Lexer::from(input);
 
@@ -477,7 +477,7 @@ mod tests {
     }
 
     #[test]
-    fn lexer_open_close_block() {
+    fn lexer_block_open_close() {
         let input = "{{}}";
         let lexer = Lexer::from(input);
 
@@ -561,6 +561,8 @@ mod tests {
                 Location::new(0,7)
             ),
         ];
+
+        assert_eq!(tokens, expected);
     }
 
     #[test]
@@ -570,6 +572,34 @@ mod tests {
         let lexer = Lexer::from(input);
 
         lexer.tokenize();
+    }
+
+    #[test]
+    fn lexer_block_string_literal() {
+        let input = "{{ \"string literal\" }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::StringLiteral,
+                String::from("string literal"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,20)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
     }
 
 
@@ -600,6 +630,54 @@ mod tests {
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,11)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_and() {
+        let input = "{{ 1 && test && 3 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::And),
+                String::from("&&"),
+                Location::new(0,5)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("test"),
+                Location::new(0,8)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::And),
+                String::from("&&"),
+                Location::new(0,13)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(3),
+                String::from("3"),
+                Location::new(0,16)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,18)
             ),
         ];
 
@@ -643,6 +721,54 @@ mod tests {
 
         assert_eq!(tokens, expected);
     }
+    
+    #[test]
+    fn lexer_block_closure() {
+        let input = "{{ [self.album] }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::ClosureOpen),
+                String::from("["),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("self"),
+                Location::new(0,4)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Dot),
+                String::from("."),
+                Location::new(0,8)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("album"),
+                Location::new(0,9)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::ClosureClose),
+                String::from("]"),
+                Location::new(0,14)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,16)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
 
     #[test]
     fn lexer_block_dot() {
@@ -676,6 +802,188 @@ mod tests {
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,14)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_each() {
+        let input = "{{ item : items }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("item"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Each),
+                String::from(":"),
+                Location::new(0,8)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("items"),
+                Location::new(0,10)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,16)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_equality() {
+        let input = "{{ falsy = 1 == 2 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("falsy"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Assign),
+                String::from("="),
+                Location::new(0,9)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,11)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Equality),
+                String::from("=="),
+                Location::new(0,13)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,16)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,18)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_inequality() {
+        let input = "{{ truthy = 1 != 2 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("falsy"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Assign),
+                String::from("="),
+                Location::new(0,10)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,12)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Inequality),
+                String::from("!="),
+                Location::new(0,14)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,17)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,19)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_or() {
+        let input = "{{ 1 || test || 3 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Or),
+                String::from("||"),
+                Location::new(0,5)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("test"),
+                Location::new(0,8)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Or),
+                String::from("||"),
+                Location::new(0,13)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(3),
+                String::from("3"),
+                Location::new(0,16)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,18)
             ),
         ];
 
@@ -729,6 +1037,7 @@ mod tests {
 
         assert_eq!(tokens, expected);
     }
+    
 
     #[test]
     fn lexer_simple() {
