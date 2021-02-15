@@ -198,6 +198,10 @@ mod states {
                     stack.accept_token(TokenKind::Operator(Op::Pipe));
                     &STATE_BLOCK
                 },
+                '"' => {
+                    stack.skip_current();
+                    &STATE_BLOCK_STRING_LITERAL
+                },
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
@@ -248,6 +252,29 @@ mod states {
                 _ => {
                     stack.push();
                     &STATE_BLOCK
+                }
+            }
+        }
+    );
+
+    static STATE_BLOCK_STRING_LITERAL: State = State(
+        |stack| {
+            match stack.peek() {
+                '"' => { 
+                    stack.skip_current();   // Skip closing double quote
+                    stack.accept_token(TokenKind::StringLiteral);
+                    &STATE_BLOCK
+                },
+                '\\' => { // ESCAPE CHARACTER
+                    stack.skip_current();   // Skip escape
+                    println!("PEEK AT ESCAPE {}", stack.peek());
+                    stack.push();           // Push character escaped
+                    println!("PEEK AT ESCAPE {}", stack.peek());
+                    &STATE_BLOCK_STRING_LITERAL
+                },
+                _ => {
+                    stack.push();
+                    &STATE_BLOCK_STRING_LITERAL
                 }
             }
         }
@@ -338,6 +365,14 @@ mod automata {
 
             // Shift both locations up
             self.start.shift();
+            self.current.shift();
+        }
+
+        /// Skips the current character and only shifts the current location. Start location does not change.
+        pub fn skip_current(&mut self) {
+            self.index += 1;
+
+            // Shift both locations up
             self.current.shift();
         }
 
@@ -576,7 +611,7 @@ mod tests {
 
     #[test]
     fn lexer_block_string_literal() {
-        let input = "{{ \"string literal\" }}";
+        let input = "{{ \"string \\\" literal\" }}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
@@ -589,13 +624,13 @@ mod tests {
             ),
             Token::new(
                 TokenKind::StringLiteral,
-                String::from("string literal"),
+                String::from("string \" literal"),
                 Location::new(0,3)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
-                Location::new(0,20)
+                Location::new(0,23)
             ),
         ];
 
