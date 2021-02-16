@@ -184,14 +184,19 @@ mod states {
                 '=' => &STATE_BLOCK_ASSIGN_EQUALITY,
                 '|' => &STATE_BLOCK_PIPE_OR,
                 '&' => &STATE_BLOCK_AND,
-                ':' => {
+                ',' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Each));
+                    stack.accept_token(TokenKind::Operator(Op::Comma));
                     &STATE_BLOCK
-                },
+                }
                 '.' => {
                     stack.push();
                     stack.accept_token(TokenKind::Operator(Op::Dot));
+                    &STATE_BLOCK
+                },
+                ':' => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::Each));
                     &STATE_BLOCK
                 },
                 '"' => {
@@ -831,6 +836,54 @@ mod tests {
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
                 Location::new(0,16)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_comma() {
+        let input = "{{ test, \"test\", 2 }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Label,
+                String::from("test"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Comma),
+                String::from(","),
+                Location::new(0,7)
+            ),
+            Token::new(
+                TokenKind::StringLiteral,
+                String::from("test"),
+                Location::new(0,9)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Comma),
+                String::from(","),
+                Location::new(0,15)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(2),
+                String::from("2"),
+                Location::new(0,17)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,19)
             ),
         ];
 
