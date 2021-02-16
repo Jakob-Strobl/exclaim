@@ -180,14 +180,13 @@ mod states {
             match ch {
                 '{' => &STATE_OPEN_BLOCK_FROM_BLOCK,
                 '}' => &STATE_CLOSE_BLOCK_FROM_BLOCK,
-                '!' => {
+                '!' => &STATE_BLOCK_ACTION_INEQUALITY,
+                '=' => &STATE_BLOCK_ASSIGN_EQUALITY,
+                '|' => &STATE_BLOCK_PIPE_OR,
+                '&' => &STATE_BLOCK_AND,
+                ':' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Action));
-                    &STATE_BLOCK
-                },
-                '=' => {
-                    stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Assign));
+                    stack.accept_token(TokenKind::Operator(Op::Each));
                     &STATE_BLOCK
                 },
                 '.' => {
@@ -195,16 +194,20 @@ mod states {
                     stack.accept_token(TokenKind::Operator(Op::Dot));
                     &STATE_BLOCK
                 },
-                '|' => {
-                    &STATE_BLOCK_PIPE_OR
-                },
                 '"' => {
                     stack.skip_current();
                     &STATE_BLOCK_STRING_LITERAL
                 },
-                '&' => {
-                    &STATE_BLOCK_AND
-                }
+                '[' => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::ClosureOpen));
+                    &STATE_BLOCK
+                },
+                ']' => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::ClosureClose));
+                    &STATE_BLOCK
+                },
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
@@ -259,6 +262,45 @@ mod states {
                     &STATE_BLOCK
                 }
             }
+        }
+    );
+
+    static STATE_BLOCK_ACTION_INEQUALITY: State = State(
+        |stack| {
+            // Context, we already know stack.peek() == '!'
+            match stack.lookahead().unwrap_or(&' ') {
+                '=' => {
+                    stack.push(); // !
+                    stack.push(); // !=
+                    stack.accept_token(TokenKind::Operator(Op::Inequality));
+                }
+                _ => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::Action));
+                }
+            }
+
+            &STATE_BLOCK
+        }
+    );
+
+
+    static STATE_BLOCK_ASSIGN_EQUALITY: State = State(
+        |stack| {
+            // Context, we already know stack.peek() == '='
+            match stack.lookahead().unwrap_or(&' ') {
+                '=' => {
+                    stack.push(); // =
+                    stack.push(); // ==
+                    stack.accept_token(TokenKind::Operator(Op::Equality));
+                }
+                _ => {
+                    stack.push(); // =
+                    stack.accept_token(TokenKind::Operator(Op::Assign));
+                }
+            }
+
+            &STATE_BLOCK
         }
     );
 
@@ -953,8 +995,8 @@ mod tests {
                 Location::new(0,13)
             ),
             Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
+                TokenKind::NumberLiteral(2),
+                String::from("2"),
                 Location::new(0,16)
             ),
             Token::new(
@@ -982,7 +1024,7 @@ mod tests {
             ),
             Token::new(
                 TokenKind::Label,
-                String::from("falsy"),
+                String::from("truthy"),
                 Location::new(0,3)
             ),
             Token::new(
@@ -1001,8 +1043,8 @@ mod tests {
                 Location::new(0,14)
             ),
             Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
+                TokenKind::NumberLiteral(2),
+                String::from("2"),
                 Location::new(0,17)
             ),
             Token::new(
