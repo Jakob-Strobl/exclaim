@@ -22,6 +22,14 @@ impl Location {
     pub fn shift(&mut self) {
         self.column += 1;
     }
+
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
+    pub fn column(&self) -> usize {
+        self.column
+    }
 }
 
 impl convert::From<(usize, usize)> for Location {

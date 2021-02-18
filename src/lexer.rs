@@ -103,6 +103,11 @@ mod states {
         pub fn run(&self, stack: &mut StackMachine) -> &'static State {
             &self.0(stack)
         }
+
+        pub fn get_error_msg(stack: &mut StackMachine, msg: &str, underline_msg: &str) -> String {
+            let (loc, line) = stack.debug_line(underline_msg);
+            format!("{} On line [{}; {}]:\n\t{}", msg, loc.line(), loc.column(), line)
+        }
     }
 
     static STATE_START: State = State(
@@ -140,7 +145,7 @@ mod states {
     static STATE_CLOSE_BLOCK: State = State(
         |stack| {
             // Context, we already know stack.peek() == '}'
-            match stack.lookahead().unwrap() {
+            match stack.lookahead().unwrap_or(&' ') {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
@@ -224,8 +229,11 @@ mod states {
                         stack.skip();
                         &STATE_BLOCK
                     } else {
-                        // TODO print surrounding text
-                        panic!("Lexer: Encountered unknown character '{}'", ch);
+                        panic!(State::get_error_msg(
+                            stack, 
+                            &format!("Lexer<BLOCK>: Encountered unknown character '{}'.", ch),
+                            "unknown character",
+                        ));
                     }
                 }
             }
@@ -254,7 +262,7 @@ mod states {
     static STATE_CLOSE_BLOCK_FROM_BLOCK: State = State(
         |stack| {
             // Context, we already know stack.peek() == '}'
-            match stack.lookahead().unwrap() {
+            match stack.lookahead().unwrap_or(&' ') {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
@@ -341,7 +349,11 @@ mod states {
                     &STATE_BLOCK
                 }
                 _ => {
-                    panic!("Lexer: Expected Operator And(&&). A single '&' is not a valid token. Stack: \"{}\"", stack.view_stack());
+                    panic!(State::get_error_msg(
+                        stack, 
+                        "Lexer<AND>: Expected Operator And(&&). A single '&' is not a valid token.",
+                        "expected '&&'",
+                    ));
                 }
             }
         }
@@ -372,8 +384,11 @@ mod states {
                 stack.push();
                 &STATE_LABEL
             } else if ch.is_numeric() {
-                // TODO print surrounding text
-                panic!("Lexer: The expected label contains digit '{}' with stack \"{}\"", ch, stack.view_stack());
+                panic!(State::get_error_msg(
+                    stack, 
+                    &format!("Lexer<LABEL>: The expected label contains digit '{}' with stack \"{}\".", ch, stack.view_stack()),
+                    "expected alphabetic character",
+                ));
             } else {
                 // Accept Label 
                 stack.accept_token(TokenKind::Label);
@@ -389,8 +404,11 @@ mod states {
                 stack.push();
                 &STATE_DIGIT
             } else if ch.is_alphabetic() {
-                // TODO print surrounding text
-                panic!("Lexer: The expected number contains invalid digit '{}' with stack \"{}\"", ch, stack.view_stack());
+                panic!(State::get_error_msg(
+                    stack, 
+                    &format!("Lexer<DIGIT>: The expected number contains invalid digit '{}' with stack \"{}\".", ch, stack.view_stack()),
+                    "expected digit",
+                ));
             } else {
                 // Accept Number 
                 let number: usize = stack.view_stack().parse::<usize>().unwrap();
@@ -500,6 +518,38 @@ mod automata {
 
         pub fn eof(&self) -> bool {
             self.index >= self.chars.len()
+        }
+
+        pub fn debug_line(&self, underline_msg: &str) -> (Location, String) {
+            let mut index = self.index; 
+            let mut line = String::new();
+
+            // Backup to get starting character of the line 
+            for idx in (0..=index).rev() {
+                if self.chars[idx] == '\n' {
+                    break;
+                }
+                index = idx;
+            }
+
+            // Collect every character until we reach newline or eof 
+            while let Some(ch) = self.chars.get(index) {
+                if *ch == '\n' {
+                    break;
+                }
+                line.push(self.chars[index]);
+                index += 1;
+            }
+
+            // Underline location of error 
+            line.push('\n');
+            line.push('\t');
+            line.push_str(&" ".repeat(self.current.column()));
+            line.push_str(&"^");
+            line.push(' ');
+            line.push_str(&underline_msg);
+
+            (self.current, line)
         }
     }
 }
@@ -648,7 +698,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Lexer: The expected number contains invalid digit 'a' with stack \"1234\"")]
+    #[should_panic(expected = "Lexer<DIGIT>: The expected number contains invalid digit \'a\' with stack \"1234\". On line [0; 7]:\n\t{{ 1234a }}\n\t       ^ expected digit")]
     fn lexer_block_invalid_digit() {
         let input = "{{ 1234a }}";
         let lexer = Lexer::from(input);
@@ -686,7 +736,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Lexer: The expected label contains digit '1' with stack \"b\"")]
+    #[should_panic(expected = "Lexer<LABEL>: The expected label contains digit \'1\' with stack \"b\". On line [0; 4]:\n\t{{ b1234 }}\n\t    ^ expected alphabetic character")]
     fn lexer_block_invalid_label() {
         let input = "{{ b1234 }}";
         let lexer = Lexer::from(input);
@@ -1156,6 +1206,15 @@ mod tests {
         ];
 
         assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    #[should_panic(expected = "Lexer<BLOCK>: Encountered unknown character \'`\'. On line [1; 3]:\n\t{{ `` }}\n\t   ^ unknown character")]
+    fn lexer_block_unknown_character() {
+        let input = "test\n{{ `` }}\ntest";
+        let lexer = Lexer::from(input);
+
+        lexer.tokenize();
     }
 
     #[test]
