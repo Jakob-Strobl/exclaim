@@ -36,13 +36,13 @@ pub enum Op {
     And,            // &&
     Assign,         // =
     BlockClose,     // }}
-    BlockClosePrime,// }
+    BlockClosePrime,// } Reserved
     BlockOpen,      // {{
-    BlockOpenPrime, // {
-    ClosureOpen,    // [
-    ClosureClose,   // ] 
-    Comma,          // , Keeping here if its used in future 
-    Dot,            // . (Access fields)
+    BlockOpenPrime, // { Reserved
+    ClosureOpen,    // [ Reserved
+    ClosureClose,   // ] Reserved
+    Comma,          // , 
+    Dot,            // . 
     Each,           // :
     Equality,       // ==
     Inequality,     // !=
