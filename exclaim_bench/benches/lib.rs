@@ -1,25 +1,20 @@
-use criterion::{
-    Criterion, 
-    black_box
-};
+use criterion::Criterion;
 mod lexer_benches;
 
-fn fibonacci(n: u64) -> u64 {
-    match n {
-        0 => 1,
-        1 => 1,
-        n => fibonacci(n-1) + fibonacci(n-2),
-    }
-}
+fn bench_lexer(c: &mut Criterion) {
+    let mut group = c.benchmark_group("Lexer");
 
-fn bench_test(c: &mut Criterion) {
-    c.bench_function("fib 20", |b| b.iter(|| fibonacci(black_box(20))));
+    group.bench_function("Long String Literal", |b| {
+        lexer_benches::bench_string_literal(b)
+    });
+
+    group.finish();
 }
 
 criterion::criterion_group!(
     name = benches;
     config = Criterion::default();
-    targets = bench_test
+    targets = bench_lexer
 );
 
 criterion::criterion_main!(benches);

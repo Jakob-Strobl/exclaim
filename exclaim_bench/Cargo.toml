@@ -9,6 +9,9 @@ edition = "2018"
 [dependencies]
 criterion = "0.3"
 
+[dependencies.exclaim]
+path = "../exclaim"
+
 [[bench]]
 name = "benchmarks"
 path = "benches/lib.rs"
