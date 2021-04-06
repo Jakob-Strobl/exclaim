@@ -6,6 +6,8 @@ use lexer::tokens;
 
 mod parser;
 use parser::parser::Parser;
+use parser::ast::Ast;
+use parser::error::ParserError;
 
 pub fn run(input: &str) {
     let tokens = run_lexer(input);
@@ -17,7 +19,10 @@ pub fn run_lexer(input: &str) -> Vec<tokens::Token> {
     lexer.tokenize()
 }
 
-pub fn run_parser(input: Vec<tokens::Token>) {
-    let parser = Parser::from(input);
-    parser.parse()
+pub fn run_parser(input: Vec<tokens::Token>) -> Ast {
+    let mut parser = Parser::from(input);
+    match Parser::parse(&mut parser) {
+        Ok(ast) => ast,
+        Err(e) => panic!("Parser failed with the error: {:?}", e),
+    }
 }
