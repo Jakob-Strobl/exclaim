@@ -92,18 +92,29 @@ impl Parser {
                         Op::BlockOpen => { 
                             let mut block = BlockNode::new(parser.consume());
 
-                            match Parser::start_block(parser) {
+                            match Parser::block_stmt(parser) {
                                 Ok(node) => {
                                     match node {
                                         Node::TextNode(text) => {
                                             block.set_text(text);
-                                            Ok(Some(Node::BlockNode(block)))
                                         },
-                                        _ => Err(ParserError::from(format!("Parser::start_block returned unexpected node: {:?}", node)))
+                                        _ => return Err(ParserError::from(format!("Parser::start_block returned unexpected node: {:?}", node)))
                                     }
                                 },
-                                Err(e) => Err(e)
+                                Err(e) => return Err(e)
                             }
+
+                            // This will probably need to re-structured as we add complexity 
+                            match Parser::close_block(parser) {
+                                Ok(close) => {
+                                    block.set_close(close);
+                                },
+                                Err(e) => {
+                                    return Err(ParserError::from(format!("Expected CloseBlock Operator: {:?}", e)));
+                                }
+                            }
+
+                            Ok(Some(Node::BlockNode(block)))
                         }
                         _ => Err(ParserError::from(format!("Unexpected token found: {:?}", op)))
                     }
@@ -115,7 +126,7 @@ impl Parser {
         }
     }
 
-    fn start_block(parser: &mut Parser) -> Result<Node> {
+    fn block_stmt(parser: &mut Parser) -> Result<Node> {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::StringLiteral => {
@@ -124,6 +135,24 @@ impl Parser {
                     Ok(Node::TextNode(string_node))
                 },
                 _ => Err(ParserError::from(ErrorKind::Unimplemented))
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    }
+
+    fn close_block(parser: &mut Parser) -> Result<Token> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::BlockClose => {
+                            Ok(parser.consume())
+                        },
+                        _ => Err(ParserError::from(format!("Unexpected operator token: {:?}", op)))
+                    }
+                },
+                _ => Err(ParserError::from(format!("Unexpected token: {:?}", token))),
             }
         } else {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
