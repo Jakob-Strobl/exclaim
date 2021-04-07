@@ -3,7 +3,7 @@ use std::fmt::format;
 use exclaim::*;
 
 #[test]
-pub fn parser_test_empty_input() {
+pub fn parser_empty_input() {
     let expected = "AST:\n";
     let input = "";
 
@@ -14,7 +14,7 @@ pub fn parser_test_empty_input() {
 }
 
 #[test]
-pub fn parser_test_string_literal() {
+pub fn parser_string_literal() {
     let expected = "AST:\n[ TextNode: text: Token { kind: StringLiteral, lexeme: \"Hello, World!\", location: Location { line: 0, column: 0 } } ]\n";
     let input = "Hello, World!";
 
@@ -25,8 +25,18 @@ pub fn parser_test_string_literal() {
 }
 
 #[test]
-pub fn parser_test_simple_string_block() {
-    let input = "{{ \"Hello!\" }}";
+pub fn parser_write_string() {
+    let input = "{{ write! \"Hello!\" }}";
+
+    let tokens = crate::run_lexer(input);
+    let ast = crate::run_parser(tokens);
+
+    println!("{:?}", ast);
+}
+
+#[test]
+pub fn parser_test_simple() {
+    let input = "This is a string. {{ write! \"Hello!\" }} and another one.";
 
     let tokens = crate::run_lexer(input);
     let ast = crate::run_parser(tokens);
