@@ -109,17 +109,17 @@ impl Parser {
     fn block(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
         // Parse block stmt field
         fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
-            match Parser::block_stmt(parser) {
-                Ok(node) => {
-                    match node {
-                        Node::TextNode(text) => {
-                            block.set_text(text);
-                            Ok(block)
-                        },
-                        _ => return Err(ParserError::from(format!("Parser::start_block returned unexpected node: {:?}", node)))
-                    }
-                },
-                Err(e) => return Err(e)
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    &TokenKind::StringLiteral => {
+                        let string_node = TextNode::new(parser.consume());
+                        block.set_text(string_node);
+                        Ok(block)
+                    },
+                    _ => Err(ParserError::from(ErrorKind::Unimplemented))
+                }
+            } else {
+                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
             }
         }
 
@@ -146,21 +146,6 @@ impl Parser {
         let block = parse_stmt(parser, block)?;
         let block = parse_close(parser, block);
         block
-    }
-
-    fn block_stmt(parser: &mut Parser) -> Result<Node> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::StringLiteral => {
-                    let string_node = TextNode::new(parser.consume());
-
-                    Ok(Node::TextNode(string_node))
-                },
-                _ => Err(ParserError::from(ErrorKind::Unimplemented))
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
     }
 }
 
