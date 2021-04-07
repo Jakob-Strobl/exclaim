@@ -91,7 +91,7 @@ impl convert::From<File> for Lexer {
 
 mod states {
     use super::automata::StackMachine;
-    use crate::tokens::{TokenKind, Op};
+    use crate::tokens::{TokenKind, Op, Action};
     
     pub struct State(fn(&mut StackMachine) -> &'static State);
 
@@ -289,7 +289,7 @@ mod states {
                 }
                 _ => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Action));
+                    stack.accept_token(TokenKind::Action(Action::End));
                 }
             }
 
@@ -383,6 +383,26 @@ mod states {
             if ch.is_alphabetic() {
                 stack.push();
                 &STATE_LABEL
+            } else if ch == '!' && *stack.lookahead().unwrap_or(&' ') != '=' {
+                // If the following two characters are not: !=
+                // Push ! 
+                stack.push();
+
+                // Derive action variant
+                let action = match stack.view_stack() {
+                    // There is no way it should be an empty string, since one character has to be consumed to even be in this state.
+                    "let!" => Action::Let,
+                    "write!" => Action::Write,
+                    "render!" => Action::Render,
+                    _ => panic!(State::get_error_msg(
+                                    stack, 
+                                    &format!("Lexer<LABEL>: The expected action does not match a defined action - found: '{}' ", stack.view_stack()), 
+                                    "expected one of the following defined actions: let!, write!, render!, or !."))
+                };
+
+                stack.accept_token(TokenKind::Action(action));
+                &STATE_BLOCK
+
             } else if ch.is_numeric() {
                 panic!(State::get_error_msg(
                     stack, 
@@ -557,7 +577,7 @@ mod automata {
 #[cfg(test)]
 mod tests {
     use crate::util::Location;
-    use crate::tokens::{Token, TokenKind, Op};
+    use crate::tokens::{Token, TokenKind, Op, Action};
     use super::Lexer;
 
     fn token_string_literal(string: &str, location: (usize, usize)) -> Token {
@@ -787,14 +807,9 @@ mod tests {
                 Location::new(0,0)
             ),
             Token::new(
-                TokenKind::Label,
-                String::from("render"),
+                TokenKind::Action(Action::Render),
+                String::from("render!"),
                 Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Action),
-                String::from("!"),
-                Location::new(0,9)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
@@ -1268,7 +1283,7 @@ mod tests {
 
     #[test]
     fn lexer_simple() {
-        let input = "<h1>Tests</h1>\n{{ render! }}\n{{ tests = site.tests | take 5 }}\n<li>{{ tests.name }}</li>\n{{!}}";
+        let input = "<h1>Tests</h1>\n{{ render! tests : site.tests | take 5 }}\n<li>{{ tests.name }}</li>\n{{!}}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
@@ -1281,112 +1296,96 @@ mod tests {
                 Location::new(1,0)
             ),
             Token::new(
-                TokenKind::Label,
-                String::from("render"),
+                TokenKind::Action(Action::Render),
+                String::from("render!"),
                 Location::new(1,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Action),
-                String::from("!"),
-                Location::new(1,9)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(1,11)
-            ),
-            token_string_literal("\n", (1, 13)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(2,0)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("tests"),
-                Location::new(2,3)
+                Location::new(1,11)
             ),
             Token::new(
-                TokenKind::Operator(Op::Assign),
-                String::from("="),
-                Location::new(2,9)
+                TokenKind::Operator(Op::Each),
+                String::from(":"),
+                Location::new(1,17)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("site"),
-                Location::new(2,11)
+                Location::new(1,19)
             ),
             Token::new(
                 TokenKind::Operator(Op::Dot),
                 String::from("."),
-                Location::new(2,15)
+                Location::new(1,23)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("tests"),
-                Location::new(2,16)
+                Location::new(1,24)
             ),
             Token::new(
                 TokenKind::Operator(Op::Pipe),
                 String::from("|"),
-                Location::new(2,22)
+                Location::new(1,30)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("take"),
-                Location::new(2,24)
+                Location::new(1,32)
             ),
             Token::new(
                 TokenKind::NumberLiteral(5),
                 String::from("5"),
-                Location::new(2,29)
+                Location::new(1,37)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
-                Location::new(2,31)
+                Location::new(1,39)
             ),
-            token_string_literal("\n<li>", (2, 33)),
+            token_string_literal("\n<li>", (1, 41)),
             Token::new(
                 TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
-                Location::new(3,4)
+                Location::new(2,4)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("tests"),
-                Location::new(3,7)
+                Location::new(2,7)
             ),
             Token::new(
                 TokenKind::Operator(Op::Dot),
                 String::from("."),
-                Location::new(3,12)
+                Location::new(2,12)
             ),
             Token::new(
                 TokenKind::Label,
                 String::from("name"),
-                Location::new(3,13)
+                Location::new(2,13)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
-                Location::new(3,18)
+                Location::new(2,18)
             ),
-            token_string_literal("</li>\n", (3, 20)),
+            token_string_literal("</li>\n", (2, 20)),
             Token::new(
                 TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),
-                Location::new(4,0)
+                Location::new(3,0)
             ),
             Token::new(
-                TokenKind::Operator(Op::Action),
+                TokenKind::Action(Action::End),
                 String::from("!"),
-                Location::new(4,2)
+                Location::new(3,2)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
-                Location::new(4,3)
+                Location::new(3,3)
             ),
         ];
 
