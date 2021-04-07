@@ -1,8 +1,16 @@
 // This code's structure heavily inspired by Rust's std::io::error.rs
-use std::fmt;
+use std::fmt::{self, Pointer};
+
+use crate::tokens::Token;
 
 pub struct ParserError {
     error: Error,
+}
+
+impl fmt::Debug for ParserError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.error, f)
+    }
 }
 
 impl From<ErrorKind> for ParserError {
@@ -13,9 +21,19 @@ impl From<ErrorKind> for ParserError {
     }
 }
 
-impl fmt::Debug for ParserError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Debug::fmt(&self.error, f)
+impl From<&str> for ParserError {
+    fn from(msg: &str) -> ParserError {
+        ParserError {
+            error: Error::Custom(msg.to_string()),
+        }
+    }
+}
+
+impl From<String> for ParserError {
+    fn from(msg: String) -> ParserError {
+        ParserError {
+            error: Error::Custom(msg),
+        }
     }
 }
 

@@ -7,7 +7,6 @@ use lexer::tokens;
 mod parser;
 use parser::parser::Parser;
 use parser::ast::Ast;
-use parser::error::ParserError;
 
 pub fn run(input: &str) {
     let tokens = run_lexer(input);

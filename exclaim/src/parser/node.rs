@@ -17,6 +17,16 @@ pub struct TextNode {
     next: Option<Box<dyn Node>>,
 }
 
+impl Node for TextNode {
+    fn token(&self) -> &Token {
+        &self.token
+    }
+
+    fn next(&self) -> &Option<Box<dyn Node>> {
+        &self.next
+    }
+}
+
 impl TextNode {
     pub fn new(token: Token) -> TextNode {
         TextNode {
@@ -30,20 +40,11 @@ impl TextNode {
     }
 }
 
-impl Node for TextNode {
-    fn token(&self) -> &Token {
-        &self.token
-    }
-
-    fn next(&self) -> &Option<Box<dyn Node>> {
-        &self.next
-    }
-}
-
 pub struct BlockNode {
     token: Token,
     next: Option<Box<dyn Node>>,
 }
+
 
 impl Node for BlockNode {
     fn token(&self) -> &Token {
@@ -52,5 +53,18 @@ impl Node for BlockNode {
 
     fn next(&self) -> &Option<Box<dyn Node>> {
         &self.next
+    }
+}
+
+impl BlockNode {
+    pub fn new(token: Token) -> BlockNode {
+        BlockNode {
+            token,
+            next: None
+        }
+    }
+
+    pub fn set_next(&mut self, node: Box<dyn Node>) {
+        self.next = Some(node);
     }
 }
