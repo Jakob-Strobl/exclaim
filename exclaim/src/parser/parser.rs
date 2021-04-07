@@ -39,7 +39,6 @@ impl<T> DerefMut for ParserList<T> {
 
 pub struct Parser {
     token_stream: ParserList<Token>,
-    token_index: usize,
 }
 
 // Methods
@@ -106,6 +105,9 @@ impl Parser {
         }
     }
 
+    /// Parses a Block := {{ BLOCK_STMT }}
+    /// parser: the current Parser context
+    /// block: the open block (rest of the fields needs to be parsed)
     fn block(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
         // Parse block stmt field
         fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
@@ -153,7 +155,6 @@ impl convert::From<Vec<Token>> for Parser {
     fn from(tokens: Vec<Token>) -> Parser {
         Parser {
             token_stream: ParserList(tokens.into_iter().collect()),
-            token_index: 0,
         }
     }
 }
