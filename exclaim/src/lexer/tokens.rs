@@ -28,11 +28,19 @@ pub enum TokenKind {
 
     Label,
     Operator(Op),
+    Action(Action),
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Action {
+    End,
+    Let, 
+    Write, 
+    Render,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Op {
-    Action,         // !
     And,            // &&
     Assign,         // =
     BlockClose,     // }}
