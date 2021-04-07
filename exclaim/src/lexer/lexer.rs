@@ -396,7 +396,7 @@ mod states {
                     "render!" => Action::Render,
                     _ => panic!(State::get_error_msg(
                                     stack, 
-                                    &format!("Lexer<LABEL>: The expected action does not match a defined action - found: '{}' ", stack.view_stack()), 
+                                    &format!("Lexer<LABEL>: The expected action does not match any defined action - invalid action found: '{}' ", stack.view_stack()), 
                                     "expected one of the following defined actions: let!, write!, render!, or !."))
                 };
 
@@ -819,6 +819,58 @@ mod tests {
         ];
 
         assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    fn lexer_block_action_or_inequality() {
+        let input = "{{ render!render!=abc }}";
+        let lexer = Lexer::from(input);
+
+        let tokens = lexer.tokenize();
+
+        let expected = vec![
+            Token::new(
+                TokenKind::Operator(Op::BlockOpen),
+                String::from("{{"),
+                Location::new(0,0)
+            ),
+            Token::new(
+                TokenKind::Action(Action::Render),
+                String::from("render!"),
+                Location::new(0,3)
+            ),
+            Token::new(
+                TokenKind::Label, 
+                String::from("render"),
+                Location::new(0,10)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Inequality), 
+                String::from("!="),
+                Location::new(0,16)
+            ),
+            Token::new(
+                TokenKind::Label, 
+                String::from("abc"),
+                Location::new(0,18)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::BlockClose),
+                String::from("}}"),
+                Location::new(0,22)
+            ),
+        ];
+
+        assert_eq!(tokens, expected);
+    }
+
+    #[test]
+    #[should_panic(expected = "Lexer<LABEL>: The expected action does not match any defined action - invalid action found: \'abc!\'")]
+    fn lexer_invalid_action() {
+        let input = "{{ abc! }}";
+        let lexer = Lexer::from(input);
+
+        let _ = lexer.tokenize(); // Should panic
     }
 
     #[test]
