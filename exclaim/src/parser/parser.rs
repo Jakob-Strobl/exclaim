@@ -1,4 +1,4 @@
-use std::{convert, fmt::Pointer};
+use std::convert;
 use std::ops::{Deref, DerefMut};
 use std::result;
 use std::collections::LinkedList;
@@ -15,8 +15,8 @@ use crate::tokens::{
     Op
 };
 
-type Result<T> = result::Result<Box<T>, ParserError>;
-type OptionalResult<T> = result::Result<Option<Box<T>>, ParserError>;
+type Result<T> = result::Result<T, ParserError>;
+type OptionalResult<T> = result::Result<Option<T>, ParserError>;
 
 struct ParserList<T>(LinkedList<T>);
 impl<T> ParserList<T> {
@@ -80,30 +80,30 @@ impl Parser {
         Ok(ast)
     }
 
-    fn start(parser: &mut Parser) -> OptionalResult<dyn Node> {
+    fn start(parser: &mut Parser) -> OptionalResult<Node> {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::StringLiteral => {
-                    let mut text_node = Box::new(TextNode::new(parser.consume())); 
-                    
-                    match Parser::start(parser) {
-                        Ok(node) => {
-                            if let Some(node) = node {
-                                text_node.set_next(node);
-                            }
-                            Ok(Some(text_node))
-                        },
-                        Err(e) => Err(e)
-                    }
+                    let text_node = TextNode::new(parser.consume()); 
+                    Ok(Some(Node::TextNode(text_node)))
                 },
                 &TokenKind::Operator(op) => {
                     match op {
                         Op::BlockOpen => { 
-                            let mut open_block = Box::new(BlockNode::new(parser.consume()));
+                            let mut block = BlockNode::new(parser.consume());
 
-
-                            
-                            Ok(Some(open_block))
+                            match Parser::start_block(parser) {
+                                Ok(node) => {
+                                    match node {
+                                        Node::TextNode(text) => {
+                                            block.set_text(text);
+                                            Ok(Some(Node::BlockNode(block)))
+                                        },
+                                        _ => Err(ParserError::from(format!("Parser::start_block returned unexpected node: {:?}", node)))
+                                    }
+                                },
+                                Err(e) => Err(e)
+                            }
                         }
                         _ => Err(ParserError::from(format!("Unexpected token found: {:?}", op)))
                     }
@@ -115,9 +115,16 @@ impl Parser {
         }
     }
 
-    fn start_block(parser: Parser) -> Result<BlockNode> {
+    fn start_block(parser: &mut Parser) -> Result<Node> {
         if let Some(token) = parser.peek() {
-            Err(ParserError::from(ErrorKind::Unimplemented))
+            match token.kind() {
+                &TokenKind::StringLiteral => {
+                    let string_node = TextNode::new(parser.consume());
+
+                    Ok(Node::TextNode(string_node))
+                },
+                _ => Err(ParserError::from(ErrorKind::Unimplemented))
+            }
         } else {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
