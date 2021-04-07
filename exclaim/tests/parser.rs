@@ -3,12 +3,14 @@ use std::fmt::format;
 use exclaim::*;
 
 #[test]
-#[should_panic(expected = "Kind(\"unexpected end of token stream\")")]
 pub fn parser_test_empty_input() {
+    let expected = "AST:\n";
     let input = "";
 
     let tokens = crate::run_lexer(input);
-    let _ = crate::run_parser(tokens);
+    let ast = crate::run_parser(tokens);
+
+    assert_eq!(expected, format!("{:?}", ast));
 }
 
 #[test]
@@ -20,4 +22,14 @@ pub fn parser_test_string_literal() {
     let ast = crate::run_parser(tokens);
 
     assert_eq!(expected, format!("{:?}", ast));
+}
+
+#[test]
+pub fn parser_test_simple_write_block() {
+    let input = "{{ write! \"Hello!\" }}";
+
+    let tokens = crate::run_lexer(input);
+    let ast = crate::run_parser(tokens);
+
+    println!("{:?}", ast);
 }
