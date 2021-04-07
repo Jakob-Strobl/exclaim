@@ -10,10 +10,10 @@ impl fmt::Debug for Node {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Node::TextNode(node) => {
-                write!(f, "[ {:?} ] ", node)
+                write!(f, "{:?}", node)
             },
             Node::BlockNode(node) => {
-                write!(f, "[ {:?} ]", node)
+                write!(f, "{:?}", node)
             }
         }
     }
@@ -33,7 +33,7 @@ impl TextNode {
 
 impl fmt::Debug for TextNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "TextNode: {:?}", self.text)
+        write!(f, "[ TextNode: text: {:?} ]", self.text)
     }
 }
 
@@ -63,6 +63,6 @@ impl BlockNode {
 
 impl fmt::Debug for BlockNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "BlockNode: {:?}, {:?}, {:?}", self.open, self.text, self.close)
+        write!(f, "[ BlockNode: open: {:?}, text: {:?}, close: {:?} ]", self.open, self.text, self.close)
     }
 }

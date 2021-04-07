@@ -15,7 +15,7 @@ pub fn parser_test_empty_input() {
 
 #[test]
 pub fn parser_test_string_literal() {
-    let expected = "AST:\n[ TextNode: Token { kind: StringLiteral, lexeme: \"Hello, World!\", location: Location { line: 0, column: 0 } } ] \n";
+    let expected = "AST:\n[ TextNode: text: Token { kind: StringLiteral, lexeme: \"Hello, World!\", location: Location { line: 0, column: 0 } } ]\n";
     let input = "Hello, World!";
 
     let tokens = crate::run_lexer(input);
