@@ -108,7 +108,7 @@ impl Parser {
 
     fn block(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
         // Parse block stmt field
-        fn block_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
+        fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
             match Parser::block_stmt(parser) {
                 Ok(node) => {
                     match node {
@@ -123,8 +123,8 @@ impl Parser {
             }
         }
 
-        // Parse block close
-        fn block_close(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
+        // Parse block close field
+        fn parse_close(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
             if let Some(token) = parser.peek() {
                 match token.kind() {
                     &TokenKind::Operator(op) => {
@@ -143,8 +143,9 @@ impl Parser {
             }
         }
 
-        let block = block_stmt(parser, block)?;
-        block_close(parser, block)
+        let block = parse_stmt(parser, block)?;
+        let block = parse_close(parser, block);
+        block
     }
 
     fn block_stmt(parser: &mut Parser) -> Result<Node> {
