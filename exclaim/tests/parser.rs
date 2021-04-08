@@ -44,6 +44,7 @@ pub fn parse_simple() {
     println!("{:?}", ast);
 }
 
+#[test]
 pub fn parse_end_stmt() {
     let input = "{{!}}";
 
