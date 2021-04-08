@@ -12,7 +12,8 @@ use super::error::{
 use crate::tokens::{
     Token,
     TokenKind,
-    Op
+    Op,
+    Action
 };
 
 type Result<T> = result::Result<T, ParserError>;
@@ -111,18 +112,9 @@ impl Parser {
     fn block(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
         // Parse block stmt field
         fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    &TokenKind::StringLiteral => {
-                        let string_node = TextNode::new(parser.consume());
-                        block.set_text(string_node);
-                        Ok(block)
-                    },
-                    _ => Err(ParserError::from(ErrorKind::Unimplemented))
-                }
-            } else {
-                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-            }
+            let stmt = Parser::stmt(parser)?;
+            block.set_stmt(stmt);
+            Ok(block)
         }
 
         // Parse block close field
@@ -148,6 +140,47 @@ impl Parser {
         let block = parse_stmt(parser, block)?;
         let block = parse_close(parser, block);
         block
+    }
+
+    fn stmt(parser: &mut Parser) -> Result<StmtNode> {
+        fn parse_action(parser: &mut Parser) -> Result<StmtNode> {
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    &TokenKind::Action(_) => {
+                        let stmt = StmtNode::new(parser.consume());
+                        Ok(stmt)
+                    },
+                    _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
+                }
+            } else {
+                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            }
+        }
+
+        fn parse_expr(parser: &mut Parser, mut stmt: StmtNode) -> Result<StmtNode> {
+            let expr = Parser::expr(parser)?;
+            stmt.set_expr(expr);
+            Ok(stmt)
+        }
+
+        let stmt = parse_action(parser)?;
+        let stmt = parse_expr(parser, stmt);
+        stmt
+    }
+
+    fn expr(parser: &mut Parser) -> Result<Expression> {
+        // Lets just parse Literal Expressions for now :D
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => {
+                    let lit_expr = LiteralExpression::new(parser.consume());
+                    Ok(Expression::Literal(lit_expr))
+                },
+                _ => Err(ParserError::from(format!("Parser<EXPR>: Unexpected token in expression: {:?}, expected a NumberLiteral or StringLiteral.", token)))
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
     }
 }
 
