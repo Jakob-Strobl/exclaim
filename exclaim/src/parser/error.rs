@@ -1,7 +1,5 @@
 // This code's structure heavily inspired by Rust's std::io::error.rs
-use std::fmt::{self, Pointer};
-
-use crate::tokens::Token;
+use std::fmt;
 
 pub struct ParserError {
     error: Error,

@@ -1,7 +1,10 @@
 use std::convert;
-use std::ops::{Deref, DerefMut};
 use std::result;
 use std::collections::LinkedList;
+use std::ops::{
+    Deref, 
+    DerefMut
+};
 
 use super::ast::Ast;
 use super::node::*;
