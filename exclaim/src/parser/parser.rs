@@ -84,14 +84,14 @@ impl Parser {
             match token.kind() {
                 &TokenKind::StringLiteral => {
                     let text_node = TextNode::new(parser.consume()); 
-                    Ok(Some(Node::TextNode(text_node)))
+                    Ok(Some(Node::Text(text_node)))
                 },
                 &TokenKind::Operator(op) => {
                     match op {
                         Op::BlockOpen => { 
                             let block = BlockNode::new(parser.consume());
                             match Parser::block(parser, block) {
-                                Ok(block) => Ok(Some(Node::BlockNode(block))),
+                                Ok(block) => Ok(Some(Node::Block(block))),
                                 Err(e) => Err(e)
                             }
                         }
