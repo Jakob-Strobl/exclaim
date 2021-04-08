@@ -34,7 +34,6 @@ impl fmt::Debug for TextNode {
 
 pub struct BlockNode {
     open: Token,
-    text: Option<TextNode>,
     stmt: Option<StmtNode>,
     close: Option<Token>,
 }
@@ -42,14 +41,9 @@ impl BlockNode {
     pub fn new(open: Token) -> BlockNode {
         BlockNode {
             open,
-            text: None,
             stmt: None,
             close: None,
         }
-    }
-
-    pub fn set_text(&mut self, text: TextNode) {
-        self.text = Some(text);
     }
 
     pub fn set_stmt(&mut self, stmt: StmtNode) {
@@ -62,7 +56,7 @@ impl BlockNode {
 }
 impl fmt::Debug for BlockNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ BlockNode: open: {:?}, text: {:?}, close: {:?} ]", self.open, self.text, self.close)
+        write!(f, "[ BlockNode: open: {:?}, stmt: {:?}, close: {:?} ]", self.open, self.stmt, self.close)
     }
 }
 
