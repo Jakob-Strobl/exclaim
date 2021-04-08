@@ -158,8 +158,15 @@ impl Parser {
         }
 
         fn parse_expr(parser: &mut Parser, mut stmt: StmtNode) -> Result<StmtNode> {
-            let expr = Parser::expr(parser)?;
-            stmt.set_expr(expr);
+            // If the action is not Action::End {{!}}, parse the following expression
+            if let TokenKind::Action(action) = stmt.action().kind() {
+                if *action != Action::End {
+                    let expr = Parser::expr(parser)?;
+                    stmt.set_expr(expr);
+                }
+            } else {
+                return Err(ParserError::from("Parser<STMT> somehow we are parsing an expression of an action-less statement?"));
+            }
             Ok(stmt)
         }
 
