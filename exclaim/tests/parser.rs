@@ -1,5 +1,28 @@
-use pretty_assertions::{assert_eq};
+use std::fmt;
+use pretty_assertions::assert_eq;
 use exclaim::*;
+
+// The following: 
+//      PrettyString Newtype, 
+//      fmt::Debug implementation, 
+//      and macro_rule for assert_eq!,
+// was wrriten by idubrov and improved by rfdonnelly on https://github.com/colin-kiegel/rust-pretty-assertions/issues/24
+#[derive(PartialEq, Eq)]
+#[doc(hidden)]
+pub struct PrettyString<'a>(pub &'a str);
+
+/// Write string as plain multi-line text to debug-formatter
+impl<'a> fmt::Debug for PrettyString<'a> {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    f.write_str(self.0)
+  }
+}
+
+macro_rules! assert_eq {
+    ($left:expr, $right:expr) => {
+        pretty_assertions::assert_eq!(PrettyString($left), PrettyString($right));
+    }
+}
 
 #[test]
 pub fn parse_empty_input() {
