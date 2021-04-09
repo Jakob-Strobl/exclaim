@@ -37,16 +37,12 @@ impl fmt::Debug for TextNode {
 }
 
 pub struct BlockNode {
-    open: Token,
     stmt: Option<StmtNode>,
-    close: Option<Token>,
 }
 impl BlockNode {
-    pub fn new(open: Token) -> BlockNode {
+    pub fn new() -> BlockNode {
         BlockNode {
-            open,
             stmt: None,
-            close: None,
         }
     }
 
@@ -54,25 +50,13 @@ impl BlockNode {
         self.stmt = Some(stmt);
     }
 
-    pub fn set_close(&mut self, close: Token) {
-        self.close = Some(close);
-    }
-
-    pub fn open(&self) -> &Token {
-        &self.open
-    }
-
     pub fn stmt(&self) -> &Option<StmtNode> {
         &self.stmt
-    }
-
-    pub fn close(&self) -> &Option<Token> {
-        &self.close
     }
 }
 impl fmt::Debug for BlockNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ BlockNode: open: {:?}, stmt: {:?}, close: {:?} ]", self.open, self.stmt, self.close)
+        write!(f, "[ BlockNode: stmt: {:?}, ]", self.stmt)
     }
 }
 

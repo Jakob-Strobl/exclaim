@@ -55,6 +55,8 @@ impl Parser {
         self.token_stream.lookahead()
     }
 
+    /// Returns the token removed from the head of the list 
+    /// If you see: let _ = parser.consume(), that means we needed to consume the Token, but the token isnt needed in the AST.
     fn consume(&mut self) -> Token {
         self.token_stream.pop_front().unwrap()
     }
@@ -93,7 +95,8 @@ impl Parser {
                 &TokenKind::Operator(op) => {
                     match op {
                         Op::BlockOpen => { 
-                            let block = BlockNode::new(parser.consume());
+                            let _ = parser.consume();
+                            let block = BlockNode::new();
                             match Parser::block(parser, block) {
                                 Ok(block) => Ok(Some(Node::Block(block))),
                                 Err(e) => Err(e)
@@ -121,13 +124,13 @@ impl Parser {
         }
 
         // Parse block close field
-        fn parse_close(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
+        fn parse_close(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
             if let Some(token) = parser.peek() {
                 match token.kind() {
                     &TokenKind::Operator(op) => {
                         match op {
                             Op::BlockClose => {
-                                block.set_close(parser.consume());
+                                let _ = parser.consume();
                                 Ok(block)
                             },
                             _ => Err(ParserError::from(format!("Unexpected operator: {:?}", op)))

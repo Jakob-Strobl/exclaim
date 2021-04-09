@@ -99,29 +99,12 @@ impl AstSerializer {
         fn block_internals(serde: &mut AstSerializer, block: &BlockNode) {
             AstSerializer::tag(
                 serde, 
-                "open",
-                |serde| serde.serialize_token(block.open())
-            );
-    
-            AstSerializer::tag(
-                serde, 
                 "stmt",
                 |serde| {
                     serde.serialize_option(
                         block.stmt(),
                         AstSerializer::serialize_stmt_node
                     )
-                }
-            );
-            
-            AstSerializer::tag(
-                serde, 
-                "close",
-                |serde| {
-                    serde.serialize_option(
-                        block.close(),
-                        AstSerializer::serialize_token
-                    );
                 }
             );
         }
