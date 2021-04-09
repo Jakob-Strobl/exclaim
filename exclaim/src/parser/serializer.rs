@@ -124,11 +124,55 @@ impl AstSerializer {
                     serde.serialize_token(block.close().as_ref().unwrap())
                 }
             }
-        )
+        );
     }
 
     fn serialize_stmt_node(&mut self, stmt: &StmtNode) {
+        fn stmt_internals(serde: &mut AstSerializer, stmt: &StmtNode) {
+            AstSerializer::tag(
+                serde,
+                "action",
+                |serde| serde.serialize_token(stmt.action())
+            );
+    
+            AstSerializer::tag(
+                serde,
+                "expr",
+                |serde| {
+                    if serde.serialize_option(stmt.expr()) {
+                        serde.serialize_expression(stmt.expr().as_ref().unwrap())
+                    }
+                }
+            );
+        }
 
+        AstSerializer::tag(
+            self,
+            "StmtNode",
+            |serde| stmt_internals(serde, stmt)
+        );
+    }
+
+    fn serialize_expression(&mut self, expr: &Expression) {
+        match expr {
+            Expression::Literal(literal) => self.serialize_literal_expression(literal)
+        }
+    }
+
+    fn serialize_literal_expression(&mut self, literal: &LiteralExpression) {
+        fn literal_internals(serde: &mut AstSerializer, literal: &LiteralExpression) {
+            AstSerializer::tag(
+                serde,
+                "literal",
+                |serde| serde.serialize_token(literal.literal())
+            );
+        }
+        
+        AstSerializer::tag(
+            self, 
+            "LiteralExpression",
+            |serde| literal_internals(serde, literal)
+        );
     }
 
     fn serialize_token(&mut self, token: &Token) {

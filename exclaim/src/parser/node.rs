@@ -95,6 +95,10 @@ impl StmtNode {
     pub fn action(&self) -> &Token {
         &self.action
     }
+
+    pub fn expr(&self) -> &Option<Expression> {
+        &self.expr
+    }
 }
 impl fmt::Debug for StmtNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -122,6 +126,10 @@ impl LiteralExpression {
         LiteralExpression {
             literal,
         }
+    }
+
+    pub fn literal(&self) -> &Token {
+        &self.literal
     }
 }
 impl fmt::Debug for LiteralExpression {
