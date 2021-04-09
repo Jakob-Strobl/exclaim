@@ -25,6 +25,10 @@ impl TextNode {
             text
         }
     }
+
+    pub fn text(&self) -> &Token {
+        &self.text
+    }
 }
 impl fmt::Debug for TextNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -19,6 +19,14 @@ impl Token {
     pub fn kind(&self) -> &TokenKind {
         &self.kind
     }
+
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }
+
+    pub fn location(&self) -> &Location {
+        &self.location
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
