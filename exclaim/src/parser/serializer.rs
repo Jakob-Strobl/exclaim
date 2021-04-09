@@ -3,7 +3,7 @@ use super::node::*;
 use crate::lexer::tokens::*;
 use crate::util::Location;
 
-// Serialize the AST in an XML format 
+// Serialize the AST in an XML-like format 
 pub struct AstSerializer {
     indent: usize,
     buffer: String,
@@ -73,57 +73,63 @@ impl AstSerializer {
 
     fn serialize_node(&mut self, node: &Node) {
         match node {
-            Node::Text(text) => { 
-                AstSerializer::tag(
-                    self, 
-                    "TextNode",
-                    |serde| serde.serialize_text_node(text)
-                );
-            }
-            Node::Block(block) => {
-                AstSerializer::tag(
-                    self, 
-                    "BlockNode",
-                    |serde| serde.serialize_block_node(block)
-                );
-            },
+            Node::Text(text) => self.serialize_text_node(text),
+            Node::Block(block) => self.serialize_block_node(block),
             Node::Stmt(stmt) => self.serialize_stmt_node(stmt),
         }
     }
 
     fn serialize_text_node(&mut self, text: &TextNode) {
+        fn text_internals(serde: &mut AstSerializer, text: &TextNode) {
+            AstSerializer::tag(
+                serde,
+                "text", 
+                |serde| serde.serialize_token(text.text())
+            );
+        }
+
         AstSerializer::tag(
-            self,
-            "text", 
-            |serde| serde.serialize_token(text.text())
+            self, 
+            "TextNode",
+            |serde| text_internals(serde, text)
         );
     }
 
     fn serialize_block_node(&mut self, block: &BlockNode) {
-        AstSerializer::tag(
-            self, 
-            "open",
-            |serde| serde.serialize_token(block.open())
-        );
+        fn block_internals(serde: &mut AstSerializer, block: &BlockNode) {
+            AstSerializer::tag(
+                serde, 
+                "open",
+                |serde| serde.serialize_token(block.open())
+            );
+    
+            AstSerializer::tag(
+                serde, 
+                "stmt",
+                |serde| {
+                    serde.serialize_option(
+                        block.stmt(),
+                        AstSerializer::serialize_stmt_node
+                    )
+                }
+            );
+            
+            AstSerializer::tag(
+                serde, 
+                "close",
+                |serde| {
+                    serde.serialize_option(
+                        block.close(),
+                        AstSerializer::serialize_token
+                    );
+                }
+            );
+        }
 
         AstSerializer::tag(
             self, 
-            "stmt",
-            |serde| {
-                if serde.serialize_option(block.stmt()) {
-                    serde.serialize_stmt_node(block.stmt().as_ref().unwrap())
-                }
-            }
-        );
-
-        AstSerializer::tag(
-            self, 
-            "close",
-            |serde| {
-                if serde.serialize_option(block.close()) {
-                    serde.serialize_token(block.close().as_ref().unwrap())
-                }
-            }
+            "BlockNode",
+            |serde| block_internals(serde, block)
         );
     }
 
@@ -139,9 +145,10 @@ impl AstSerializer {
                 serde,
                 "expr",
                 |serde| {
-                    if serde.serialize_option(stmt.expr()) {
-                        serde.serialize_expression(stmt.expr().as_ref().unwrap())
-                    }
+                    serde.serialize_option(
+                        stmt.expr(),
+                        AstSerializer::serialize_expression
+                    ) 
                 }
             );
         }
@@ -205,12 +212,23 @@ impl AstSerializer {
         self.push(&format!("{{ {}, {} }}", location.line(), location.column()));
     }
 
-    fn serialize_option<T>(&mut self, option: &Option<T>) -> bool {
+    /// Serialize Rust Options
+    /// some_callback is invoked when the option is Some(). The contained value is passed to the callback
+    fn serialize_option<T>(&mut self, option: &Option<T>, some_callback: fn(&mut AstSerializer, val: &T)) {
         match option {
-            Some(_) => true,
+            Some(val) => {
+                AstSerializer::tag(
+                    self, 
+                    "Option", 
+                    |serde| some_callback(serde, val) 
+                );
+            }
             None => {
-                self.push("None");
-                false
+                AstSerializer::terminal(
+                    self, 
+                    "Option", 
+                    |serde| serde.push("None")
+                );
             }
         }
     }
