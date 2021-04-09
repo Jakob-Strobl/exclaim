@@ -57,6 +57,18 @@ impl BlockNode {
     pub fn set_close(&mut self, close: Token) {
         self.close = Some(close);
     }
+
+    pub fn open(&self) -> &Token {
+        &self.open
+    }
+
+    pub fn stmt(&self) -> &Option<StmtNode> {
+        &self.stmt
+    }
+
+    pub fn close(&self) -> &Option<Token> {
+        &self.close
+    }
 }
 impl fmt::Debug for BlockNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

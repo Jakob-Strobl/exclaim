@@ -51,15 +51,15 @@ impl AstSerializer {
     }
 
     fn indent_as_str(&self) -> String {
-        " ".repeat(self.indent)
+        "  ".repeat(self.indent)
     }
 
     fn indent(&mut self) {
-        self.indent += 2;
+        self.indent += 1;
     }
 
     fn outdent(&mut self) {
-        self.indent -= 2;
+        self.indent -= 1;
     }
     
     fn push(&mut self, str: &str) {
@@ -80,7 +80,13 @@ impl AstSerializer {
                     |serde| serde.serialize_text_node(text)
                 );
             }
-            Node::Block(block) => self.serialize_block_node(block),
+            Node::Block(block) => {
+                AstSerializer::tag(
+                    self, 
+                    "BlockNode",
+                    |serde| serde.serialize_block_node(block)
+                );
+            },
             Node::Stmt(stmt) => self.serialize_stmt_node(stmt),
         }
     }
@@ -94,7 +100,31 @@ impl AstSerializer {
     }
 
     fn serialize_block_node(&mut self, block: &BlockNode) {
+        AstSerializer::tag(
+            self, 
+            "open",
+            |serde| serde.serialize_token(block.open())
+        );
 
+        AstSerializer::tag(
+            self, 
+            "stmt",
+            |serde| {
+                if serde.serialize_option(block.stmt()) {
+                    serde.serialize_stmt_node(block.stmt().as_ref().unwrap())
+                }
+            }
+        );
+
+        AstSerializer::tag(
+            self, 
+            "close",
+            |serde| {
+                if serde.serialize_option(block.close()) {
+                    serde.serialize_token(block.close().as_ref().unwrap())
+                }
+            }
+        )
     }
 
     fn serialize_stmt_node(&mut self, stmt: &StmtNode) {
@@ -129,6 +159,16 @@ impl AstSerializer {
 
     fn serialize_location(&mut self, location: &Location) {
         self.push(&format!("{{ {}, {} }}", location.line(), location.column()));
+    }
+
+    fn serialize_option<T>(&mut self, option: &Option<T>) -> bool {
+        match option {
+            Some(_) => true,
+            None => {
+                self.push("None");
+                false
+            }
+        }
     }
 }
 
