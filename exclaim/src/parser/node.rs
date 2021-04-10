@@ -67,7 +67,7 @@ impl StmtNode {
             expr,
         }
     }
-    
+
     pub fn action(&self) -> &Token {
         &self.action
     }
@@ -84,12 +84,14 @@ impl fmt::Debug for StmtNode {
 
 
 pub enum Expression {
-    Literal(LiteralExpression)
+    Literal(LiteralExpression),
+    Reference(ReferenceExpression),
 }
 impl fmt::Debug for Expression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Expression::Literal(literal) => write!(f, "{:?}", literal),
+            Expression::Reference(reference) => write!(f, "{:?}", reference),
         }
     }
 }
@@ -110,6 +112,32 @@ impl LiteralExpression {
 }
 impl fmt::Debug for LiteralExpression {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "[ LiteralExpr: literal, expr: {:?} ]", self.literal)
+        write!(f, "[ LiteralExpr: literal: {:?} ]", self.literal)
+    }
+}
+
+pub struct ReferenceExpression {
+    reference: Token,
+    child: Option<Box<ReferenceExpression>>,
+}
+impl ReferenceExpression {
+    pub fn new(reference: Token, child: Option<Box<ReferenceExpression>>) -> ReferenceExpression {
+        ReferenceExpression {
+            reference,
+            child,
+        }
+    }
+
+    pub fn reference(&self) -> &Token {
+        &self.reference
+    }
+
+    pub fn child(&self) -> &Option<Box<ReferenceExpression>> {
+        &self.child
+    }
+}
+impl fmt::Debug for ReferenceExpression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[ ReferenceExpr: refernce: {:?}, child: {:?} ]", self.reference, self.child)
     }
 }

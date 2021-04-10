@@ -149,3 +149,73 @@ pub fn parse_end_stmt() {
 
     assert_eq!(expected, &AstSerializer::serialize(&ast));
 }
+
+#[test]
+pub fn parse_references() {
+  let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <StmtNode>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <ReferenceExpression>
+              <reference>
+                <Token>
+                  <kind>Label</kind>
+                  <lexeme>"variable"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </reference>
+              <child>
+                <Option>
+                  <ReferenceExpression>
+                    <reference>
+                      <Token>
+                        <kind>Label</kind>
+                        <lexeme>"data"</lexeme>
+                        <location>{ 0, 19 }</location>
+                      </Token>
+                    </reference>
+                    <child>
+                      <Option>
+                        <ReferenceExpression>
+                          <reference>
+                            <Token>
+                              <kind>Label</kind>
+                              <lexeme>"field"</lexeme>
+                              <location>{ 0, 24 }</location>
+                            </Token>
+                          </reference>
+                          <child>
+                            <Option>None</Option>
+                          </child>
+                        </ReferenceExpression>
+                      </Option>
+                    </child>
+                  </ReferenceExpression>
+                </Option>
+              </child>
+            </ReferenceExpression>
+          </Option>
+        </expr>
+      </StmtNode>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+
+    let input = "{{ write! variable.data.field }}";
+
+    let tokens = crate::run_lexer(input);
+    let ast = crate::run_parser(tokens);
+
+    assert_eq!(expected, &AstSerializer::serialize(&ast));
+}

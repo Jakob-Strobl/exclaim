@@ -171,10 +171,8 @@ impl Parser {
         // Lets just parse Literal Expressions for now :D
         if let Some(token) = parser.peek() {
             match token.kind() {
-                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => {
-                    let lit_expr = LiteralExpression::new(parser.consume());
-                    Ok(Some(Expression::Literal(lit_expr)))
-                },
+                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => Ok(Some(Expression::Literal(Parser::expr_lit(parser)))),
+                &TokenKind::Label => Ok(Some(Expression::Reference(Parser::expr_ref(parser)?))),
                 &TokenKind::Operator(op) => {
                     match op {
                         Op::BlockClose => Ok(None),
@@ -186,6 +184,48 @@ impl Parser {
         } else {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
+    }
+
+    fn expr_lit(parser: &mut Parser) -> LiteralExpression {
+        let lit_expr = LiteralExpression::new(parser.consume());
+        lit_expr
+    }
+
+    fn expr_ref(parser: &mut Parser) -> Result<ReferenceExpression> {
+        fn parse_reference(parser: &mut Parser) -> Result<Token> {
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    &TokenKind::Label => Ok(parser.consume()),
+                    _ => Err(ParserError::from("Parser<EXPR_REF>: Unexpected token, expected a reference (label token)."))
+                }
+            } else {
+                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            }
+        }
+
+        fn parse_child(parser: &mut Parser) -> OptionalResult<Box<ReferenceExpression>> {
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    &TokenKind::Operator(op) => {
+                        match op {
+                            Op::Dot => {
+                                let _ = parser.consume(); // Operator(Dot)
+                                Ok(Some(Box::new(Parser::expr_ref(parser)?)))
+                            },
+                            _ => Ok(None),
+                        }
+                    },
+                    _ => Err(ParserError::from(ErrorKind::Unimplemented))
+                }
+            } else {
+                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            }
+        }
+        
+        let reference = parse_reference(parser)?;
+        let child = parse_child(parser)?;
+        let ref_expr = ReferenceExpression::new(reference, child);
+        Ok(ref_expr)
     }
 }
 

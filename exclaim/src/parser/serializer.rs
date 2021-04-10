@@ -140,7 +140,8 @@ impl AstSerializer {
 
     fn serialize_expression(&mut self, expr: &Expression) {
         match expr {
-            Expression::Literal(literal) => self.serialize_literal_expression(literal)
+            Expression::Literal(literal) => self.serialize_literal_expression(literal),
+            Expression::Reference(reference) => self.serialize_reference_expression(reference),
         }
     }
 
@@ -157,6 +158,33 @@ impl AstSerializer {
             self, 
             "LiteralExpression",
             |serde| literal_internals(serde, literal)
+        );
+    }
+
+    fn serialize_reference_expression(&mut self, reference: &ReferenceExpression) {
+        fn reference_internals(serde: &mut AstSerializer, reference: &ReferenceExpression) {
+            AstSerializer::tag(
+                serde,
+                "reference",
+                |serde| serde.serialize_token(reference.reference()),
+            );
+
+            AstSerializer::tag(
+                serde, 
+                "child",
+                |serde| {
+                    serde.serialize_option_boxed(
+                        reference.child(), 
+                        AstSerializer::serialize_reference_expression
+                    )
+                }
+            );
+        }
+
+        AstSerializer::tag(
+            self,
+            "ReferenceExpression",
+            |serde| reference_internals(serde, reference)
         );
     }
 
@@ -199,6 +227,25 @@ impl AstSerializer {
                     self, 
                     "Option", 
                     |serde| some_callback(serde, val) 
+                );
+            }
+            None => {
+                AstSerializer::terminal(
+                    self, 
+                    "Option", 
+                    |serde| serde.push("None")
+                );
+            }
+        }
+    }
+
+    fn serialize_option_boxed<T>(&mut self, option: &Option<Box<T>>, some_callback: fn(&mut AstSerializer, val: &T)) {
+        match option {
+            Some(val) => {
+                AstSerializer::tag(
+                    self, 
+                    "Option", 
+                    |serde| some_callback(serde, val.as_ref()) 
                 );
             }
             None => {
