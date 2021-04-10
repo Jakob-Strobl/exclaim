@@ -88,21 +88,11 @@ impl Parser {
     fn start(parser: &mut Parser) -> OptionalResult<Node> {
         if let Some(token) = parser.peek() {
             match token.kind() {
-                &TokenKind::StringLiteral => {
-                    let text_node = TextNode::new(parser.consume()); 
-                    Ok(Some(Node::Text(text_node)))
-                },
+                &TokenKind::StringLiteral => Ok(Some(Node::Text(Parser::text(parser)))),
                 &TokenKind::Operator(op) => {
                     match op {
-                        Op::BlockOpen => { 
-                            let _ = parser.consume();
-                            let block = BlockNode::new();
-                            match Parser::block(parser, block) {
-                                Ok(block) => Ok(Some(Node::Block(block))),
-                                Err(e) => Err(e)
-                            }
-                        }
-                        _ => Err(ParserError::from(format!("Unexpected token found: {:?}", op)))
+                        Op::BlockOpen => Ok(Some(Node::Block(Parser::block(parser)?))),
+                        _ => Err(ParserError::from(format!("Unexpected operator found: {:?}", op)))
                     }
                 },
                 _ => Err(ParserError::from(ErrorKind::Unimplemented))
@@ -112,10 +102,16 @@ impl Parser {
         }
     }
 
+    fn text(parser: &mut Parser) -> TextNode {
+        let text_node = TextNode::new(parser.consume()); 
+        text_node
+    }
+
     /// Parses a Block := {{ BLOCK_STMT }}
     /// parser: the current Parser context
     /// block: the open block (rest of the fields needs to be parsed)
-    fn block(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
+    /// Warning: We should know the next token is Operator(OpenBlock) before calling this function
+    fn block(parser: &mut Parser) -> Result<BlockNode> {
         // Parse block stmt field
         fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
             let stmt = Parser::stmt(parser)?;
@@ -143,6 +139,8 @@ impl Parser {
             }
         }
 
+        let _ = parser.consume(); // Open Block Operator
+        let block = BlockNode::new();
         let block = parse_stmt(parser, block)?;
         let block = parse_close(parser, block);
         block
@@ -171,6 +169,7 @@ impl Parser {
                     stmt.set_expr(expr);
                 }
             } else {
+                // In future, action elision will make things interesting haha
                 return Err(ParserError::from("Parser<STMT> somehow we are parsing an expression of an action-less statement?"));
             }
             Ok(stmt)
