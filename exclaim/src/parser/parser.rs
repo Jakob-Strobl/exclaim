@@ -113,21 +113,19 @@ impl Parser {
     /// Warning: We should know the next token is Operator(OpenBlock) before calling this function
     fn block(parser: &mut Parser) -> Result<BlockNode> {
         // Parse block stmt field
-        fn parse_stmt(parser: &mut Parser, mut block: BlockNode) -> Result<BlockNode> {
-            let stmt = Parser::stmt(parser)?;
-            block.set_stmt(stmt);
-            Ok(block)
+        fn parse_stmt(parser: &mut Parser) -> Result<StmtNode> {
+            Parser::stmt(parser)
         }
 
         // Parse block close field
-        fn parse_close(parser: &mut Parser, block: BlockNode) -> Result<BlockNode> {
+        fn parse_close(parser: &mut Parser) -> Result<()> {
             if let Some(token) = parser.peek() {
                 match token.kind() {
                     &TokenKind::Operator(op) => {
                         match op {
                             Op::BlockClose => {
                                 let _ = parser.consume();
-                                Ok(block)
+                                Ok(())
                             },
                             _ => Err(ParserError::from(format!("Unexpected operator: {:?}", op)))
                         }
@@ -140,20 +138,18 @@ impl Parser {
         }
 
         let _ = parser.consume(); // Open Block Operator
-        let block = BlockNode::new();
-        let block = parse_stmt(parser, block)?;
-        let block = parse_close(parser, block);
-        block
+        let stmt = parse_stmt(parser)?;
+        let _ = parse_close(parser)?;
+
+        let block = BlockNode::new(stmt);
+        Ok(block)
     }
 
     fn stmt(parser: &mut Parser) -> Result<StmtNode> {
-        fn parse_action(parser: &mut Parser) -> Result<StmtNode> {
+        fn parse_action(parser: &mut Parser) -> Result<Token> {
             if let Some(token) = parser.peek() {
                 match token.kind() {
-                    &TokenKind::Action(_) => {
-                        let stmt = StmtNode::new(parser.consume());
-                        Ok(stmt)
-                    },
+                    &TokenKind::Action(_) => Ok(parser.consume()),
                     _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
                 }
             } else {
@@ -161,33 +157,30 @@ impl Parser {
             }
         }
 
-        fn parse_expr(parser: &mut Parser, mut stmt: StmtNode) -> Result<StmtNode> {
-            // If the action is not Action::End {{!}}, parse the following expression
-            if let TokenKind::Action(action) = stmt.action().kind() {
-                if *action != Action::End {
-                    let expr = Parser::expr(parser)?;
-                    stmt.set_expr(expr);
-                }
-            } else {
-                // In future, action elision will make things interesting haha
-                return Err(ParserError::from("Parser<STMT> somehow we are parsing an expression of an action-less statement?"));
-            }
-            Ok(stmt)
+        fn parse_expr(parser: &mut Parser) -> OptionalResult<Expression> {
+            Parser::expr(parser)
         }
 
-        let stmt = parse_action(parser)?;
-        let stmt = parse_expr(parser, stmt);
-        stmt
+        let action = parse_action(parser)?;
+        let expr = parse_expr(parser)?;
+        let stmt = StmtNode::new(action, expr);
+        Ok(stmt)
     }
 
-    fn expr(parser: &mut Parser) -> Result<Expression> {
+    fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
         // Lets just parse Literal Expressions for now :D
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => {
                     let lit_expr = LiteralExpression::new(parser.consume());
-                    Ok(Expression::Literal(lit_expr))
+                    Ok(Some(Expression::Literal(lit_expr)))
                 },
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::BlockClose => Ok(None),
+                        _ => Err(ParserError::from(ErrorKind::Unimplemented)),
+                    }
+                }
                 _ => Err(ParserError::from(format!("Parser<EXPR>: Unexpected token in expression: {:?}, expected a NumberLiteral or StringLiteral.", token)))
             }
         } else {

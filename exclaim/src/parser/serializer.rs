@@ -100,12 +100,7 @@ impl AstSerializer {
             AstSerializer::tag(
                 serde, 
                 "stmt",
-                |serde| {
-                    serde.serialize_option(
-                        block.stmt(),
-                        AstSerializer::serialize_stmt_node
-                    )
-                }
+                |serde| serde.serialize_stmt_node(block.stmt())
             );
         }
 

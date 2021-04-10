@@ -37,20 +37,16 @@ impl fmt::Debug for TextNode {
 }
 
 pub struct BlockNode {
-    stmt: Option<StmtNode>,
+    stmt: StmtNode,
 }
 impl BlockNode {
-    pub fn new() -> BlockNode {
+    pub fn new(stmt: StmtNode) -> BlockNode {
         BlockNode {
-            stmt: None,
+            stmt,
         }
     }
 
-    pub fn set_stmt(&mut self, stmt: StmtNode) {
-        self.stmt = Some(stmt);
-    }
-
-    pub fn stmt(&self) -> &Option<StmtNode> {
+    pub fn stmt(&self) -> &StmtNode {
         &self.stmt
     }
 }
@@ -65,17 +61,13 @@ pub struct StmtNode {
     expr: Option<Expression>,
 }
 impl StmtNode {
-    pub fn new(action: Token) -> StmtNode {
+    pub fn new(action: Token, expr: Option<Expression>) -> StmtNode {
         StmtNode {
             action,
-            expr: None,
+            expr,
         }
     }
-
-    pub fn set_expr(&mut self, expr: Expression) {
-        self.expr = Some(expr);
-    }
-
+    
     pub fn action(&self) -> &Token {
         &self.action
     }

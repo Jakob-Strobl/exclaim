@@ -68,30 +68,28 @@ pub fn parse_write_string() {
 <Ast>
   <BlockNode>
     <stmt>
-      <Option>
-        <StmtNode>
-          <action>
-            <Token>
-              <kind>Action(Write)</kind>
-              <lexeme>"write!"</lexeme>
-              <location>{ 0, 3 }</location>
-            </Token>
-          </action>
-          <expr>
-            <Option>
-              <LiteralExpression>
-                <literal>
-                  <Token>
-                    <kind>StringLiteral</kind>
-                    <lexeme>"Hello!"</lexeme>
-                    <location>{ 0, 10 }</location>
-                  </Token>
-                </literal>
-              </LiteralExpression>
-            </Option>
-          </expr>
-        </StmtNode>
-      </Option>
+      <StmtNode>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <LiteralExpression>
+              <literal>
+                <Token>
+                  <kind>StringLiteral</kind>
+                  <lexeme>"Hello!"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </literal>
+            </LiteralExpression>
+          </Option>
+        </expr>
+      </StmtNode>
     </stmt>
   </BlockNode>
 </Ast>
@@ -119,20 +117,18 @@ pub fn parse_end_stmt() {
   </TextNode>
   <BlockNode>
     <stmt>
-      <Option>
-        <StmtNode>
-          <action>
-            <Token>
-              <kind>Action(End)</kind>
-              <lexeme>"!"</lexeme>
-              <location>{ 0, 21 }</location>
-            </Token>
-          </action>
-          <expr>
-            <Option>None</Option>
-          </expr>
-        </StmtNode>
-      </Option>
+      <StmtNode>
+        <action>
+          <Token>
+            <kind>Action(End)</kind>
+            <lexeme>"!"</lexeme>
+            <location>{ 0, 21 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>None</Option>
+        </expr>
+      </StmtNode>
     </stmt>
   </BlockNode>
   <TextNode>
