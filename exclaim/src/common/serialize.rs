@@ -41,18 +41,18 @@ impl Serializer {
         serde.buffer
     }
 
-    pub fn open_tag<'a>(serde: &mut Serializer, name: &'a str) -> Tag<'a> {
-        serde.indented_push(&format!("<{}>\n", name));
-        serde.indent();
+    pub fn open_tag<'a>(&mut self, name: &'a str) -> Tag<'a> {
+        self.indented_push(&format!("<{}>\n", name));
+        self.indent();
 
         Tag {
             name
         }
     }
 
-    pub fn close_tag<'a>(serde: &mut Serializer, tag: Tag<'a>) {
-        serde.outdent();
-        serde.indented_push(&format!("</{}>\n", tag.name));
+    pub fn close_tag<'a>(&mut self, tag: Tag<'a>) {
+        self.outdent();
+        self.indented_push(&format!("</{}>\n", tag.name));
     }
 
     /// Opens a self closing tag to print
