@@ -7,7 +7,7 @@ use std::ops::{
 };
 
 use super::ast::Ast;
-use super::ast::node::*;
+use super::ast::nodes::*;
 use super::error::{
     ParserError,
     ErrorKind,
