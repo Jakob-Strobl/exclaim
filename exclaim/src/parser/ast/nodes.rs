@@ -1,20 +1,17 @@
 use crate::tokens::Token;
 use crate::common::serialize::*;
 
-use super::expressions::*;
+use super::statements::StmtNode;
 
 pub enum Node {
     Text(TextNode),
     Block(BlockNode),
-    // TODO create seperate file for stmts (stmts.rs)
-    Stmt(StmtNode),
 }
 impl Serializable for Node {
     fn serialize(&self, serde: &mut Serializer) {
         match self {
             Node::Text(text) => text.serialize(serde),
             Node::Block(block) => block.serialize(serde),
-            Node::Stmt(stmt) => stmt.serialize(serde)
         }
     }
 }
@@ -79,50 +76,6 @@ impl Serializable for BlockNode {
             serde, 
             "BlockNode",
             |serde| block_internals(self, serde)
-        );
-    }
-}
-
-pub struct StmtNode {
-    action: Token,
-    expr: Option<Expression>,
-}
-impl StmtNode {
-    pub fn new(action: Token, expr: Option<Expression>) -> StmtNode {
-        StmtNode {
-            action,
-            expr,
-        }
-    }
-
-    pub fn action(&self) -> &Token {
-        &self.action
-    }
-
-    pub fn expr(&self) -> &Option<Expression> {
-        &self.expr
-    }
-}
-impl Serializable for StmtNode {
-    fn serialize(&self, serde: &mut Serializer) {
-        fn stmt_internals(stmt: &StmtNode, serde: &mut Serializer) {
-            Serializer::tag(
-                serde,
-                "action",
-                |serde| stmt.action.serialize(serde)
-            );
-            
-            Serializer::tag(
-                serde, 
-                "expr",
-                |serde| stmt.expr.serialize(serde)
-            );
-        }
-
-        Serializer::tag(
-            serde,
-            "StmtNode",
-            |serde| stmt_internals(self, serde)
         );
     }
 }
