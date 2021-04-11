@@ -7,6 +7,7 @@ use super::expressions::*;
 pub enum Node {
     Text(TextNode),
     Block(BlockNode),
+    // TODO create seperate file for stmts (stmts.rs)
     Stmt(StmtNode),
 }
 impl Serializeable for Node {
