@@ -1,4 +1,7 @@
 use crate::util::Location;
+use crate::Serializeable;
+use crate::AstSerializer;
+
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
@@ -26,6 +29,30 @@ impl Token {
 
     pub fn location(&self) -> &Location {
         &self.location
+    }
+}
+
+impl Serializeable for Token {
+    fn serialize(&self, serde: &mut crate::AstSerializer) {
+        fn token_internals(token: &Token, serde: &mut AstSerializer) {
+            AstSerializer::terminal(
+                serde, 
+                "kind", 
+                || format!("{:?}", token.kind)
+            );
+            AstSerializer::terminal(
+                serde,
+                "lexeme",
+                || format!("{:?}", token.lexeme)
+            );
+            token.location.serialize(serde);
+        }
+
+        AstSerializer::tag(
+            serde, 
+            "Token",
+            |serde| token_internals(self, serde)
+        );
     }
 }
 

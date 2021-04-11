@@ -1,7 +1,36 @@
 use super::ast::*;
-use super::node::*;
-use crate::lexer::tokens::*;
-use crate::util::Location;
+
+pub trait Serializeable {
+    fn serialize(&self, serde: &mut AstSerializer);
+}
+
+impl<T: Serializeable> Serializeable for Option<T> {
+    fn serialize(&self, serde: &mut AstSerializer) {
+        match self {
+            Some(val) => {
+                AstSerializer::tag(
+                    serde, 
+                    "Option", 
+                    |serde| val.serialize(serde)
+                );
+            }
+            None => {
+                AstSerializer::terminal(
+                    serde, 
+                    "Option", 
+                    || String::from("None")
+                );
+            }
+        }
+    }
+}
+
+impl<T: Serializeable> Serializeable for Box<T> {
+    fn serialize(&self, serde: &mut AstSerializer) {
+        self.as_ref().serialize(serde)
+    }
+}
+
 
 // Serialize the AST in an XML-like format 
 pub struct AstSerializer {
@@ -19,7 +48,7 @@ impl AstSerializer {
             "Ast",
             |serde| {
                 for node in ast.blocks() {
-                    serde.serialize_node(node);
+                    node.serialize(serde)
                 }
             }
         );
@@ -27,7 +56,7 @@ impl AstSerializer {
     }
 
     /// Opens a self closing tag to print
-    fn tag(serde: &mut AstSerializer, name: &str, nested_fn: impl Fn(&mut AstSerializer)) {
+    pub fn tag(serde: &mut AstSerializer, name: &str, nested_fn: impl Fn(&mut AstSerializer)) {
         serde.indented_push(&format!("<{}>\n", name));
         serde.indent();
         (nested_fn)(serde);
@@ -35,10 +64,13 @@ impl AstSerializer {
         serde.indented_push(&format!("</{}>\n", name));
     }
 
-    fn terminal(serde: &mut AstSerializer, name: &str, nested_fn: impl Fn(&mut AstSerializer)) {
+    pub fn terminal(serde: &mut AstSerializer, name: &str, nested_fn: impl Fn() -> String) {
         serde.indented_push(&format!("<{}>", name));
         serde.indent();
-        (nested_fn)(serde);
+
+        let str = nested_fn();
+        serde.push(&str);
+
         serde.outdent();
         serde.push(&format!("</{}>\n", name));
     }
@@ -69,193 +101,6 @@ impl AstSerializer {
     fn indented_push(&mut self, str: &str) {
         self.buffer.push_str(&self.indent_as_str());
         self.buffer.push_str(str);
-    }
-
-    fn serialize_node(&mut self, node: &Node) {
-        match node {
-            Node::Text(text) => self.serialize_text_node(text),
-            Node::Block(block) => self.serialize_block_node(block),
-            Node::Stmt(stmt) => self.serialize_stmt_node(stmt),
-        }
-    }
-
-    fn serialize_text_node(&mut self, text: &TextNode) {
-        fn text_internals(serde: &mut AstSerializer, text: &TextNode) {
-            AstSerializer::tag(
-                serde,
-                "text", 
-                |serde| serde.serialize_token(text.text())
-            );
-        }
-
-        AstSerializer::tag(
-            self, 
-            "TextNode",
-            |serde| text_internals(serde, text)
-        );
-    }
-
-    fn serialize_block_node(&mut self, block: &BlockNode) {
-        fn block_internals(serde: &mut AstSerializer, block: &BlockNode) {
-            AstSerializer::tag(
-                serde, 
-                "stmt",
-                |serde| serde.serialize_stmt_node(block.stmt())
-            );
-        }
-
-        AstSerializer::tag(
-            self, 
-            "BlockNode",
-            |serde| block_internals(serde, block)
-        );
-    }
-
-    fn serialize_stmt_node(&mut self, stmt: &StmtNode) {
-        fn stmt_internals(serde: &mut AstSerializer, stmt: &StmtNode) {
-            AstSerializer::tag(
-                serde,
-                "action",
-                |serde| serde.serialize_token(stmt.action())
-            );
-    
-            AstSerializer::tag(
-                serde,
-                "expr",
-                |serde| {
-                    serde.serialize_option(
-                        stmt.expr(),
-                        AstSerializer::serialize_expression
-                    ) 
-                }
-            );
-        }
-
-        AstSerializer::tag(
-            self,
-            "StmtNode",
-            |serde| stmt_internals(serde, stmt)
-        );
-    }
-
-    fn serialize_expression(&mut self, expr: &Expression) {
-        match expr {
-            Expression::Literal(literal) => self.serialize_literal_expression(literal),
-            Expression::Reference(reference) => self.serialize_reference_expression(reference),
-        }
-    }
-
-    fn serialize_literal_expression(&mut self, literal: &LiteralExpression) {
-        fn literal_internals(serde: &mut AstSerializer, literal: &LiteralExpression) {
-            AstSerializer::tag(
-                serde,
-                "literal",
-                |serde| serde.serialize_token(literal.literal())
-            );
-        }
-        
-        AstSerializer::tag(
-            self, 
-            "LiteralExpression",
-            |serde| literal_internals(serde, literal)
-        );
-    }
-
-    fn serialize_reference_expression(&mut self, reference: &ReferenceExpression) {
-        fn reference_internals(serde: &mut AstSerializer, reference: &ReferenceExpression) {
-            AstSerializer::tag(
-                serde,
-                "reference",
-                |serde| serde.serialize_token(reference.reference()),
-            );
-
-            AstSerializer::tag(
-                serde, 
-                "child",
-                |serde| {
-                    serde.serialize_option_boxed(
-                        reference.child(), 
-                        AstSerializer::serialize_reference_expression
-                    )
-                }
-            );
-        }
-
-        AstSerializer::tag(
-            self,
-            "ReferenceExpression",
-            |serde| reference_internals(serde, reference)
-        );
-    }
-
-    fn serialize_token(&mut self, token: &Token) {
-        fn token_internals(serde: &mut AstSerializer, token: &Token) {
-            AstSerializer::terminal(
-                serde, 
-                "kind", 
-                |serde| serde.push(&format!("{:?}", token.kind()))
-            );
-            AstSerializer::terminal(
-                serde,
-                "lexeme",
-                |serde| serde.push(&format!("{:?}", token.lexeme()))
-            );
-            AstSerializer::terminal(
-                serde,
-                "location",
-                |serde| serde.serialize_location(token.location())
-            );
-        }
-
-        AstSerializer::tag(
-            self, 
-            "Token",
-            |serde| token_internals(serde, token)
-        );
-    }
-
-    fn serialize_location(&mut self, location: &Location) {
-        self.push(&format!("{{ {}, {} }}", location.line(), location.column()));
-    }
-
-    /// Serialize Rust Options
-    /// some_callback is invoked when the option is Some(). The contained value is passed to the callback
-    fn serialize_option<T>(&mut self, option: &Option<T>, some_callback: fn(&mut AstSerializer, val: &T)) {
-        match option {
-            Some(val) => {
-                AstSerializer::tag(
-                    self, 
-                    "Option", 
-                    |serde| some_callback(serde, val) 
-                );
-            }
-            None => {
-                AstSerializer::terminal(
-                    self, 
-                    "Option", 
-                    |serde| serde.push("None")
-                );
-            }
-        }
-    }
-
-    fn serialize_option_boxed<T>(&mut self, option: &Option<Box<T>>, some_callback: fn(&mut AstSerializer, val: &T)) {
-        match option {
-            Some(val) => {
-                AstSerializer::tag(
-                    self, 
-                    "Option", 
-                    |serde| some_callback(serde, val.as_ref()) 
-                );
-            }
-            None => {
-                AstSerializer::terminal(
-                    self, 
-                    "Option", 
-                    |serde| serde.push("None")
-                );
-            }
-        }
     }
 }
 
