@@ -1,6 +1,5 @@
 use crate::common::Location;
-use crate::Serializeable;
-use crate::AstSerializer;
+use crate::common::serialize::*;
 
 
 #[derive(Debug, PartialEq)]
@@ -32,15 +31,15 @@ impl Token {
     }
 }
 
-impl Serializeable for Token {
-    fn serialize(&self, serde: &mut crate::AstSerializer) {
-        fn token_internals(token: &Token, serde: &mut AstSerializer) {
-            AstSerializer::terminal(
+impl Serializable for Token {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn token_internals(token: &Token, serde: &mut Serializer) {
+            Serializer::terminal(
                 serde, 
                 "kind", 
                 || format!("{:?}", token.kind)
             );
-            AstSerializer::terminal(
+            Serializer::terminal(
                 serde,
                 "lexeme",
                 || format!("{:?}", token.lexeme)
@@ -48,7 +47,7 @@ impl Serializeable for Token {
             token.location.serialize(serde);
         }
 
-        AstSerializer::tag(
+        Serializer::tag(
             serde, 
             "Token",
             |serde| token_internals(self, serde)

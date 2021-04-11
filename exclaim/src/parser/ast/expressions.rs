@@ -1,13 +1,12 @@
 use crate::tokens::Token;
-use crate::Serializeable;
-use crate::AstSerializer;
+use crate::common::serialize::*;
 
 pub enum Expression {
     Literal(LiteralExpression),
     Reference(ReferenceExpression),
 }
-impl Serializeable for Expression {
-    fn serialize(&self, serde: &mut AstSerializer) {
+impl Serializable for Expression {
+    fn serialize(&self, serde: &mut Serializer) {
         match self {
             Expression::Literal(literal) => literal.serialize(serde),
             Expression::Reference(reference) => reference.serialize(serde),
@@ -29,17 +28,17 @@ impl LiteralExpression {
         &self.literal
     }
 }
-impl Serializeable for LiteralExpression {
-    fn serialize(&self, serde: &mut AstSerializer) {
-        fn literal_internals(expr: &LiteralExpression, serde: &mut AstSerializer) {
-            AstSerializer::tag(
+impl Serializable for LiteralExpression {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn literal_internals(expr: &LiteralExpression, serde: &mut Serializer) {
+            Serializer::tag(
                 serde,
                 "literal",
                 |serde| expr.literal.serialize(serde)
             );
         }
         
-        AstSerializer::tag(
+        Serializer::tag(
             serde, 
             "LiteralExpression",
             |serde| literal_internals(self, serde)
@@ -67,23 +66,23 @@ impl ReferenceExpression {
         &self.child
     }
 }
-impl Serializeable for ReferenceExpression {
-    fn serialize(&self, serde: &mut AstSerializer) {
-        fn reference_internals(expr: &ReferenceExpression, serde: &mut AstSerializer) {
-            AstSerializer::tag(
+impl Serializable for ReferenceExpression {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn reference_internals(expr: &ReferenceExpression, serde: &mut Serializer) {
+            Serializer::tag(
                 serde,
                 "reference",
                 |serde| expr.reference.serialize(serde)
             );
 
-            AstSerializer::tag(
+            Serializer::tag(
                 serde, 
                 "child",
                 |serde| expr.child.serialize(serde)
             );
         }
 
-        AstSerializer::tag(
+        Serializer::tag(
             serde,
             "ReferenceExpression",
             |serde| reference_internals(self, serde)

@@ -1,4 +1,6 @@
+use crate::common::serialize::*;
 use super::nodes::*;
+
 pub struct Ast {
     blocks: Vec<Node>,
 }
@@ -18,5 +20,19 @@ impl Ast {
 impl Ast {
     pub fn push_block(&mut self, node: Node) {
         self.blocks.push(node);
+    }
+}
+
+impl Serializable for Ast {
+    fn serialize(&self, serde: &mut Serializer) {
+        Serializer::tag(
+            serde, 
+            "Ast",
+            |serde| {
+                for node in self.blocks() {
+                    node.serialize(serde)
+                }
+            }
+        );
     }
 }

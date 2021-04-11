@@ -1,6 +1,7 @@
 use std::fmt;
 use pretty_assertions::assert_eq;
-use exclaim::*;
+use exclaim;
+use exclaim::common::serialize::*;
 
 // The following: 
 //      PrettyString Newtype, 
@@ -33,10 +34,10 @@ pub fn parse_empty_input() {
 
     let input = "";
 
-    let tokens = crate::run_lexer(input);
-    let ast = crate::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &AstSerializer::serialize(&ast));
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }
 
 #[test]
@@ -56,10 +57,10 @@ pub fn parse_string_literal() {
 "#;
     let input = "Hello, World!";
 
-    let tokens = crate::run_lexer(input);
-    let ast = crate::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &AstSerializer::serialize(&ast));
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }
 
 #[test]
@@ -96,10 +97,10 @@ pub fn parse_write_string() {
 "#;
     let input = "{{ write! \"Hello!\" }}";
 
-    let tokens = crate::run_lexer(input);
-    let ast = crate::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &AstSerializer::serialize(&ast));
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }
 
 #[test]
@@ -144,10 +145,10 @@ pub fn parse_end_stmt() {
 "#;
     let input = "This is a string. {{ ! }} and another one.";
 
-    let tokens = crate::run_lexer(input);
-    let ast = crate::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &AstSerializer::serialize(&ast));
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }
 
 #[test]
@@ -214,8 +215,8 @@ pub fn parse_references() {
 
     let input = "{{ write! variable.data.field }}";
 
-    let tokens = crate::run_lexer(input);
-    let ast = crate::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &AstSerializer::serialize(&ast));
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }

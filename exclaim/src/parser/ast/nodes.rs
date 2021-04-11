@@ -1,6 +1,5 @@
 use crate::tokens::Token;
-use crate::Serializeable;
-use crate::AstSerializer;
+use crate::common::serialize::*;
 
 use super::expressions::*;
 
@@ -10,8 +9,8 @@ pub enum Node {
     // TODO create seperate file for stmts (stmts.rs)
     Stmt(StmtNode),
 }
-impl Serializeable for Node {
-    fn serialize(&self, serde: &mut AstSerializer) {
+impl Serializable for Node {
+    fn serialize(&self, serde: &mut Serializer) {
         match self {
             Node::Text(text) => text.serialize(serde),
             Node::Block(block) => block.serialize(serde),
@@ -34,17 +33,17 @@ impl TextNode {
         &self.text
     }
 }
-impl Serializeable for TextNode {
-    fn serialize(&self, serde: &mut AstSerializer) {
-        fn text_internals(text: &TextNode, serde: &mut AstSerializer) {
-            AstSerializer::tag(
+impl Serializable for TextNode {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn text_internals(text: &TextNode, serde: &mut Serializer) {
+            Serializer::tag(
                 serde,
                 "text", 
                 |serde| text.text().serialize(serde)
             );
         }
 
-        AstSerializer::tag(
+        Serializer::tag(
             serde, 
             "TextNode",
             |serde| text_internals(self, serde)
@@ -66,17 +65,17 @@ impl BlockNode {
         &self.stmt
     }
 }
-impl Serializeable for BlockNode {
-    fn serialize(&self, serde: &mut AstSerializer) {
-        fn block_internals(block: &BlockNode, serde: &mut AstSerializer) {
-            AstSerializer::tag(
+impl Serializable for BlockNode {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn block_internals(block: &BlockNode, serde: &mut Serializer) {
+            Serializer::tag(
                 serde, 
                 "stmt",
                 |serde| block.stmt.serialize(serde)
             );
         }
 
-        AstSerializer::tag(
+        Serializer::tag(
             serde, 
             "BlockNode",
             |serde| block_internals(self, serde)
@@ -104,23 +103,23 @@ impl StmtNode {
         &self.expr
     }
 }
-impl Serializeable for StmtNode {
-    fn serialize(&self, serde: &mut AstSerializer) {
-        fn stmt_internals(stmt: &StmtNode, serde: &mut AstSerializer) {
-            AstSerializer::tag(
+impl Serializable for StmtNode {
+    fn serialize(&self, serde: &mut Serializer) {
+        fn stmt_internals(stmt: &StmtNode, serde: &mut Serializer) {
+            Serializer::tag(
                 serde,
                 "action",
                 |serde| stmt.action.serialize(serde)
             );
             
-            AstSerializer::tag(
+            Serializer::tag(
                 serde, 
                 "expr",
                 |serde| stmt.expr.serialize(serde)
             );
         }
 
-        AstSerializer::tag(
+        Serializer::tag(
             serde,
             "StmtNode",
             |serde| stmt_internals(self, serde)

@@ -1,7 +1,6 @@
 use std::convert;
 
-use crate::Serializeable;
-use crate::AstSerializer;
+use crate::common::serialize::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Location {
@@ -44,9 +43,9 @@ impl convert::From<(usize, usize)> for Location {
     }
 }
 
-impl Serializeable for Location {
-    fn serialize(&self, serde: &mut crate::AstSerializer) {
-        AstSerializer::terminal(
+impl Serializable for Location {
+    fn serialize(&self, serde: &mut Serializer) {
+        Serializer::terminal(
             serde,
             "location",
             || format!("{{ {}, {} }}", self.line, self.column)

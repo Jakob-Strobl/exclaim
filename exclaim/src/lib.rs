@@ -1,5 +1,4 @@
-mod common;
-
+pub mod common;
 
 mod lexer;
 use lexer::lexer::Lexer;
@@ -7,9 +6,7 @@ use lexer::tokens;
 
 mod parser;
 use parser::parser::Parser;
-
-pub use parser::ast::prelude::Ast;
-pub use parser::serializer::*;
+use parser::ast::prelude::*;
 
 pub fn run(input: &str) {
     let tokens = run_lexer(input);
