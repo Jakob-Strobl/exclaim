@@ -41,6 +41,20 @@ impl Serializer {
         serde.buffer
     }
 
+    pub fn open_tag<'a>(serde: &mut Serializer, name: &'a str) -> Tag<'a> {
+        serde.indented_push(&format!("<{}>\n", name));
+        serde.indent();
+
+        Tag {
+            name
+        }
+    }
+
+    pub fn close_tag<'a>(serde: &mut Serializer, tag: Tag<'a>) {
+        serde.outdent();
+        serde.indented_push(&format!("</{}>\n", tag.name));
+    }
+
     /// Opens a self closing tag to print
     pub fn tag(serde: &mut Serializer, name: &str, nested_fn: impl Fn(&mut Serializer)) {
         serde.indented_push(&format!("<{}>\n", name));
@@ -92,5 +106,8 @@ impl Serializer {
     }
 }
 
+pub struct Tag<'a> {
+    name: &'a str
+}
 
 
