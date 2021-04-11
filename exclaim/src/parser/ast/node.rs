@@ -12,7 +12,7 @@ impl Serializeable for Node {
         match self {
             Node::Text(text) => text.serialize(serde),
             Node::Block(block) => block.serialize(serde),
-            Node::Stmt(stmt) => ()
+            Node::Stmt(stmt) => stmt.serialize(serde)
         }
     }
 }
