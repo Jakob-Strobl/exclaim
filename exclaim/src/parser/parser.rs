@@ -7,7 +7,7 @@ use std::ops::{
 };
 
 use super::ast::Ast;
-use super::node::*;
+use super::ast::node::*;
 use super::error::{
     ParserError,
     ErrorKind,
@@ -192,6 +192,7 @@ impl Parser {
     }
 
     fn expr_ref(parser: &mut Parser) -> Result<ReferenceExpression> {
+        // Parses REF
         fn parse_reference(parser: &mut Parser) -> Result<Token> {
             if let Some(token) = parser.peek() {
                 match token.kind() {
@@ -203,6 +204,7 @@ impl Parser {
             }
         }
 
+        // Parses REF_PRIME
         fn parse_child(parser: &mut Parser) -> OptionalResult<Box<ReferenceExpression>> {
             if let Some(token) = parser.peek() {
                 match token.kind() {

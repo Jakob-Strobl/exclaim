@@ -1,5 +1,3 @@
-use std::fmt;
-
 use super::node::*;
 pub struct Ast {
     blocks: Vec<Node>,

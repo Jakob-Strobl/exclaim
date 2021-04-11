@@ -1,5 +1,6 @@
 use crate::tokens::Token;
-use super::serializer::*;
+use crate::Serializeable;
+use crate::AstSerializer;
 
 pub enum Node {
     Text(TextNode),
