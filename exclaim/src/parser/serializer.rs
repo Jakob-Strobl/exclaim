@@ -1,4 +1,4 @@
-use super::ast::*;
+use super::ast::prelude::*;
 
 pub trait Serializeable {
     fn serialize(&self, serde: &mut AstSerializer);

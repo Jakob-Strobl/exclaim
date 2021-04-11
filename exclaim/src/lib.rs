@@ -6,7 +6,8 @@ use lexer::tokens;
 
 mod parser;
 use parser::parser::Parser;
-use parser::ast::Ast;
+
+pub use parser::ast::prelude::Ast;
 pub use parser::serializer::*;
 
 pub fn run(input: &str) {

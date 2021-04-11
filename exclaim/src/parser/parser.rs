@@ -6,8 +6,7 @@ use std::ops::{
     DerefMut
 };
 
-use super::ast::Ast;
-use super::ast::nodes::*;
+use super::ast::prelude::*;
 use super::error::{
     ParserError,
     ErrorKind,
