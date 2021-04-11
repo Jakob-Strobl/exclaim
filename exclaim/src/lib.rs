@@ -1,4 +1,5 @@
-mod util;
+mod common;
+
 
 mod lexer;
 use lexer::lexer::Lexer;

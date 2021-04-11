@@ -1,4 +1,4 @@
-use crate::util::Location;
+use crate::common::Location;
 use crate::Serializeable;
 use crate::AstSerializer;
 

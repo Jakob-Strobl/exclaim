@@ -441,7 +441,7 @@ mod states {
 
 mod automata {
     use crate::tokens::{Token, TokenKind};
-    use crate::util::Location;
+    use crate::common::Location;
 
     pub struct StackMachine {
         chars: Vec<char>,
@@ -576,7 +576,7 @@ mod automata {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::Location;
+    use crate::common::Location;
     use crate::tokens::{Token, TokenKind, Op, Action};
     use super::Lexer;
 
