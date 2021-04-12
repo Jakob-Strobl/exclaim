@@ -225,7 +225,7 @@ pub fn parse_references() {
 }
 
 #[test]
-fn parse_function_call_on_literal() {
+fn parse_pipes_on_literal() {
     let expected = r#"
 <Ast>
   <BlockNode>
@@ -266,7 +266,47 @@ fn parse_function_call_on_literal() {
                       </Call>
                     </call>
                     <next>
-                      <Option>None</Option>
+                      <Option>
+                        <PipeSubExpression>
+                          <call>
+                            <Call>
+                              <function>
+                                <Token>
+                                  <kind>Label</kind>
+                                  <lexeme>"uppercase"</lexeme>
+                                  <location>{ 0, 32 }</location>
+                                </Token>
+                              </function>
+                              <arguments>
+                                <Option>None</Option>
+                              </arguments>
+                            </Call>
+                          </call>
+                          <next>
+                            <Option>
+                              <PipeSubExpression>
+                                <call>
+                                  <Call>
+                                    <function>
+                                      <Token>
+                                        <kind>Label</kind>
+                                        <lexeme>"lowercase"</lexeme>
+                                        <location>{ 0, 44 }</location>
+                                      </Token>
+                                    </function>
+                                    <arguments>
+                                      <Option>None</Option>
+                                    </arguments>
+                                  </Call>
+                                </call>
+                                <next>
+                                  <Option>None</Option>
+                                </next>
+                              </PipeSubExpression>
+                            </Option>
+                          </next>
+                        </PipeSubExpression>
+                      </Option>
                     </next>
                   </PipeSubExpression>
                 </Option>
@@ -279,7 +319,7 @@ fn parse_function_call_on_literal() {
   </BlockNode>
 </Ast>
 "#;
-    let input = "{{ write! \"HELLO\" | lowercase }}";
+    let input = "{{ write! \"HELLO\" | lowercase | uppercase | lowercase }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);

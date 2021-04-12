@@ -233,8 +233,11 @@ impl Parser {
     fn expr_pipe(parser: &mut Parser) -> OptionalResult<PipeSubExpression> {
         fn parse_pipe(parser: &mut Parser) -> Result<PipeSubExpression> {
             let _ = parser.consume(); // Consume Pipe operator |
-            let call = Parser::function_call(parser)?;
-            let next = None;
+            let call = Parser::call(parser)?;
+            let next = match Parser::expr_pipe(parser)? {
+                Some(pipe) => Some(Box::new(pipe)),
+                None => None,
+            };
 
             Ok(PipeSubExpression::new(call, next))
         }
@@ -254,7 +257,7 @@ impl Parser {
         }
     }
 
-    fn function_call(parser: &mut Parser) -> Result<Call> {
+    fn call(parser: &mut Parser) -> Result<Call> {
         let function = if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::Label => Ok(parser.consume()),
