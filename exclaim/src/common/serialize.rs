@@ -19,7 +19,7 @@ impl<T: Serializable> Serializable for Option<T> {
                 Serializer::terminal(
                     serde, 
                     "Option", 
-                    || String::from("None")
+                    "None"
                 );
             }
         }
@@ -71,12 +71,11 @@ impl Serializer {
     }
 
     /// Terminal is similar to a tag, but all printed on one line; good for printing leaf nodes/fields
-    pub fn terminal(serde: &mut Serializer, name: &str, nested_fn: impl Fn() -> String) {
+    pub fn terminal(serde: &mut Serializer, name: &str, content: &str) {
         serde.indented_push(&format!("<{}>", name));
         serde.indent();
 
-        let str = nested_fn();
-        serde.push(&str);
+        serde.push(content);
 
         serde.outdent();
         serde.push(&format!("</{}>\n", name));

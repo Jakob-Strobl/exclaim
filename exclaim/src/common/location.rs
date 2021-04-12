@@ -48,7 +48,7 @@ impl Serializable for Location {
         Serializer::terminal(
             serde,
             "location",
-            || format!("{{ {}, {} }}", self.line, self.column)
+            format!("{{ {}, {} }}", self.line, self.column).as_str()
         );
     }
 }

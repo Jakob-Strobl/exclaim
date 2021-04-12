@@ -37,12 +37,12 @@ impl Serializable for Token {
         Serializer::terminal(
             serde, 
             "kind", 
-            || format!("{:?}", self.kind)
+            format!("{:?}", self.kind).as_str()
         );
         Serializer::terminal(
             serde,
             "lexeme",
-            || format!("{:?}", self.lexeme)
+            format!("{:?}", self.lexeme).as_str()
         );
         self.location.serialize(serde);
     }
