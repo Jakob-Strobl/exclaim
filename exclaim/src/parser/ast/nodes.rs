@@ -32,11 +32,9 @@ impl TextNode {
 }
 impl Serializable for TextNode {
     fn serialize(&self, serde: &mut Serializer) {
-        let text_node_tag = serde.open_tag("TextNode");
-        let text_tag = serde.open_tag("text");
+        let _text_node_tag = serde.open_tag("TextNode");
+        let _text_tag = serde.open_tag("text");
         self.text().serialize(serde);
-        serde.close_tag(text_tag);
-        serde.close_tag(text_node_tag);
     }
 }
 
