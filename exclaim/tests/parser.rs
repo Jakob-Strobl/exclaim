@@ -87,6 +87,9 @@ pub fn parse_write_string() {
                   <location>{ 0, 10 }</location>
                 </Token>
               </literal>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
             </LiteralExpression>
           </Option>
         </expr>
@@ -219,4 +222,68 @@ pub fn parse_references() {
     let ast = exclaim::run_parser(tokens);
 
     assert_eq!(expected, &Serializer::serialize(&ast));
+}
+
+#[test]
+fn parse_function_call_on_literal() {
+    let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <StmtNode>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <LiteralExpression>
+              <literal>
+                <Token>
+                  <kind>StringLiteral</kind>
+                  <lexeme>"HELLO"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </literal>
+              <pipe>
+                <Option>
+                  <PipeSubExpression>
+                    <call>
+                      <Call>
+                        <function>
+                          <Token>
+                            <kind>Label</kind>
+                            <lexeme>"lowercase"</lexeme>
+                            <location>{ 0, 20 }</location>
+                          </Token>
+                        </function>
+                        <arguments>
+                          <Option>None</Option>
+                        </arguments>
+                      </Call>
+                    </call>
+                    <next>
+                      <Option>None</Option>
+                    </next>
+                  </PipeSubExpression>
+                </Option>
+              </pipe>
+            </LiteralExpression>
+          </Option>
+        </expr>
+      </StmtNode>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+    let input = "{{ write! \"HELLO\" | lowercase }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+
+    assert_eq!(expected, &Serializer::serialize(&ast));
+
 }

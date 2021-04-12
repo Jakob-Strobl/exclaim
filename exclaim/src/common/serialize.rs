@@ -25,6 +25,13 @@ impl<T: Serializable> Serializable for Box<T> {
     }
 }
 
+// For placeholders of implemented types 
+impl Serializable for () {
+    fn serialize(&self, serde: &mut Serializer) {
+        serde.push("()")
+    }
+}
+
 pub struct Serializer {
     indent: Rc<RefCell<usize>>,
     buffer: Rc<RefCell<String>>,

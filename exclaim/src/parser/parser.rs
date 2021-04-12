@@ -15,7 +15,6 @@ use crate::tokens::{
     Token,
     TokenKind,
     Op,
-    Action
 };
 
 type Result<T> = result::Result<T, ParserError>;
@@ -126,10 +125,10 @@ impl Parser {
                                 let _ = parser.consume();
                                 Ok(())
                             },
-                            _ => Err(ParserError::from(format!("Unexpected operator: {:?}", op)))
+                            _ => Err(ParserError::from(format!("Unexpected operator: {:?}, expected BlockClose operator.", op)))
                         }
                     },
-                    _ => Err(ParserError::from(format!("Unexpected token: {:?}", token))),
+                    _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected Operator(BlockClose) token.", token))),
                 }
             } else {
                 Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
@@ -170,7 +169,7 @@ impl Parser {
         // Lets just parse Literal Expressions for now :D
         if let Some(token) = parser.peek() {
             match token.kind() {
-                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => Ok(Some(Expression::Literal(Parser::expr_lit(parser)))),
+                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => Ok(Some(Expression::Literal(Parser::expr_lit(parser)?))),
                 &TokenKind::Label => Ok(Some(Expression::Reference(Parser::expr_ref(parser)?))),
                 &TokenKind::Operator(op) => {
                     match op {
@@ -185,9 +184,11 @@ impl Parser {
         }
     }
 
-    fn expr_lit(parser: &mut Parser) -> LiteralExpression {
-        let lit_expr = LiteralExpression::new(parser.consume());
-        lit_expr
+    fn expr_lit(parser: &mut Parser) -> Result<LiteralExpression> {
+        let literal = parser.consume();
+        let pipe = Parser::expr_pipe(parser)?;
+        let lit_expr = LiteralExpression::new(literal, pipe);
+        Ok(lit_expr)
     }
 
     fn expr_ref(parser: &mut Parser) -> Result<ReferenceExpression> {
@@ -227,6 +228,45 @@ impl Parser {
         let child = parse_child(parser)?;
         let ref_expr = ReferenceExpression::new(reference, child);
         Ok(ref_expr)
+    }
+
+    fn expr_pipe(parser: &mut Parser) -> OptionalResult<PipeSubExpression> {
+        fn parse_pipe(parser: &mut Parser) -> Result<PipeSubExpression> {
+            let _ = parser.consume(); // Consume Pipe operator |
+            let call = Parser::function_call(parser)?;
+            let next = None;
+
+            Ok(PipeSubExpression::new(call, next))
+        }
+
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::Pipe => Ok(Some(parse_pipe(parser)?)),
+                        _ => Ok(None)
+                    }
+                }
+                _ => Ok(None)
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    }
+
+    fn function_call(parser: &mut Parser) -> Result<Call> {
+        let function = if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Label => Ok(parser.consume()),
+                _ => Err(ParserError::from("Expected a function to be named here! Expected Token Label."))
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }?;
+
+        let arguments = None;
+
+        Ok(Call::new(function, arguments))
     }
 }
 

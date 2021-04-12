@@ -15,12 +15,14 @@ impl Serializable for Expression {
 }
 
 pub struct LiteralExpression {
-    literal: Token
+    literal: Token,
+    pipe: Option<PipeSubExpression>
 }
 impl LiteralExpression {
-    pub fn new(literal: Token) -> LiteralExpression {
+    pub fn new(literal: Token, pipe: Option<PipeSubExpression>) -> LiteralExpression {
         LiteralExpression {
             literal,
+            pipe,
         }
     }
 
@@ -31,8 +33,12 @@ impl LiteralExpression {
 impl Serializable for LiteralExpression {
     fn serialize(&self, serde: &mut Serializer) {
         let _expr = serde.open_tag("LiteralExpression");
-        let _literal = serde.open_tag("literal");
-        self.literal.serialize(serde);
+        { 
+            let _literal = serde.open_tag("literal");
+            self.literal.serialize(serde);
+        }
+        let _pipe = serde.open_tag("pipe");
+        self.pipe.serialize(serde);
     }
 }
 
@@ -65,5 +71,69 @@ impl Serializable for ReferenceExpression {
         } // Closes _reference tag
         let _child = serde.open_tag("child");
         self.child.serialize(serde);
+    }
+}
+
+pub struct PipeSubExpression {
+    call: Call,
+    next: Option<Box<PipeSubExpression>>,
+}
+impl PipeSubExpression {
+    pub fn new(call: Call, next: Option<Box<PipeSubExpression>>) -> PipeSubExpression {
+        PipeSubExpression {
+            call,
+            next,
+        }
+    }
+
+    pub fn call(&self) -> &Call {
+        &self.call
+    }
+
+    pub fn next(&self) -> &Option<Box<PipeSubExpression>> {
+        &self.next
+    }
+}
+impl Serializable for PipeSubExpression {
+    fn serialize(&self, serde: &mut Serializer) {
+        let _expr = serde.open_tag("PipeSubExpression"); 
+        {
+            let _call = serde.open_tag("call");
+            self.call.serialize(serde);
+        } // Drops _call tag
+        let _next = serde.open_tag("next");
+        self.next.serialize(serde);
+    }
+}
+
+pub struct Call {
+    function: Token,
+    arguments: Option<()>,
+}
+impl Call {
+    pub fn new(function: Token, arguments: Option<()>) -> Call {
+        Call {
+            function,
+            arguments
+        }
+    }
+
+    pub fn function(&self) -> &Token {
+        &self.function
+    }
+
+    pub fn arguments(&self) -> &Option<()> {
+        &self.arguments
+    }
+}
+impl Serializable for Call {
+    fn serialize(&self, serde: &mut Serializer) {
+        let _call = serde.open_tag("Call");
+        {
+            let _function = serde.open_tag("function");
+            self.function.serialize(serde);
+        } // Drops _fn_name tag
+        let _args = serde.open_tag("arguments");
+        self.arguments.serialize(serde);
     }
 }
