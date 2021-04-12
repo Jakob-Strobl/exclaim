@@ -30,19 +30,9 @@ impl LiteralExpression {
 }
 impl Serializable for LiteralExpression {
     fn serialize(&self, serde: &mut Serializer) {
-        fn literal_internals(expr: &LiteralExpression, serde: &mut Serializer) {
-            Serializer::tag(
-                serde,
-                "literal",
-                |serde| expr.literal.serialize(serde)
-            );
-        }
-        
-        Serializer::tag(
-            serde, 
-            "LiteralExpression",
-            |serde| literal_internals(self, serde)
-        );
+        let _expr = serde.open_tag("LiteralExpression");
+        let _literal = serde.open_tag("literal");
+        self.literal.serialize(serde);
     }
 }
 
@@ -68,24 +58,12 @@ impl ReferenceExpression {
 }
 impl Serializable for ReferenceExpression {
     fn serialize(&self, serde: &mut Serializer) {
-        fn reference_internals(expr: &ReferenceExpression, serde: &mut Serializer) {
-            Serializer::tag(
-                serde,
-                "reference",
-                |serde| expr.reference.serialize(serde)
-            );
-
-            Serializer::tag(
-                serde, 
-                "child",
-                |serde| expr.child.serialize(serde)
-            );
-        }
-
-        Serializer::tag(
-            serde,
-            "ReferenceExpression",
-            |serde| reference_internals(self, serde)
-        );
+        let _expr = serde.open_tag("ReferenceExpression"); 
+        {
+            let _reference = serde.open_tag("reference");
+            self.reference.serialize(serde);
+        } // Closes _reference tag
+        let _child = serde.open_tag("child");
+        self.child.serialize(serde);
     }
 }

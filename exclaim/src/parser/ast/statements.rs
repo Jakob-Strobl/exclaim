@@ -24,24 +24,12 @@ impl StmtNode {
 }
 impl Serializable for StmtNode {
     fn serialize(&self, serde: &mut Serializer) {
-        fn stmt_internals(stmt: &StmtNode, serde: &mut Serializer) {
-            Serializer::tag(
-                serde,
-                "action",
-                |serde| stmt.action.serialize(serde)
-            );
-            
-            Serializer::tag(
-                serde, 
-                "expr",
-                |serde| stmt.expr.serialize(serde)
-            );
-        }
-
-        Serializer::tag(
-            serde,
-            "StmtNode",
-            |serde| stmt_internals(self, serde)
-        );
+        let _stmt = serde.open_tag("StmtNode");
+        {
+            let _action = serde.open_tag("action");
+            self.action.serialize(serde);
+        } // Closes _action tag
+        let _expr = serde.open_tag("expr");
+        self.expr.serialize(serde);
     }
 }

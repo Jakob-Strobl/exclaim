@@ -1,4 +1,4 @@
-use std::{ops::DerefMut, rc::Rc};
+use std::rc::Rc;
 use std::cell::RefCell;
 
 pub trait Serializable {
@@ -9,18 +9,11 @@ impl<T: Serializable> Serializable for Option<T> {
     fn serialize(&self, serde: &mut Serializer) {
         match self {
             Some(val) => {
-                Serializer::tag(
-                    serde, 
-                    "Option", 
-                    |serde| val.serialize(serde)
-                );
+                let _option = serde.open_tag("Option");
+                val.serialize(serde);
             }
             None => {
-                Serializer::terminal(
-                    serde, 
-                    "Option", 
-                    "None"
-                );
+                serde.terminal("Option", "None");
             }
         }
     }
@@ -31,9 +24,6 @@ impl<T: Serializable> Serializable for Box<T> {
         self.as_ref().serialize(serde)
     }
 }
-
-// TODO for self closing tags, what if we add another level of indirection 
-// So like the buffer is an RC<RefCell<String>>
 
 pub struct Serializer {
     indent: Rc<RefCell<usize>>,
@@ -71,14 +61,14 @@ impl Serializer {
     }
 
     /// Terminal is similar to a tag, but all printed on one line; good for printing leaf nodes/fields
-    pub fn terminal(serde: &mut Serializer, name: &str, content: &str) {
-        serde.indented_push(&format!("<{}>", name));
-        serde.indent();
+    pub fn terminal(&mut self, name: &str, content: &str) {
+        self.indented_push(&format!("<{}>", name));
+        self.indent();
 
-        serde.push(content);
+        self.push(content);
 
-        serde.outdent();
-        serde.push(&format!("</{}>\n", name));
+        self.outdent();
+        self.push(&format!("</{}>\n", name));
     }
 
     fn new() -> Serializer {

@@ -45,10 +45,6 @@ impl convert::From<(usize, usize)> for Location {
 
 impl Serializable for Location {
     fn serialize(&self, serde: &mut Serializer) {
-        Serializer::terminal(
-            serde,
-            "location",
-            format!("{{ {}, {} }}", self.line, self.column).as_str()
-        );
+        serde.terminal("location", format!("{{ {}, {} }}", self.line, self.column).as_str());
     }
 }

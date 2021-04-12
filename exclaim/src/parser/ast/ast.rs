@@ -25,14 +25,9 @@ impl Ast {
 
 impl Serializable for Ast {
     fn serialize(&self, serde: &mut Serializer) {
-        Serializer::tag(
-            serde, 
-            "Ast",
-            |serde| {
-                for node in self.blocks() {
-                    node.serialize(serde)
-                }
-            }
-        );
+        let _ast = serde.open_tag("Ast");
+        for node in self.blocks() {
+            node.serialize(serde)
+        }
     }
 }
