@@ -1335,7 +1335,7 @@ mod tests {
 
     #[test]
     fn lexer_simple() {
-        let input = "<h1>Tests</h1>\n{{ render! tests : site.tests | take 5 }}\n<li>{{ tests.name }}</li>\n{{!}}";
+        let input = "<h1>Tests</h1>\n{{ render! tests : site.tests | take(1,5) }}\n<li>{{ tests.name }}</li>\n{{!}}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
