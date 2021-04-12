@@ -33,25 +33,18 @@ impl Token {
 
 impl Serializable for Token {
     fn serialize(&self, serde: &mut Serializer) {
-        fn token_internals(token: &Token, serde: &mut Serializer) {
-            Serializer::terminal(
-                serde, 
-                "kind", 
-                || format!("{:?}", token.kind)
-            );
-            Serializer::terminal(
-                serde,
-                "lexeme",
-                || format!("{:?}", token.lexeme)
-            );
-            token.location.serialize(serde);
-        }
-
-        Serializer::tag(
+        let _token = serde.open_tag("Token");
+        Serializer::terminal(
             serde, 
-            "Token",
-            |serde| token_internals(self, serde)
+            "kind", 
+            || format!("{:?}", self.kind)
         );
+        Serializer::terminal(
+            serde,
+            "lexeme",
+            || format!("{:?}", self.lexeme)
+        );
+        self.location.serialize(serde);
     }
 }
 

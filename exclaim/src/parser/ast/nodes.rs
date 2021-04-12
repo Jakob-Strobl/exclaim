@@ -54,18 +54,8 @@ impl BlockNode {
 }
 impl Serializable for BlockNode {
     fn serialize(&self, serde: &mut Serializer) {
-        fn block_internals(block: &BlockNode, serde: &mut Serializer) {
-            Serializer::tag(
-                serde, 
-                "stmt",
-                |serde| block.stmt.serialize(serde)
-            );
-        }
-
-        Serializer::tag(
-            serde, 
-            "BlockNode",
-            |serde| block_internals(self, serde)
-        );
+        let _block_node = serde.open_tag("BlockNode");
+        let _block_stmt = serde.open_tag("stmt");
+        self.stmt.serialize(serde)
     }
 }
