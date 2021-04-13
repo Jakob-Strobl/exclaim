@@ -45,12 +45,14 @@ impl Serializable for LiteralExpression {
 pub struct ReferenceExpression {
     reference: Token,
     child: Option<Box<ReferenceExpression>>,
+    pipe: Option<PipeSubExpression>,
 }
 impl ReferenceExpression {
-    pub fn new(reference: Token, child: Option<Box<ReferenceExpression>>) -> ReferenceExpression {
+    pub fn new(reference: Token, child: Option<Box<ReferenceExpression>>, pipe: Option<PipeSubExpression>) -> ReferenceExpression {
         ReferenceExpression {
             reference,
             child,
+            pipe,
         }
     }
 
@@ -68,9 +70,13 @@ impl Serializable for ReferenceExpression {
         {
             let _reference = serde.open_tag("reference");
             self.reference.serialize(serde);
-        } // Closes _reference tag
-        let _child = serde.open_tag("child");
-        self.child.serialize(serde);
+        } // Closes _reference tag\
+        {
+            let _child = serde.open_tag("child");
+            self.child.serialize(serde);
+        }
+        let _pipe = serde.open_tag("pipe");
+        self.pipe.serialize(serde);
     }
 }
 

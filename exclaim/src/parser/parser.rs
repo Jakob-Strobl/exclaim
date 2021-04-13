@@ -88,6 +88,7 @@ impl Parser {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::StringLiteral => Ok(Some(Node::Text(Parser::text(parser)))),
+                // TODO _ => Parser::block()
                 &TokenKind::Operator(op) => {
                     match op {
                         Op::BlockOpen => Ok(Some(Node::Block(Parser::block(parser)?))),
@@ -328,8 +329,8 @@ impl Parser {
         
         let reference = parse_reference(parser)?;
         let child = parse_child(parser)?;
-        let ref_expr = ReferenceExpression::new(reference, child);
-        Ok(ref_expr)
+        let pipe = Parser::expr_pipe(parser)?;
+        Ok(ReferenceExpression::new(reference, child, pipe))
     }
 
     fn expr_pipe(parser: &mut Parser) -> OptionalResult<PipeSubExpression> {

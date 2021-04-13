@@ -201,12 +201,21 @@ pub fn parse_references() {
                           <child>
                             <Option>None</Option>
                           </child>
+                          <pipe>
+                            <Option>None</Option>
+                          </pipe>
                         </ReferenceExpression>
                       </Option>
                     </child>
+                    <pipe>
+                      <Option>None</Option>
+                    </pipe>
                   </ReferenceExpression>
                 </Option>
               </child>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
             </ReferenceExpression>
           </Option>
         </expr>
@@ -326,6 +335,88 @@ fn parse_pipes_on_literal() {
 
     assert_eq!(expected, &Serializer::serialize(&ast));
 
+}
+
+#[test]
+fn parse_pipes_on_reference() {
+  let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <SimpleStatement>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <ReferenceExpression>
+              <reference>
+                <Token>
+                  <kind>Label</kind>
+                  <lexeme>"site"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </reference>
+              <child>
+                <Option>
+                  <ReferenceExpression>
+                    <reference>
+                      <Token>
+                        <kind>Label</kind>
+                        <lexeme>"list"</lexeme>
+                        <location>{ 0, 15 }</location>
+                      </Token>
+                    </reference>
+                    <child>
+                      <Option>None</Option>
+                    </child>
+                    <pipe>
+                      <Option>
+                        <PipeSubExpression>
+                          <call>
+                            <Call>
+                              <function>
+                                <Token>
+                                  <kind>Label</kind>
+                                  <lexeme>"enumerate"</lexeme>
+                                  <location>{ 0, 22 }</location>
+                                </Token>
+                              </function>
+                              <arguments>
+                                <Option>None</Option>
+                              </arguments>
+                            </Call>
+                          </call>
+                          <next>
+                            <Option>None</Option>
+                          </next>
+                        </PipeSubExpression>
+                      </Option>
+                    </pipe>
+                  </ReferenceExpression>
+                </Option>
+              </child>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
+            </ReferenceExpression>
+          </Option>
+        </expr>
+      </SimpleStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+    let input = "{{ write! site.list | enumerate }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+
+    assert_eq!(expected, &Serializer::serialize(&ast));
 }
 
 #[test]
@@ -466,6 +557,9 @@ fn parse_let_stmt() {
             <child>
               <Option>None</Option>
             </child>
+            <pipe>
+              <Option>None</Option>
+            </pipe>
           </ReferenceExpression>
         </expr>
       </LetStatement>
@@ -507,14 +601,17 @@ fn parse_let_stmt_pattern() {
           </TuplePattern>
         </assignee>
         <expr>
-          <LiteralExpression>
-            <literal>
+          <ReferenceExpression>
+            <reference>
               <Token>
-                <kind>StringLiteral</kind>
-                <lexeme>"abc"</lexeme>
+                <kind>Label</kind>
+                <lexeme>"list"</lexeme>
                 <location>{ 0, 24 }</location>
               </Token>
-            </literal>
+            </reference>
+            <child>
+              <Option>None</Option>
+            </child>
             <pipe>
               <Option>
                 <PipeSubExpression>
@@ -524,7 +621,7 @@ fn parse_let_stmt_pattern() {
                         <Token>
                           <kind>Label</kind>
                           <lexeme>"enumerate"</lexeme>
-                          <location>{ 0, 32 }</location>
+                          <location>{ 0, 31 }</location>
                         </Token>
                       </function>
                       <arguments>
@@ -538,14 +635,14 @@ fn parse_let_stmt_pattern() {
                 </PipeSubExpression>
               </Option>
             </pipe>
-          </LiteralExpression>
+          </ReferenceExpression>
         </expr>
       </LetStatement>
     </stmt>
   </BlockNode>
 </Ast>
 "#;
-  let input = "{{ let! (item, index) = \"abc\" | enumerate }}";
+  let input = "{{ let! (item, index) = list | enumerate }}";
 
   let tokens = exclaim::run_lexer(input);
   let ast = exclaim::run_parser(tokens);
