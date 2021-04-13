@@ -111,11 +111,6 @@ impl Parser {
     /// block: the open block (rest of the fields needs to be parsed)
     /// Warning: We should know the next token is Operator(OpenBlock) before calling this function
     fn block(parser: &mut Parser) -> Result<BlockNode> {
-        // Parse block stmt field
-        fn parse_stmt(parser: &mut Parser) -> Result<StmtNode> {
-            Parser::stmt(parser)
-        }
-
         // Parse block close field
         fn parse_close(parser: &mut Parser) -> Result<()> {
             if let Some(token) = parser.peek() {
@@ -137,22 +132,22 @@ impl Parser {
         }
 
         let _ = parser.consume(); // Open Block Operator
-        let stmt = parse_stmt(parser)?;
+        let stmt = Parser::stmt(parser)?;
         let _ = parse_close(parser)?;
 
         let block = BlockNode::new(stmt);
         Ok(block)
     }
 
-    fn stmt(parser: &mut Parser) -> Result<StmtNode> {
+    fn stmt(parser: &mut Parser) -> Result<Stmt> {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::Action(action) => {
                     match action {
                         Action::End => Parser::stmt_end(parser),
-                        Action::Let => Err(ParserError::from(ErrorKind::Unimplemented)),
+                        Action::Let => Parser::stmt_let(parser),
+                        Action::Render => Parser::stmt_render(parser),
                         Action::Write => Parser::stmt_write(parser),
-                        Action::Render => Err(ParserError::from(ErrorKind::Unimplemented)),
                     }
                 },
                 _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
@@ -162,18 +157,28 @@ impl Parser {
         }
     }
 
-    fn stmt_end(parser: &mut Parser) -> Result<StmtNode> {
+    fn stmt_end(parser: &mut Parser) -> Result<Stmt> {
         let action = parser.consume(); // Action End
         let expr = Parser::expr(parser)?;
-        Ok(StmtNode::new(action, expr))
+        Ok(Stmt::Simple(SimpleStmt::new(action, expr)))
     }
 
-    fn stmt_write(parser: &mut Parser) -> Result<StmtNode> {
+    fn stmt_let(parser: &mut Parser) -> Result<Stmt> {
+        let _ = parser.consume(); // Action Let
+        Err(ParserError::from(ErrorKind::Unimplemented))
+    }
+
+    fn stmt_render(parser: &mut Parser) -> Result<Stmt> {
+        Err(ParserError::from(ErrorKind::Unimplemented))
+    }
+
+    fn stmt_write(parser: &mut Parser) -> Result<Stmt> {
         let action = parser.consume(); // Action Write
         let expr = Parser::expr(parser)?;
-        Ok(StmtNode::new(action, expr))
-    } 
+        Ok(Stmt::Simple(SimpleStmt::new(action, expr)))
+    }
 
+    
     fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
         // Lets just parse Literal Expressions for now :D
         if let Some(token) = parser.peek() {
