@@ -327,3 +327,111 @@ fn parse_pipes_on_literal() {
     assert_eq!(expected, &Serializer::serialize(&ast));
 
 }
+
+#[test]
+fn parse_call_with_args() {
+    let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <StmtNode>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <LiteralExpression>
+              <literal>
+                <Token>
+                  <kind>StringLiteral</kind>
+                  <lexeme>"ABCDEFG"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </literal>
+              <pipe>
+                <Option>
+                  <PipeSubExpression>
+                    <call>
+                      <Call>
+                        <function>
+                          <Token>
+                            <kind>Label</kind>
+                            <lexeme>"take"</lexeme>
+                            <location>{ 0, 22 }</location>
+                          </Token>
+                        </function>
+                        <arguments>
+                          <Option>
+                            <Arguments>
+                              <arg>
+                                <LiteralExpression>
+                                  <literal>
+                                    <Token>
+                                      <kind>NumberLiteral(1)</kind>
+                                      <lexeme>"1"</lexeme>
+                                      <location>{ 0, 27 }</location>
+                                    </Token>
+                                  </literal>
+                                  <pipe>
+                                    <Option>None</Option>
+                                  </pipe>
+                                </LiteralExpression>
+                              </arg>
+                              <arg>
+                                <LiteralExpression>
+                                  <literal>
+                                    <Token>
+                                      <kind>StringLiteral</kind>
+                                      <lexeme>"2"</lexeme>
+                                      <location>{ 0, 29 }</location>
+                                    </Token>
+                                  </literal>
+                                  <pipe>
+                                    <Option>None</Option>
+                                  </pipe>
+                                </LiteralExpression>
+                              </arg>
+                              <arg>
+                                <LiteralExpression>
+                                  <literal>
+                                    <Token>
+                                      <kind>NumberLiteral(3)</kind>
+                                      <lexeme>"3"</lexeme>
+                                      <location>{ 0, 33 }</location>
+                                    </Token>
+                                  </literal>
+                                  <pipe>
+                                    <Option>None</Option>
+                                  </pipe>
+                                </LiteralExpression>
+                              </arg>
+                            </Arguments>
+                          </Option>
+                        </arguments>
+                      </Call>
+                    </call>
+                    <next>
+                      <Option>None</Option>
+                    </next>
+                  </PipeSubExpression>
+                </Option>
+              </pipe>
+            </LiteralExpression>
+          </Option>
+        </expr>
+      </StmtNode>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+    let input = "{{ write! \"ABCDEFG\" | take(1,\"2\",3) }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+
+    assert_eq!(expected, &Serializer::serialize(&ast));
+}

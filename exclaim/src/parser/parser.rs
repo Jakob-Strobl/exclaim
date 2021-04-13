@@ -267,9 +267,84 @@ impl Parser {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }?;
 
-        let arguments = None;
+        let arguments = Parser::arguments(parser)?;
 
         Ok(Call::new(function, arguments))
+    }
+
+    fn arguments(parser: &mut Parser) -> OptionalResult<Arguments> {
+        fn parse_arg(parser: &mut Parser) -> Result<Expression> {
+            match Parser::expr(parser)? {
+                Some(expr) => Ok(expr),
+                None => Err(ParserError::from("Expected an argument"))
+            }
+        }
+        
+        fn parse_comma(parser: &mut Parser) -> Result<bool> {
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    TokenKind::Operator(op) => {
+                        match op {
+                            Op::Comma => {
+                                let _ = parser.consume(); // Comma ,
+                                Ok(true)
+                            },
+                            _ => Ok(false),
+                        }
+                    },
+                    _ => Ok(false),
+                }
+            } else {
+                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            }
+        }
+
+        // Parse Open Parentheses
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::ParenOpen => { 
+                            let _ = parser.consume(); // ParenOpen (
+                        },
+                        _ => return Ok(None)
+                    }
+                },
+                _ => return Ok(None)
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+
+        let mut args: Vec<Expression> = Vec::new();
+        
+        // Parse arguments
+        loop {
+            let arg = parse_arg(parser)?;
+            args.push(arg);
+
+            // If there is no following commma, break
+            if !parse_comma(parser)? {
+                break;
+            }
+        }
+        
+        // Parse Close Parentheses
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::ParenClose => { 
+                            let _ = parser.consume(); // ParenClose )
+                        },
+                        _ => return Err(ParserError::from("Expected ParenClose operator."))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(ParenClose)"))
+            }
+        };
+
+        Ok(Some(Arguments::new(args)))
     }
 }
 

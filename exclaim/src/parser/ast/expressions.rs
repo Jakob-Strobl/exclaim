@@ -108,10 +108,10 @@ impl Serializable for PipeSubExpression {
 
 pub struct Call {
     function: Token,
-    arguments: Option<()>,
+    arguments: Option<Arguments>,
 }
 impl Call {
-    pub fn new(function: Token, arguments: Option<()>) -> Call {
+    pub fn new(function: Token, arguments: Option<Arguments>) -> Call {
         Call {
             function,
             arguments
@@ -122,7 +122,7 @@ impl Call {
         &self.function
     }
 
-    pub fn arguments(&self) -> &Option<()> {
+    pub fn arguments(&self) -> &Option<Arguments> {
         &self.arguments
     }
 }
@@ -135,5 +135,29 @@ impl Serializable for Call {
         } // Drops _fn_name tag
         let _args = serde.open_tag("arguments");
         self.arguments.serialize(serde);
+    }
+}
+
+pub struct Arguments {
+    args: Vec<Expression>
+}
+impl Arguments {
+    pub fn new(args: Vec<Expression>) -> Arguments {
+        Arguments {
+            args,
+        }
+    }
+
+    pub fn args(&self) -> &Vec<Expression> {
+        &self.args
+    }
+}
+impl Serializable for Arguments {
+    fn serialize(&self, serde: &mut Serializer) {
+        let _args = serde.open_tag("Arguments");
+        for arg in &self.args {
+            let _arg = serde.open_tag("arg");
+            arg.serialize(serde)
+        }
     }
 }
