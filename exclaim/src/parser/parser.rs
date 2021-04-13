@@ -165,7 +165,29 @@ impl Parser {
 
     fn stmt_let(parser: &mut Parser) -> Result<Statement> {
         let _ = parser.consume(); // Action Let
-        Err(ParserError::from(ErrorKind::Unimplemented))
+        let pattern = Parser::pattern(parser)?;
+
+        // Parse assign operator: =
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::Assign => {
+                            let _ = parser.consume(); // assign operator
+                        },
+                        _ => return Err(ParserError::from("Expected assign operator.")),
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(Assign).")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+
+        let expr = Parser::expr(parser)?.unwrap(); // There should be an expression
+        // TODO better error reporting (I have a lot of errors to fix...)
+
+        Ok(Statement::Let(LetStatement::new(pattern, expr)))
     }
 
     fn stmt_render(parser: &mut Parser) -> Result<Statement> {
@@ -178,6 +200,21 @@ impl Parser {
         Ok(Statement::Simple(SimpleStatement::new(action, expr)))
     }
 
+    fn pattern(parser: &mut Parser) -> Result<Pattern> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Label => Parser::pattern_simple(parser),
+                _ => Err(ParserError::from(ErrorKind::Unimplemented)),
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    }
+
+    fn pattern_simple(parser: &mut Parser) -> Result<Pattern> {
+        let decl = parser.consume(); // We know it's a label
+        Ok(Pattern::Simple(SimplePattern::new(decl)))
+    }
     
     fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
         // Lets just parse Literal Expressions for now :D

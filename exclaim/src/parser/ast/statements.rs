@@ -1,6 +1,7 @@
 use crate::common::serialize::*;
 use crate::tokens::Token;
 use super::expressions::*;
+use super::patterns::*;
 
 
 pub enum Statement {
@@ -49,18 +50,18 @@ impl Serializable for SimpleStatement {
 }
 
 pub struct LetStatement {
-    assignee: Token,
+    assignee: Pattern,
     expr: Expression,
 }
 impl LetStatement {
-    pub fn new(assignee: Token, expr: Expression) -> LetStatement {
+    pub fn new(assignee: Pattern, expr: Expression) -> LetStatement {
         LetStatement {
             assignee,
             expr,
         }
     }
 
-    pub fn assignee(&self) -> &Token {
+    pub fn assignee(&self) -> &Pattern {
         &self.assignee
     }
 

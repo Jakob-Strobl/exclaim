@@ -438,7 +438,41 @@ fn parse_call_with_args() {
 
 #[test]
 fn parse_let_stmt() {
-    let expected = r#""#;
+    let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <LetStatement>
+        <assignee>
+          <SimplePattern>
+            <decl>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"x"</lexeme>
+                <location>{ 0, 8 }</location>
+              </Token>
+            </decl>
+          </SimplePattern>
+        </assignee>
+        <expr>
+          <ReferenceExpression>
+            <reference>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"y"</lexeme>
+                <location>{ 0, 12 }</location>
+              </Token>
+            </reference>
+            <child>
+              <Option>None</Option>
+            </child>
+          </ReferenceExpression>
+        </expr>
+      </LetStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
     let input = "{{ let! x = y }}";
 
     let tokens = exclaim::run_lexer(input);
