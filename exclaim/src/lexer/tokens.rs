@@ -74,6 +74,8 @@ pub enum Op {
     Equality,       // ==
     Inequality,     // !=
     Or,             // || 
+    ParenOpen,      // (
+    ParenClose,     // )
     Pipe,           // | (Chain function operations)
 }
 
