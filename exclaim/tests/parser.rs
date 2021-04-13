@@ -69,7 +69,7 @@ pub fn parse_write_string() {
 <Ast>
   <BlockNode>
     <stmt>
-      <StmtNode>
+      <SimpleStmt>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -93,7 +93,7 @@ pub fn parse_write_string() {
             </LiteralExpression>
           </Option>
         </expr>
-      </StmtNode>
+      </SimpleStmt>
     </stmt>
   </BlockNode>
 </Ast>
@@ -121,7 +121,7 @@ pub fn parse_end_stmt() {
   </TextNode>
   <BlockNode>
     <stmt>
-      <StmtNode>
+      <SimpleStmt>
         <action>
           <Token>
             <kind>Action(End)</kind>
@@ -132,7 +132,7 @@ pub fn parse_end_stmt() {
         <expr>
           <Option>None</Option>
         </expr>
-      </StmtNode>
+      </SimpleStmt>
     </stmt>
   </BlockNode>
   <TextNode>
@@ -160,7 +160,7 @@ pub fn parse_references() {
 <Ast>
   <BlockNode>
     <stmt>
-      <StmtNode>
+      <SimpleStmt>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -210,7 +210,7 @@ pub fn parse_references() {
             </ReferenceExpression>
           </Option>
         </expr>
-      </StmtNode>
+      </SimpleStmt>
     </stmt>
   </BlockNode>
 </Ast>
@@ -230,7 +230,7 @@ fn parse_pipes_on_literal() {
 <Ast>
   <BlockNode>
     <stmt>
-      <StmtNode>
+      <SimpleStmt>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -314,7 +314,7 @@ fn parse_pipes_on_literal() {
             </LiteralExpression>
           </Option>
         </expr>
-      </StmtNode>
+      </SimpleStmt>
     </stmt>
   </BlockNode>
 </Ast>
@@ -334,7 +334,7 @@ fn parse_call_with_args() {
 <Ast>
   <BlockNode>
     <stmt>
-      <StmtNode>
+      <SimpleStmt>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -423,7 +423,7 @@ fn parse_call_with_args() {
             </LiteralExpression>
           </Option>
         </expr>
-      </StmtNode>
+      </SimpleStmt>
     </stmt>
   </BlockNode>
 </Ast>
@@ -434,4 +434,26 @@ fn parse_call_with_args() {
     let ast = exclaim::run_parser(tokens);
 
     assert_eq!(expected, &Serializer::serialize(&ast));
+}
+
+#[test]
+fn parse_let_stmt() {
+    let expected = r#""#;
+    let input = "{{ let! x = y }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+
+    assert_eq!(expected, &Serializer::serialize(&ast));
+}
+
+#[test]
+fn parse_let_stmt_pattern() {
+  let expected = r#""#;
+  let input = "{{ let! (item, index) = list | enumerate }}";
+
+  let tokens = exclaim::run_lexer(input);
+  let ast = exclaim::run_parser(tokens);
+
+  assert_eq!(expected, &Serializer::serialize(&ast));
 }
