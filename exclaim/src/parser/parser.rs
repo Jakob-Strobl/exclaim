@@ -204,7 +204,7 @@ impl Parser {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 TokenKind::Label => Parser::pattern_simple(parser),
-                _ => Err(ParserError::from(ErrorKind::Unimplemented)),
+                _ => Parser::pattern_tuple(parser),
             }
         } else {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
@@ -214,6 +214,57 @@ impl Parser {
     fn pattern_simple(parser: &mut Parser) -> Result<Pattern> {
         let decl = parser.consume(); // We know it's a label
         Ok(Pattern::Simple(SimplePattern::new(decl)))
+    }
+
+    fn pattern_tuple(parser: &mut Parser) -> Result<Pattern> {
+        // Parse Open Parenthesis 
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::ParenOpen => { 
+                            let _ = parser.consume(); // ParenOpen: (
+                        },
+                        _ => return Err(ParserError::from(format!("Expected CloseParen operator, found {:?}", token)))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(OpenParen)"))
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+
+        // Parse Declerations in Tuple Pattern
+        let mut decls: Vec<Token> = Vec::new();
+
+        loop {
+            let decl = Parser::parse_label(parser)?;
+            decls.push(decl);
+
+            // If there isnt a following comma, break
+            if Parser::parse_comma(parser)?.is_none() {
+                break;
+            }
+        }
+
+        // Parse Close Parenthesis 
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::ParenClose => { 
+                            let _ = parser.consume(); // ParenClose: )
+                        },
+                        _ => return Err(ParserError::from(format!("Expected CloseParen operator, found {:?}", token)))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(CloseParen)"))
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+
+        Ok(Pattern::Tuple(TuplePattern::new(decls)))
     }
     
     fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
@@ -330,27 +381,8 @@ impl Parser {
                 None => Err(ParserError::from("Expected an argument"))
             }
         }
-        
-        fn parse_comma(parser: &mut Parser) -> Result<bool> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    TokenKind::Operator(op) => {
-                        match op {
-                            Op::Comma => {
-                                let _ = parser.consume(); // Comma ,
-                                Ok(true)
-                            },
-                            _ => Ok(false),
-                        }
-                    },
-                    _ => Ok(false),
-                }
-            } else {
-                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-            }
-        }
 
-        // Parse Open Parentheses
+        // Parse Open Parenthesis
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::Operator(op) => {
@@ -374,8 +406,8 @@ impl Parser {
             let arg = parse_arg(parser)?;
             args.push(arg);
 
-            // If there is no following commma, break
-            if !parse_comma(parser)? {
+            // If there isnt a following comma, break
+            if Parser::parse_comma(parser)?.is_none() {
                 break;
             }
         }
@@ -396,6 +428,39 @@ impl Parser {
         };
 
         Ok(Some(Arguments::new(args)))
+    }
+
+
+    // Unit Parsing functions
+    fn parse_label(parser: &mut Parser) -> Result<Token> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Label => {
+                    Ok(parser.consume())
+                }
+                _ => return Err(ParserError::from("Expected a Label Token")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    }
+
+    fn parse_comma(parser: &mut Parser) -> OptionalResult<Token> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::Comma => {
+                            Ok(Some(parser.consume()))
+                        },
+                        _ => Ok(None),
+                    }
+                },
+                _ => Ok(None),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
     }
 }
 

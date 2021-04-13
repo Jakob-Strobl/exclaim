@@ -483,8 +483,69 @@ fn parse_let_stmt() {
 
 #[test]
 fn parse_let_stmt_pattern() {
-  let expected = r#""#;
-  let input = "{{ let! (item, index) = list | enumerate }}";
+  let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <LetStatement>
+        <assignee>
+          <TuplePattern>
+            <decl>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"item"</lexeme>
+                <location>{ 0, 9 }</location>
+              </Token>
+            </decl>
+            <decl>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"index"</lexeme>
+                <location>{ 0, 15 }</location>
+              </Token>
+            </decl>
+          </TuplePattern>
+        </assignee>
+        <expr>
+          <LiteralExpression>
+            <literal>
+              <Token>
+                <kind>StringLiteral</kind>
+                <lexeme>"abc"</lexeme>
+                <location>{ 0, 24 }</location>
+              </Token>
+            </literal>
+            <pipe>
+              <Option>
+                <PipeSubExpression>
+                  <call>
+                    <Call>
+                      <function>
+                        <Token>
+                          <kind>Label</kind>
+                          <lexeme>"enumerate"</lexeme>
+                          <location>{ 0, 32 }</location>
+                        </Token>
+                      </function>
+                      <arguments>
+                        <Option>None</Option>
+                      </arguments>
+                    </Call>
+                  </call>
+                  <next>
+                    <Option>None</Option>
+                  </next>
+                </PipeSubExpression>
+              </Option>
+            </pipe>
+          </LiteralExpression>
+        </expr>
+      </LetStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+  let input = "{{ let! (item, index) = \"abc\" | enumerate }}";
 
   let tokens = exclaim::run_lexer(input);
   let ast = exclaim::run_parser(tokens);
