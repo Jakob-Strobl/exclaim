@@ -54,8 +54,8 @@ pub enum TokenKind {
 pub enum Action {
     End,
     Let, 
-    Write, 
     Render,
+    Write,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
