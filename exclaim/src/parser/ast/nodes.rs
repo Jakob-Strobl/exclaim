@@ -1,7 +1,7 @@
 use crate::tokens::Token;
 use crate::common::serialize::*;
 
-use super::statements::Stmt;
+use super::statements::Statement;
 
 pub enum Node {
     Text(TextNode),
@@ -39,16 +39,16 @@ impl Serializable for TextNode {
 }
 
 pub struct BlockNode {
-    stmt: Stmt,
+    stmt: Statement,
 }
 impl BlockNode {
-    pub fn new(stmt: Stmt) -> BlockNode {
+    pub fn new(stmt: Statement) -> BlockNode {
         BlockNode {
             stmt,
         }
     }
 
-    pub fn stmt(&self) -> &Stmt {
+    pub fn stmt(&self) -> &Statement {
         &self.stmt
     }
 }

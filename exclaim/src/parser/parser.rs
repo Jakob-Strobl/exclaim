@@ -139,7 +139,7 @@ impl Parser {
         Ok(block)
     }
 
-    fn stmt(parser: &mut Parser) -> Result<Stmt> {
+    fn stmt(parser: &mut Parser) -> Result<Statement> {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 &TokenKind::Action(action) => {
@@ -157,25 +157,25 @@ impl Parser {
         }
     }
 
-    fn stmt_end(parser: &mut Parser) -> Result<Stmt> {
+    fn stmt_end(parser: &mut Parser) -> Result<Statement> {
         let action = parser.consume(); // Action End
         let expr = Parser::expr(parser)?;
-        Ok(Stmt::Simple(SimpleStmt::new(action, expr)))
+        Ok(Statement::Simple(SimpleStatement::new(action, expr)))
     }
 
-    fn stmt_let(parser: &mut Parser) -> Result<Stmt> {
+    fn stmt_let(parser: &mut Parser) -> Result<Statement> {
         let _ = parser.consume(); // Action Let
         Err(ParserError::from(ErrorKind::Unimplemented))
     }
 
-    fn stmt_render(parser: &mut Parser) -> Result<Stmt> {
+    fn stmt_render(parser: &mut Parser) -> Result<Statement> {
         Err(ParserError::from(ErrorKind::Unimplemented))
     }
 
-    fn stmt_write(parser: &mut Parser) -> Result<Stmt> {
+    fn stmt_write(parser: &mut Parser) -> Result<Statement> {
         let action = parser.consume(); // Action Write
         let expr = Parser::expr(parser)?;
-        Ok(Stmt::Simple(SimpleStmt::new(action, expr)))
+        Ok(Statement::Simple(SimpleStatement::new(action, expr)))
     }
 
     

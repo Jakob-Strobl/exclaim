@@ -3,26 +3,26 @@ use crate::tokens::Token;
 use super::expressions::*;
 
 
-pub enum Stmt {
-    Simple(SimpleStmt),
-    Let(LetStmt),
+pub enum Statement {
+    Simple(SimpleStatement),
+    Let(LetStatement),
 }
-impl Serializable for Stmt {
+impl Serializable for Statement {
     fn serialize(&self, serde: &mut Serializer) {
         match self {
-            Stmt::Simple(stmt) => stmt.serialize(serde),
-            Stmt::Let(stmt) => stmt.serialize(serde),
+            Statement::Simple(stmt) => stmt.serialize(serde),
+            Statement::Let(stmt) => stmt.serialize(serde),
         }
     }
 }
 
-pub struct SimpleStmt {
+pub struct SimpleStatement {
     action: Token,
     expr: Option<Expression>,
 }
-impl SimpleStmt {
-    pub fn new(action: Token, expr: Option<Expression>) -> SimpleStmt {
-        SimpleStmt {
+impl SimpleStatement {
+    pub fn new(action: Token, expr: Option<Expression>) -> SimpleStatement {
+        SimpleStatement {
             action,
             expr,
         }
@@ -36,9 +36,9 @@ impl SimpleStmt {
         &self.expr
     }
 }
-impl Serializable for SimpleStmt {
+impl Serializable for SimpleStatement {
     fn serialize(&self, serde: &mut Serializer) {
-        let _stmt = serde.open_tag("SimpleStmt");
+        let _stmt = serde.open_tag("SimpleStatement");
         {
             let _action = serde.open_tag("action");
             self.action.serialize(serde);
@@ -48,13 +48,13 @@ impl Serializable for SimpleStmt {
     }
 }
 
-pub struct LetStmt {
+pub struct LetStatement {
     assignee: Token,
     expr: Expression,
 }
-impl LetStmt {
-    pub fn new(assignee: Token, expr: Expression) -> LetStmt {
-        LetStmt {
+impl LetStatement {
+    pub fn new(assignee: Token, expr: Expression) -> LetStatement {
+        LetStatement {
             assignee,
             expr,
         }
@@ -68,9 +68,9 @@ impl LetStmt {
         &self.expr
     }
 }
-impl Serializable for LetStmt {
+impl Serializable for LetStatement {
     fn serialize(&self, serde: &mut Serializer) {
-        let _stmt = serde.open_tag("LetStmt");
+        let _stmt = serde.open_tag("LetStatement");
         {
             let _assignee = serde.open_tag("assignee");
             self.assignee.serialize(serde);

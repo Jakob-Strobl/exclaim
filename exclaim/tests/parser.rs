@@ -69,7 +69,7 @@ pub fn parse_write_string() {
 <Ast>
   <BlockNode>
     <stmt>
-      <SimpleStmt>
+      <SimpleStatement>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -93,7 +93,7 @@ pub fn parse_write_string() {
             </LiteralExpression>
           </Option>
         </expr>
-      </SimpleStmt>
+      </SimpleStatement>
     </stmt>
   </BlockNode>
 </Ast>
@@ -121,7 +121,7 @@ pub fn parse_end_stmt() {
   </TextNode>
   <BlockNode>
     <stmt>
-      <SimpleStmt>
+      <SimpleStatement>
         <action>
           <Token>
             <kind>Action(End)</kind>
@@ -132,7 +132,7 @@ pub fn parse_end_stmt() {
         <expr>
           <Option>None</Option>
         </expr>
-      </SimpleStmt>
+      </SimpleStatement>
     </stmt>
   </BlockNode>
   <TextNode>
@@ -160,7 +160,7 @@ pub fn parse_references() {
 <Ast>
   <BlockNode>
     <stmt>
-      <SimpleStmt>
+      <SimpleStatement>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -210,7 +210,7 @@ pub fn parse_references() {
             </ReferenceExpression>
           </Option>
         </expr>
-      </SimpleStmt>
+      </SimpleStatement>
     </stmt>
   </BlockNode>
 </Ast>
@@ -230,7 +230,7 @@ fn parse_pipes_on_literal() {
 <Ast>
   <BlockNode>
     <stmt>
-      <SimpleStmt>
+      <SimpleStatement>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -314,7 +314,7 @@ fn parse_pipes_on_literal() {
             </LiteralExpression>
           </Option>
         </expr>
-      </SimpleStmt>
+      </SimpleStatement>
     </stmt>
   </BlockNode>
 </Ast>
@@ -334,7 +334,7 @@ fn parse_call_with_args() {
 <Ast>
   <BlockNode>
     <stmt>
-      <SimpleStmt>
+      <SimpleStatement>
         <action>
           <Token>
             <kind>Action(Write)</kind>
@@ -423,7 +423,7 @@ fn parse_call_with_args() {
             </LiteralExpression>
           </Option>
         </expr>
-      </SimpleStmt>
+      </SimpleStatement>
     </stmt>
   </BlockNode>
 </Ast>
