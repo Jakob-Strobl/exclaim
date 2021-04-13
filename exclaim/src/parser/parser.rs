@@ -15,6 +15,7 @@ use crate::tokens::{
     Token,
     TokenKind,
     Op,
+    Action,
 };
 
 type Result<T> = result::Result<T, ParserError>;
@@ -144,26 +145,34 @@ impl Parser {
     }
 
     fn stmt(parser: &mut Parser) -> Result<StmtNode> {
-        fn parse_action(parser: &mut Parser) -> Result<Token> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    &TokenKind::Action(_) => Ok(parser.consume()),
-                    _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
-                }
-            } else {
-                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Action(action) => {
+                    match action {
+                        Action::End => Parser::stmt_end(parser),
+                        Action::Let => Err(ParserError::from(ErrorKind::Unimplemented)),
+                        Action::Write => Parser::stmt_write(parser),
+                        Action::Render => Err(ParserError::from(ErrorKind::Unimplemented)),
+                    }
+                },
+                _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
             }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
-
-        fn parse_expr(parser: &mut Parser) -> OptionalResult<Expression> {
-            Parser::expr(parser)
-        }
-
-        let action = parse_action(parser)?;
-        let expr = parse_expr(parser)?;
-        let stmt = StmtNode::new(action, expr);
-        Ok(stmt)
     }
+
+    fn stmt_end(parser: &mut Parser) -> Result<StmtNode> {
+        let action = parser.consume(); // Action End
+        let expr = Parser::expr(parser)?;
+        Ok(StmtNode::new(action, expr))
+    }
+
+    fn stmt_write(parser: &mut Parser) -> Result<StmtNode> {
+        let action = parser.consume(); // Action Write
+        let expr = Parser::expr(parser)?;
+        Ok(StmtNode::new(action, expr))
+    } 
 
     fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
         // Lets just parse Literal Expressions for now :D
