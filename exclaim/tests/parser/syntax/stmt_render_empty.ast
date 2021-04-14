@@ -1,0 +1,14 @@
+<Ast>
+  <BlockNode>
+    <stmt>
+      <RenderStatement>
+        <pattern>
+          <Option>None</Option>
+        </pattern>
+        <iterable>
+          <Option>None</Option>
+        </iterable>
+      </RenderStatement>
+    </stmt>
+  </BlockNode>
+</Ast>

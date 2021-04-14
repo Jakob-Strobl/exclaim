@@ -1,0 +1,63 @@
+<Ast>
+  <BlockNode>
+    <stmt>
+      <LetStatement>
+        <assignee>
+          <TuplePattern>
+            <decl>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"item"</lexeme>
+                <location>{ 0, 9 }</location>
+              </Token>
+            </decl>
+            <decl>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"index"</lexeme>
+                <location>{ 0, 15 }</location>
+              </Token>
+            </decl>
+          </TuplePattern>
+        </assignee>
+        <expr>
+          <ReferenceExpression>
+            <reference>
+              <Token>
+                <kind>Label</kind>
+                <lexeme>"list"</lexeme>
+                <location>{ 0, 24 }</location>
+              </Token>
+            </reference>
+            <child>
+              <Option>None</Option>
+            </child>
+            <pipe>
+              <Option>
+                <Pipe>
+                  <call>
+                    <Call>
+                      <function>
+                        <Token>
+                          <kind>Label</kind>
+                          <lexeme>"enumerate"</lexeme>
+                          <location>{ 0, 31 }</location>
+                        </Token>
+                      </function>
+                      <arguments>
+                        <Option>None</Option>
+                      </arguments>
+                    </Call>
+                  </call>
+                  <next>
+                    <Option>None</Option>
+                  </next>
+                </Pipe>
+              </Option>
+            </pipe>
+          </ReferenceExpression>
+        </expr>
+      </LetStatement>
+    </stmt>
+  </BlockNode>
+</Ast>

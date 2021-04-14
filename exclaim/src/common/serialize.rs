@@ -81,7 +81,7 @@ impl Serializer {
     fn new() -> Serializer {
         Serializer { 
             indent: Rc::new(RefCell::new(0)),
-            buffer: Rc::new(RefCell::new(String::from("\n"))),
+            buffer: Rc::new(RefCell::new(String::new())),
         }
     }
 

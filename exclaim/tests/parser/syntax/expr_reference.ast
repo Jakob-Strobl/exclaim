@@ -1,0 +1,66 @@
+<Ast>
+  <BlockNode>
+    <stmt>
+      <SimpleStatement>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <ReferenceExpression>
+              <reference>
+                <Token>
+                  <kind>Label</kind>
+                  <lexeme>"variable"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </reference>
+              <child>
+                <Option>
+                  <ReferenceExpression>
+                    <reference>
+                      <Token>
+                        <kind>Label</kind>
+                        <lexeme>"data"</lexeme>
+                        <location>{ 0, 19 }</location>
+                      </Token>
+                    </reference>
+                    <child>
+                      <Option>
+                        <ReferenceExpression>
+                          <reference>
+                            <Token>
+                              <kind>Label</kind>
+                              <lexeme>"field"</lexeme>
+                              <location>{ 0, 24 }</location>
+                            </Token>
+                          </reference>
+                          <child>
+                            <Option>None</Option>
+                          </child>
+                          <pipe>
+                            <Option>None</Option>
+                          </pipe>
+                        </ReferenceExpression>
+                      </Option>
+                    </child>
+                    <pipe>
+                      <Option>None</Option>
+                    </pipe>
+                  </ReferenceExpression>
+                </Option>
+              </child>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
+            </ReferenceExpression>
+          </Option>
+        </expr>
+      </SimpleStatement>
+    </stmt>
+  </BlockNode>
+</Ast>

@@ -29,8 +29,7 @@ macro_rules! assert_eq {
 
 #[test]
 pub fn parse_empty_input() {
-    let expected = r"
-<Ast>
+    let expected = r"<Ast>
 </Ast>
 ";
 
@@ -43,716 +42,134 @@ pub fn parse_empty_input() {
 }
 
 #[test]
-pub fn parse_string_literal() {
-    let expected = r#"
-<Ast>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"Hello, World!"</lexeme>
-        <location>{ 0, 0 }</location>
-      </Token>
-    </text>
-  </TextNode>
-</Ast>
-"#;
+pub fn parse_text() {
+    let expected = read_file_to_string("./tests/parser/syntax/text.ast");
     let input = "Hello, World!";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-pub fn parse_write_string() {
-    let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 0, 3 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <LiteralExpression>
-              <literal>
-                <Token>
-                  <kind>StringLiteral</kind>
-                  <lexeme>"Hello!"</lexeme>
-                  <location>{ 0, 10 }</location>
-                </Token>
-              </literal>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </LiteralExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
+fn parse_stmt_write_string() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_write_string.ast");
     let input = "{{ write! \"Hello!\" }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-pub fn parse_end_stmt() {
-    let expected = r#"
-<Ast>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"This is a string. "</lexeme>
-        <location>{ 0, 0 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(End)</kind>
-            <lexeme>"!"</lexeme>
-            <location>{ 0, 21 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>None</Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>" and another one."</lexeme>
-        <location>{ 0, 25 }</location>
-      </Token>
-    </text>
-  </TextNode>
-</Ast>
-"#;
+fn parse_stmt_end() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_end.ast");
     let input = "This is a string. {{ ! }} and another one.";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-pub fn parse_references() {
-  let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 0, 3 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"variable"</lexeme>
-                  <location>{ 0, 10 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>
-                  <ReferenceExpression>
-                    <reference>
-                      <Token>
-                        <kind>Label</kind>
-                        <lexeme>"data"</lexeme>
-                        <location>{ 0, 19 }</location>
-                      </Token>
-                    </reference>
-                    <child>
-                      <Option>
-                        <ReferenceExpression>
-                          <reference>
-                            <Token>
-                              <kind>Label</kind>
-                              <lexeme>"field"</lexeme>
-                              <location>{ 0, 24 }</location>
-                            </Token>
-                          </reference>
-                          <child>
-                            <Option>None</Option>
-                          </child>
-                          <pipe>
-                            <Option>None</Option>
-                          </pipe>
-                        </ReferenceExpression>
-                      </Option>
-                    </child>
-                    <pipe>
-                      <Option>None</Option>
-                    </pipe>
-                  </ReferenceExpression>
-                </Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
-
+fn parse_expr_reference() {
+    let expected = read_file_to_string("./tests/parser/syntax/expr_reference.ast");
     let input = "{{ write! variable.data.field }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_pipes_on_literal() {
-    let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 0, 3 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <LiteralExpression>
-              <literal>
-                <Token>
-                  <kind>StringLiteral</kind>
-                  <lexeme>"HELLO"</lexeme>
-                  <location>{ 0, 10 }</location>
-                </Token>
-              </literal>
-              <pipe>
-                <Option>
-                  <Pipe>
-                    <call>
-                      <Call>
-                        <function>
-                          <Token>
-                            <kind>Label</kind>
-                            <lexeme>"lowercase"</lexeme>
-                            <location>{ 0, 20 }</location>
-                          </Token>
-                        </function>
-                        <arguments>
-                          <Option>None</Option>
-                        </arguments>
-                      </Call>
-                    </call>
-                    <next>
-                      <Option>
-                        <Pipe>
-                          <call>
-                            <Call>
-                              <function>
-                                <Token>
-                                  <kind>Label</kind>
-                                  <lexeme>"uppercase"</lexeme>
-                                  <location>{ 0, 32 }</location>
-                                </Token>
-                              </function>
-                              <arguments>
-                                <Option>None</Option>
-                              </arguments>
-                            </Call>
-                          </call>
-                          <next>
-                            <Option>
-                              <Pipe>
-                                <call>
-                                  <Call>
-                                    <function>
-                                      <Token>
-                                        <kind>Label</kind>
-                                        <lexeme>"lowercase"</lexeme>
-                                        <location>{ 0, 44 }</location>
-                                      </Token>
-                                    </function>
-                                    <arguments>
-                                      <Option>None</Option>
-                                    </arguments>
-                                  </Call>
-                                </call>
-                                <next>
-                                  <Option>None</Option>
-                                </next>
-                              </Pipe>
-                            </Option>
-                          </next>
-                        </Pipe>
-                      </Option>
-                    </next>
-                  </Pipe>
-                </Option>
-              </pipe>
-            </LiteralExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
+fn parse_pipe_literal() {
+    let expected = read_file_to_string("./tests/parser/syntax/pipe_literal.ast");
     let input = "{{ write! \"HELLO\" | lowercase | uppercase | lowercase }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 
 }
 
 #[test]
-fn parse_pipes_on_reference() {
-  let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 0, 3 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"site"</lexeme>
-                  <location>{ 0, 10 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>
-                  <ReferenceExpression>
-                    <reference>
-                      <Token>
-                        <kind>Label</kind>
-                        <lexeme>"list"</lexeme>
-                        <location>{ 0, 15 }</location>
-                      </Token>
-                    </reference>
-                    <child>
-                      <Option>None</Option>
-                    </child>
-                    <pipe>
-                      <Option>
-                        <Pipe>
-                          <call>
-                            <Call>
-                              <function>
-                                <Token>
-                                  <kind>Label</kind>
-                                  <lexeme>"enumerate"</lexeme>
-                                  <location>{ 0, 22 }</location>
-                                </Token>
-                              </function>
-                              <arguments>
-                                <Option>None</Option>
-                              </arguments>
-                            </Call>
-                          </call>
-                          <next>
-                            <Option>None</Option>
-                          </next>
-                        </Pipe>
-                      </Option>
-                    </pipe>
-                  </ReferenceExpression>
-                </Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
+fn parse_pipe_reference() {
+    let expected = read_file_to_string("./tests/parser/syntax/pipe_reference.ast");
     let input = "{{ write! site.list | enumerate }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_call_with_args() {
-    let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 0, 3 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <LiteralExpression>
-              <literal>
-                <Token>
-                  <kind>StringLiteral</kind>
-                  <lexeme>"ABCDEFG"</lexeme>
-                  <location>{ 0, 10 }</location>
-                </Token>
-              </literal>
-              <pipe>
-                <Option>
-                  <Pipe>
-                    <call>
-                      <Call>
-                        <function>
-                          <Token>
-                            <kind>Label</kind>
-                            <lexeme>"take"</lexeme>
-                            <location>{ 0, 22 }</location>
-                          </Token>
-                        </function>
-                        <arguments>
-                          <Option>
-                            <Arguments>
-                              <arg>
-                                <LiteralExpression>
-                                  <literal>
-                                    <Token>
-                                      <kind>NumberLiteral(1)</kind>
-                                      <lexeme>"1"</lexeme>
-                                      <location>{ 0, 27 }</location>
-                                    </Token>
-                                  </literal>
-                                  <pipe>
-                                    <Option>None</Option>
-                                  </pipe>
-                                </LiteralExpression>
-                              </arg>
-                              <arg>
-                                <LiteralExpression>
-                                  <literal>
-                                    <Token>
-                                      <kind>StringLiteral</kind>
-                                      <lexeme>"2"</lexeme>
-                                      <location>{ 0, 29 }</location>
-                                    </Token>
-                                  </literal>
-                                  <pipe>
-                                    <Option>None</Option>
-                                  </pipe>
-                                </LiteralExpression>
-                              </arg>
-                              <arg>
-                                <LiteralExpression>
-                                  <literal>
-                                    <Token>
-                                      <kind>NumberLiteral(3)</kind>
-                                      <lexeme>"3"</lexeme>
-                                      <location>{ 0, 33 }</location>
-                                    </Token>
-                                  </literal>
-                                  <pipe>
-                                    <Option>None</Option>
-                                  </pipe>
-                                </LiteralExpression>
-                              </arg>
-                            </Arguments>
-                          </Option>
-                        </arguments>
-                      </Call>
-                    </call>
-                    <next>
-                      <Option>None</Option>
-                    </next>
-                  </Pipe>
-                </Option>
-              </pipe>
-            </LiteralExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
+fn parse_pipe_args() {
+    let expected = read_file_to_string("./tests/parser/syntax/pipe_args.ast");
     let input = "{{ write! \"ABCDEFG\" | take(1,\"2\",3) }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_let_stmt() {
-    let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <LetStatement>
-        <assignee>
-          <SimplePattern>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"x"</lexeme>
-                <location>{ 0, 8 }</location>
-              </Token>
-            </decl>
-          </SimplePattern>
-        </assignee>
-        <expr>
-          <ReferenceExpression>
-            <reference>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"y"</lexeme>
-                <location>{ 0, 12 }</location>
-              </Token>
-            </reference>
-            <child>
-              <Option>None</Option>
-            </child>
-            <pipe>
-              <Option>None</Option>
-            </pipe>
-          </ReferenceExpression>
-        </expr>
-      </LetStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
+fn parse_stmt_let() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_let.ast");
     let input = "{{ let! x = y }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_let_stmt_pattern() {
-  let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <LetStatement>
-        <assignee>
-          <TuplePattern>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"item"</lexeme>
-                <location>{ 0, 9 }</location>
-              </Token>
-            </decl>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"index"</lexeme>
-                <location>{ 0, 15 }</location>
-              </Token>
-            </decl>
-          </TuplePattern>
-        </assignee>
-        <expr>
-          <ReferenceExpression>
-            <reference>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"list"</lexeme>
-                <location>{ 0, 24 }</location>
-              </Token>
-            </reference>
-            <child>
-              <Option>None</Option>
-            </child>
-            <pipe>
-              <Option>
-                <Pipe>
-                  <call>
-                    <Call>
-                      <function>
-                        <Token>
-                          <kind>Label</kind>
-                          <lexeme>"enumerate"</lexeme>
-                          <location>{ 0, 31 }</location>
-                        </Token>
-                      </function>
-                      <arguments>
-                        <Option>None</Option>
-                      </arguments>
-                    </Call>
-                  </call>
-                  <next>
-                    <Option>None</Option>
-                  </next>
-                </Pipe>
-              </Option>
-            </pipe>
-          </ReferenceExpression>
-        </expr>
-      </LetStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
-  let input = "{{ let! (item, index) = list | enumerate }}";
+fn parse_stmt_let_pattern() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_let_pattern.ast");
+    let input = "{{ let! (item, index) = list | enumerate }}";
 
-  let tokens = exclaim::run_lexer(input);
-  let ast = exclaim::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-  assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_empty_render_stmt() {
-  let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <RenderStatement>
-        <pattern>
-          <Option>None</Option>
-        </pattern>
-        <iterable>
-          <Option>None</Option>
-        </iterable>
-      </RenderStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
-  let input = "{{ render! }}";
+fn parse_stmt_render_empty() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_render_empty.ast");
+    let input = "{{ render! }}";
 
-  let tokens = exclaim::run_lexer(input);
-  let ast = exclaim::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-  assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
-fn parse_iterable_render_stmt() {
-  let expected = r#"
-<Ast>
-  <BlockNode>
-    <stmt>
-      <RenderStatement>
-        <pattern>
-          <Option>
-            <SimplePattern>
-              <decl>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"page"</lexeme>
-                  <location>{ 0, 11 }</location>
-                </Token>
-              </decl>
-            </SimplePattern>
-          </Option>
-        </pattern>
-        <iterable>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"site"</lexeme>
-                  <location>{ 0, 18 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>
-                  <ReferenceExpression>
-                    <reference>
-                      <Token>
-                        <kind>Label</kind>
-                        <lexeme>"pages"</lexeme>
-                        <location>{ 0, 23 }</location>
-                      </Token>
-                    </reference>
-                    <child>
-                      <Option>None</Option>
-                    </child>
-                    <pipe>
-                      <Option>None</Option>
-                    </pipe>
-                  </ReferenceExpression>
-                </Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </iterable>
-      </RenderStatement>
-    </stmt>
-  </BlockNode>
-</Ast>
-"#;
-  let input = "{{ render! page : site.pages }}";
+fn parse_stmt_render_iterable() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_render_iterable.ast");
+    let input = "{{ render! page : site.pages }}";
 
-  let tokens = exclaim::run_lexer(input);
-  let ast = exclaim::run_parser(tokens);
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
 
-  assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
 
 #[test]
 fn parse_sample() {
-  let expected = read_file_to_string("./tests/parser/syntax/sample.ast");
-  let input = read_file_to_string("./tests/parser/syntax/sample.txt");
+    let expected = read_file_to_string("./tests/parser/syntax/sample.ast");
+    let input = read_file_to_string("./tests/parser/syntax/sample.txt");
 
-  let tokens = exclaim::run_lexer(&input);
-  let ast = exclaim::run_parser(tokens);
+    let tokens = exclaim::run_lexer(&input);
+    let ast = exclaim::run_parser(tokens);
 
-  assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&expected, &Serializer::serialize(&ast));
 }
