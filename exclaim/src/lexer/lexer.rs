@@ -218,6 +218,16 @@ mod states {
                     stack.accept_token(TokenKind::Operator(Op::ClosureClose));
                     &STATE_BLOCK
                 },
+                '(' => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::ParenOpen));
+                    &STATE_BLOCK
+                },
+                ')' => {
+                    stack.push();
+                    stack.accept_token(TokenKind::Operator(Op::ParenClose));
+                    &STATE_BLOCK
+                },
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
@@ -441,7 +451,7 @@ mod states {
 
 mod automata {
     use crate::tokens::{Token, TokenKind};
-    use crate::util::Location;
+    use crate::common::Location;
 
     pub struct StackMachine {
         chars: Vec<char>,
@@ -576,7 +586,7 @@ mod automata {
 
 #[cfg(test)]
 mod tests {
-    use crate::util::Location;
+    use crate::common::Location;
     use crate::tokens::{Token, TokenKind, Op, Action};
     use super::Lexer;
 
@@ -1335,7 +1345,7 @@ mod tests {
 
     #[test]
     fn lexer_simple() {
-        let input = "<h1>Tests</h1>\n{{ render! tests : site.tests | take 5 }}\n<li>{{ tests.name }}</li>\n{{!}}";
+        let input = "<h1>Tests</h1>\n{{ render! tests : site.tests | take(1,5) }}\n<li>{{ tests.name }}</li>\n{{!}}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
@@ -1388,16 +1398,36 @@ mod tests {
                 Location::new(1,32)
             ),
             Token::new(
+                TokenKind::Operator(Op::ParenOpen),
+                String::from("("),
+                Location::new(1,36)
+            ),
+            Token::new(
+                TokenKind::NumberLiteral(1),
+                String::from("1"),
+                Location::new(1,37)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::Comma),
+                String::from(","),
+                Location::new(1,38)
+            ),
+            Token::new(
                 TokenKind::NumberLiteral(5),
                 String::from("5"),
-                Location::new(1,37)
+                Location::new(1,39)
+            ),
+            Token::new(
+                TokenKind::Operator(Op::ParenClose),
+                String::from(")"),
+                Location::new(1,40)
             ),
             Token::new(
                 TokenKind::Operator(Op::BlockClose),
                 String::from("}}"),
-                Location::new(1,39)
+                Location::new(1,42)
             ),
-            token_string_literal("\n<li>", (1, 41)),
+            token_string_literal("\n<li>", (1, 44)),
             Token::new(
                 TokenKind::Operator(Op::BlockOpen),
                 String::from("{{"),

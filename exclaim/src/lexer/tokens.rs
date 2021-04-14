@@ -1,4 +1,6 @@
-use crate::util::Location;
+use crate::common::Location;
+use crate::common::serialize::*;
+
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
@@ -19,6 +21,23 @@ impl Token {
     pub fn kind(&self) -> &TokenKind {
         &self.kind
     }
+
+    pub fn lexeme(&self) -> &str {
+        &self.lexeme
+    }
+
+    pub fn location(&self) -> &Location {
+        &self.location
+    }
+}
+
+impl Serializable for Token {
+    fn serialize(&self, serde: &mut Serializer) {
+        let _token = serde.open_tag("Token");
+        serde.terminal("kind", format!("{:?}", self.kind).as_str());
+        serde.terminal("lexeme", format!("{:?}", self.lexeme).as_str());
+        self.location.serialize(serde);
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -35,8 +54,8 @@ pub enum TokenKind {
 pub enum Action {
     End,
     Let, 
-    Write, 
     Render,
+    Write,
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -55,6 +74,8 @@ pub enum Op {
     Equality,       // ==
     Inequality,     // !=
     Or,             // || 
+    ParenOpen,      // (
+    ParenClose,     // )
     Pipe,           // | (Chain function operations)
 }
 

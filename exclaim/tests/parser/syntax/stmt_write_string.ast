@@ -1,0 +1,31 @@
+<Ast>
+  <BlockNode>
+    <stmt>
+      <SimpleStatement>
+        <action>
+          <Token>
+            <kind>Action(Write)</kind>
+            <lexeme>"write!"</lexeme>
+            <location>{ 0, 3 }</location>
+          </Token>
+        </action>
+        <expr>
+          <Option>
+            <LiteralExpression>
+              <literal>
+                <Token>
+                  <kind>StringLiteral</kind>
+                  <lexeme>"Hello!"</lexeme>
+                  <location>{ 0, 10 }</location>
+                </Token>
+              </literal>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
+            </LiteralExpression>
+          </Option>
+        </expr>
+      </SimpleStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
