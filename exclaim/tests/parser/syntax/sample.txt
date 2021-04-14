@@ -1,0 +1,7 @@
+{{ let! cart = user.cart }}
+Hello, {{ write! user.name | capitalized }}.
+
+Your cart ({{ write! cart | length }}): 
+{{ render! item : cart }}
+  <li>{{ write! item }}</li>
+{{!}}

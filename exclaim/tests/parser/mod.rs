@@ -749,18 +749,9 @@ fn parse_iterable_render_stmt() {
 #[test]
 fn parse_sample() {
   let expected = read_file_to_string("./tests/parser/syntax/sample.ast");
+  let input = read_file_to_string("./tests/parser/syntax/sample.txt");
 
-  let input = r#"
-{{ let! cart = user.cart }}
-Hello, {{ write! user.name | capitalized }}.
-
-Your cart ({{ write! cart | length }}): 
-{{ render! item : cart }}
-  <li>{{ write! item }}</li>
-{{!}}
-"#;
-
-  let tokens = exclaim::run_lexer(input);
+  let tokens = exclaim::run_lexer(&input);
   let ast = exclaim::run_parser(tokens);
 
   assert_eq!(&expected, &Serializer::serialize(&ast));
