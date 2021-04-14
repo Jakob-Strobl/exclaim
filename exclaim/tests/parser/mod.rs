@@ -748,7 +748,7 @@ fn parse_iterable_render_stmt() {
 
 #[test]
 fn parse_sample() {
-  let expected = read_file_to_string("./tests/parser/syntax/sample.xml");
+  let expected = read_file_to_string("./tests/parser/syntax/sample.ast");
 
   let input = r#"
 {{ let! cart = user.cart }}
