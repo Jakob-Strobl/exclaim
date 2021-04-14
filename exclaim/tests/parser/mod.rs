@@ -1,10 +1,9 @@
 use std::fmt;
-use std::fs::File;
-use std::io::prelude::*;
 
 use pretty_assertions::assert_eq;
 use exclaim;
 use exclaim::common::serialize::*;
+use super::common::read_file_to_string;
 
 // The following: 
 //      PrettyString Newtype, 
@@ -749,10 +748,7 @@ fn parse_iterable_render_stmt() {
 
 #[test]
 fn parse_sample() {
-  let mut file = File::open("./tests/syntax_sample.xml").unwrap();
-  let mut expected = String::new();
-  file.read_to_string(&mut expected).unwrap();
-  let expected = expected.replace("\r\n", "\n"); // Remove incompatible newlines. damn you windows! 
+  let expected = read_file_to_string("./tests/parser/syntax/sample.xml");
 
   let input = r#"
 {{ let! cart = user.cart }}
