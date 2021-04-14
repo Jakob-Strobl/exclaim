@@ -261,7 +261,7 @@ fn parse_pipes_on_literal() {
               </literal>
               <pipe>
                 <Option>
-                  <PipeSubExpression>
+                  <Pipe>
                     <call>
                       <Call>
                         <function>
@@ -278,7 +278,7 @@ fn parse_pipes_on_literal() {
                     </call>
                     <next>
                       <Option>
-                        <PipeSubExpression>
+                        <Pipe>
                           <call>
                             <Call>
                               <function>
@@ -295,7 +295,7 @@ fn parse_pipes_on_literal() {
                           </call>
                           <next>
                             <Option>
-                              <PipeSubExpression>
+                              <Pipe>
                                 <call>
                                   <Call>
                                     <function>
@@ -313,13 +313,13 @@ fn parse_pipes_on_literal() {
                                 <next>
                                   <Option>None</Option>
                                 </next>
-                              </PipeSubExpression>
+                              </Pipe>
                             </Option>
                           </next>
-                        </PipeSubExpression>
+                        </Pipe>
                       </Option>
                     </next>
-                  </PipeSubExpression>
+                  </Pipe>
                 </Option>
               </pipe>
             </LiteralExpression>
@@ -378,7 +378,7 @@ fn parse_pipes_on_reference() {
                     </child>
                     <pipe>
                       <Option>
-                        <PipeSubExpression>
+                        <Pipe>
                           <call>
                             <Call>
                               <function>
@@ -396,7 +396,7 @@ fn parse_pipes_on_reference() {
                           <next>
                             <Option>None</Option>
                           </next>
-                        </PipeSubExpression>
+                        </Pipe>
                       </Option>
                     </pipe>
                   </ReferenceExpression>
@@ -447,7 +447,7 @@ fn parse_call_with_args() {
               </literal>
               <pipe>
                 <Option>
-                  <PipeSubExpression>
+                  <Pipe>
                     <call>
                       <Call>
                         <function>
@@ -510,7 +510,7 @@ fn parse_call_with_args() {
                     <next>
                       <Option>None</Option>
                     </next>
-                  </PipeSubExpression>
+                  </Pipe>
                 </Option>
               </pipe>
             </LiteralExpression>
@@ -616,7 +616,7 @@ fn parse_let_stmt_pattern() {
             </child>
             <pipe>
               <Option>
-                <PipeSubExpression>
+                <Pipe>
                   <call>
                     <Call>
                       <function>
@@ -634,7 +634,7 @@ fn parse_let_stmt_pattern() {
                   <next>
                     <Option>None</Option>
                   </next>
-                </PipeSubExpression>
+                </Pipe>
               </Option>
             </pipe>
           </ReferenceExpression>

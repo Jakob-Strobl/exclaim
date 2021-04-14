@@ -16,10 +16,10 @@ impl Serializable for Expression {
 
 pub struct LiteralExpression {
     literal: Token,
-    pipe: Option<PipeSubExpression>
+    pipe: Option<Pipe>
 }
 impl LiteralExpression {
-    pub fn new(literal: Token, pipe: Option<PipeSubExpression>) -> LiteralExpression {
+    pub fn new(literal: Token, pipe: Option<Pipe>) -> LiteralExpression {
         LiteralExpression {
             literal,
             pipe,
@@ -45,10 +45,10 @@ impl Serializable for LiteralExpression {
 pub struct ReferenceExpression {
     reference: Token,
     child: Option<Box<ReferenceExpression>>,
-    pipe: Option<PipeSubExpression>,
+    pipe: Option<Pipe>,
 }
 impl ReferenceExpression {
-    pub fn new(reference: Token, child: Option<Box<ReferenceExpression>>, pipe: Option<PipeSubExpression>) -> ReferenceExpression {
+    pub fn new(reference: Token, child: Option<Box<ReferenceExpression>>, pipe: Option<Pipe>) -> ReferenceExpression {
         ReferenceExpression {
             reference,
             child,
@@ -80,13 +80,13 @@ impl Serializable for ReferenceExpression {
     }
 }
 
-pub struct PipeSubExpression {
+pub struct Pipe {
     call: Call,
-    next: Option<Box<PipeSubExpression>>,
+    next: Option<Box<Pipe>>,
 }
-impl PipeSubExpression {
-    pub fn new(call: Call, next: Option<Box<PipeSubExpression>>) -> PipeSubExpression {
-        PipeSubExpression {
+impl Pipe {
+    pub fn new(call: Call, next: Option<Box<Pipe>>) -> Pipe {
+        Pipe {
             call,
             next,
         }
@@ -96,13 +96,13 @@ impl PipeSubExpression {
         &self.call
     }
 
-    pub fn next(&self) -> &Option<Box<PipeSubExpression>> {
+    pub fn next(&self) -> &Option<Box<Pipe>> {
         &self.next
     }
 }
-impl Serializable for PipeSubExpression {
+impl Serializable for Pipe {
     fn serialize(&self, serde: &mut Serializer) {
-        let _expr = serde.open_tag("PipeSubExpression"); 
+        let _expr = serde.open_tag("Pipe"); 
         {
             let _call = serde.open_tag("call");
             self.call.serialize(serde);

@@ -360,8 +360,8 @@ impl Parser {
         Ok(ReferenceExpression::new(reference, child, pipe))
     }
 
-    fn expr_pipe(parser: &mut Parser) -> OptionalResult<PipeSubExpression> {
-        fn parse_pipe(parser: &mut Parser) -> Result<PipeSubExpression> {
+    fn expr_pipe(parser: &mut Parser) -> OptionalResult<Pipe> {
+        fn parse_pipe(parser: &mut Parser) -> Result<Pipe> {
             let _ = parser.consume(); // Consume Pipe operator |
             let call = Parser::call(parser)?;
             let next = match Parser::expr_pipe(parser)? {
@@ -369,7 +369,7 @@ impl Parser {
                 None => None,
             };
 
-            Ok(PipeSubExpression::new(call, next))
+            Ok(Pipe::new(call, next))
         }
 
         if let Some(token) = parser.peek() {

@@ -94,7 +94,7 @@
                     </child>
                     <pipe>
                       <Option>
-                        <PipeSubExpression>
+                        <Pipe>
                           <call>
                             <Call>
                               <function>
@@ -112,7 +112,7 @@
                           <next>
                             <Option>None</Option>
                           </next>
-                        </PipeSubExpression>
+                        </Pipe>
                       </Option>
                     </pipe>
                   </ReferenceExpression>
@@ -161,7 +161,7 @@
               </child>
               <pipe>
                 <Option>
-                  <PipeSubExpression>
+                  <Pipe>
                     <call>
                       <Call>
                         <function>
@@ -179,7 +179,7 @@
                     <next>
                       <Option>None</Option>
                     </next>
-                  </PipeSubExpression>
+                  </Pipe>
                 </Option>
               </pipe>
             </ReferenceExpression>
