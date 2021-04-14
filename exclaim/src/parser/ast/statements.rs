@@ -7,12 +7,14 @@ use super::patterns::*;
 pub enum Statement {
     Simple(SimpleStatement),
     Let(LetStatement),
+    Render(RenderStatement),
 }
 impl Serializable for Statement {
     fn serialize(&self, serde: &mut Serializer) {
         match self {
             Statement::Simple(stmt) => stmt.serialize(serde),
             Statement::Let(stmt) => stmt.serialize(serde),
+            Statement::Render(stmt) => stmt.serialize(serde),
         }
     }
 }
@@ -78,5 +80,29 @@ impl Serializable for LetStatement {
         } // Closes _action tag
         let _expr = serde.open_tag("expr");
         self.expr.serialize(serde);
+    }
+}
+
+pub struct RenderStatement {
+    pattern: Option<Pattern>,
+    iterable: Option<Expression>,
+}
+impl RenderStatement {
+    pub fn new(pattern: Option<Pattern>, iterable: Option<Expression>) -> RenderStatement {
+        RenderStatement {
+            pattern,
+            iterable,
+        }
+    }
+}
+impl Serializable for RenderStatement {
+    fn serialize(&self, serde: &mut Serializer) {
+        let _stmt = serde.open_tag("RenderStatement");
+        {
+            let _pattern = serde.open_tag("pattern");
+            self.pattern.serialize(serde);
+        } // Closes _action tag
+        let _iter = serde.open_tag("iterable");
+        self.iterable.serialize(serde);
     }
 }

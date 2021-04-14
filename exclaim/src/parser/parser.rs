@@ -165,13 +165,13 @@ impl Parser {
     }
 
     fn stmt_let(parser: &mut Parser) -> Result<Statement> {
-        let _ = parser.consume(); // Action Let
-        let pattern = Parser::pattern(parser)?;
+        let _ = parser.consume(); // Action Let; We don't need the action since it's implicitly defined in the type 
+        let pattern = Parser::pattern(parser)?.unwrap(); // TODO handle unwrap properly 
 
         // Parse assign operator: =
         if let Some(token) = parser.peek() {
             match token.kind() {
-                TokenKind::Operator(op) => {
+                &TokenKind::Operator(op) => {
                     match op {
                         Op::Assign => {
                             let _ = parser.consume(); // assign operator
@@ -192,7 +192,34 @@ impl Parser {
     }
 
     fn stmt_render(parser: &mut Parser) -> Result<Statement> {
-        Err(ParserError::from(ErrorKind::Unimplemented))
+        let _ = parser.consume(); // Action render; We don't need the action since it's implicitly defined in the type 
+        let pattern = Parser::pattern(parser)?;
+        // Return empty Render Stmt if there is no pattern given 
+        if pattern.is_none() {
+            return Ok(Statement::Render(RenderStatement::new(None, None)))
+        }
+
+        // Parse each operator: :
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                &TokenKind::Operator(op) => {
+                    match op {
+                        Op::Each => {
+                            let _ = parser.consume(); // each operator
+                        },
+                        _ => return Err(ParserError::from("Expected each operator."))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(Each).")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+
+        let expr = Parser::expr(parser)?; // There should be an expression
+        // TODO handle unwrap properly 
+
+        Ok(Statement::Render(RenderStatement::new(pattern, expr)))
     }
 
     fn stmt_write(parser: &mut Parser) -> Result<Statement> {
@@ -201,10 +228,10 @@ impl Parser {
         Ok(Statement::Simple(SimpleStatement::new(action, expr)))
     }
 
-    fn pattern(parser: &mut Parser) -> Result<Pattern> {
+    fn pattern(parser: &mut Parser) -> OptionalResult<Pattern> {
         if let Some(token) = parser.peek() {
             match token.kind() {
-                TokenKind::Label => Parser::pattern_simple(parser),
+                TokenKind::Label => Ok(Some(Parser::pattern_simple(parser)?)),
                 _ => Parser::pattern_tuple(parser),
             }
         } else {
@@ -217,7 +244,7 @@ impl Parser {
         Ok(Pattern::Simple(SimplePattern::new(decl)))
     }
 
-    fn pattern_tuple(parser: &mut Parser) -> Result<Pattern> {
+    fn pattern_tuple(parser: &mut Parser) -> OptionalResult<Pattern> {
         // Parse Open Parenthesis 
         if let Some(token) = parser.peek() {
             match token.kind() {
@@ -226,10 +253,10 @@ impl Parser {
                         Op::ParenOpen => { 
                             let _ = parser.consume(); // ParenOpen: (
                         },
-                        _ => return Err(ParserError::from(format!("Expected CloseParen operator, found {:?}", token)))
+                        _ => return Ok(None)
                     }
                 },
-                _ => return Err(ParserError::from("Expected Operator(OpenParen)"))
+                _ => return Ok(None)
             }
         } else {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
@@ -265,7 +292,7 @@ impl Parser {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
 
-        Ok(Pattern::Tuple(TuplePattern::new(decls)))
+        Ok(Some(Pattern::Tuple(TuplePattern::new(decls))))
     }
     
     fn expr(parser: &mut Parser) -> OptionalResult<Expression> {

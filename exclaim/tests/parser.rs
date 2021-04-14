@@ -649,3 +649,97 @@ fn parse_let_stmt_pattern() {
 
   assert_eq!(expected, &Serializer::serialize(&ast));
 }
+
+#[test]
+fn parse_empty_render_stmt() {
+  let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <RenderStatement>
+        <pattern>
+          <Option>None</Option>
+        </pattern>
+        <iterable>
+          <Option>None</Option>
+        </iterable>
+      </RenderStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+  let input = "{{ render! }}";
+
+  let tokens = exclaim::run_lexer(input);
+  let ast = exclaim::run_parser(tokens);
+
+  assert_eq!(expected, &Serializer::serialize(&ast));
+}
+
+#[test]
+fn parse_iterable_render_stmt() {
+  let expected = r#"
+<Ast>
+  <BlockNode>
+    <stmt>
+      <RenderStatement>
+        <pattern>
+          <Option>
+            <SimplePattern>
+              <decl>
+                <Token>
+                  <kind>Label</kind>
+                  <lexeme>"page"</lexeme>
+                  <location>{ 0, 11 }</location>
+                </Token>
+              </decl>
+            </SimplePattern>
+          </Option>
+        </pattern>
+        <iterable>
+          <Option>
+            <ReferenceExpression>
+              <reference>
+                <Token>
+                  <kind>Label</kind>
+                  <lexeme>"site"</lexeme>
+                  <location>{ 0, 18 }</location>
+                </Token>
+              </reference>
+              <child>
+                <Option>
+                  <ReferenceExpression>
+                    <reference>
+                      <Token>
+                        <kind>Label</kind>
+                        <lexeme>"pages"</lexeme>
+                        <location>{ 0, 23 }</location>
+                      </Token>
+                    </reference>
+                    <child>
+                      <Option>None</Option>
+                    </child>
+                    <pipe>
+                      <Option>None</Option>
+                    </pipe>
+                  </ReferenceExpression>
+                </Option>
+              </child>
+              <pipe>
+                <Option>None</Option>
+              </pipe>
+            </ReferenceExpression>
+          </Option>
+        </iterable>
+      </RenderStatement>
+    </stmt>
+  </BlockNode>
+</Ast>
+"#;
+  let input = "{{ render! page : site.pages }}";
+
+  let tokens = exclaim::run_lexer(input);
+  let ast = exclaim::run_parser(tokens);
+
+  assert_eq!(expected, &Serializer::serialize(&ast));
+}
