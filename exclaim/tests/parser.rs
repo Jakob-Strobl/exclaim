@@ -1,4 +1,7 @@
 use std::fmt;
+use std::fs::File;
+use std::io::prelude::*;
+
 use pretty_assertions::assert_eq;
 use exclaim;
 use exclaim::common::serialize::*;
@@ -742,4 +745,27 @@ fn parse_iterable_render_stmt() {
   let ast = exclaim::run_parser(tokens);
 
   assert_eq!(expected, &Serializer::serialize(&ast));
+}
+
+#[test]
+fn parse_sample() {
+  let mut file = File::open("./tests/syntax_sample.xml").unwrap();
+  let mut expected = String::new();
+  file.read_to_string(&mut expected).unwrap();
+  let expected = expected.replace("\r\n", "\n"); // Remove incompatible newlines. damn you windows! 
+
+  let input = r#"
+{{ let! cart = user.cart }}
+Hello, {{ write! user.name | capitalized }}.
+
+Your cart ({{ write! cart | length }}): 
+{{ render! item : cart }}
+  <li>{{ write! item }}</li>
+{{!}}
+"#;
+
+  let tokens = exclaim::run_lexer(input);
+  let ast = exclaim::run_parser(tokens);
+
+  assert_eq!(&expected, &Serializer::serialize(&ast));
 }
