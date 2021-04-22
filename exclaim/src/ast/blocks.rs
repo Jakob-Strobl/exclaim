@@ -1,4 +1,5 @@
 // Temporary type names 
+use crate::common::serialize::*;
 use crate::tokens::Token;
 use super::AstIndex;
 
@@ -35,6 +36,29 @@ impl Block {
             Block::CodeEnclosed(_, idx) => *idx = Some(index),
             Block::CodeUnclosed(_, _, idx) => *idx = Some(index),
             Block::CodeClosing(_, idx) => *idx = Some(index),
+        }
+    }
+}
+
+impl Serializable for Block {
+    fn serialize(&self, serde: &mut Serializer) {
+        match self {
+            Block::Text(text, _) => {
+                let _block = serde.open_tag("TextBlock");
+                text.serialize(serde);
+            }
+            Block::CodeEnclosed(stmt, _) => {
+                let _block = serde.open_tag("EnclosedBlock");
+                stmt.serialize(serde);
+            }
+            Block::CodeUnclosed(stmt, _, _) => {
+                let _block = serde.open_tag("UnclosedBlock");
+                stmt.serialize(serde);
+            }
+            Block::CodeClosing(stmt, _) => {
+                let _block = serde.open_tag("ClosingBlock");
+                stmt.serialize(serde);
+            }
         }
     }
 }

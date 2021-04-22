@@ -1,11 +1,9 @@
 <Ast>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"Hello, World!"</lexeme>
-        <location>{ 0, 0 }</location>
-      </Token>
-    </text>
-  </TextNode>
+  <TextBlock>
+    <Token>
+      <kind>StringLiteral</kind>
+      <lexeme>"Hello, World!"</lexeme>
+      <location>{ 0, 0 }</location>
+    </Token>
+  </TextBlock>
 </Ast>

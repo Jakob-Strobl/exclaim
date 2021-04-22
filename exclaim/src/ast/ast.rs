@@ -42,7 +42,7 @@ impl Ast {
 
 impl Serializable for Ast {
     fn serialize(&self, serde: &mut Serializer) {
-        serde.open_tag("Ast");
+        let _ast = serde.open_tag("Ast");
         if let Some(head) = self.head {
             self.get(head).unwrap().serialize(serde);
         }
@@ -62,14 +62,12 @@ impl Pushable<Block> for Ast {
 pub enum AstElement {
     // First item of every AstElement is the index that points to itself 
     Block(AstIndex, Block),
-    Statements(AstIndex),
 }
 
 impl AstElement {
     pub fn index(&self) -> &AstIndex {
         match self {
             AstElement::Block(index, _) => index,
-            AstElement::Statements(index) => index,
         }
     }
 }
@@ -77,8 +75,7 @@ impl AstElement {
 impl Serializable for AstElement {
     fn serialize(&self, serde: &mut Serializer) {
         match self {
-            AstElement::Block(_, _) => serde.open_tag("Block"),
-            AstElement::Statements(_) => serde.open_tag("Statement"),
+            AstElement::Block(_, block) => block.serialize(serde),
         };
     }
 }

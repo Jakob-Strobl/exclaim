@@ -107,8 +107,8 @@ impl Parser {
             match token.kind() {
                 TokenKind::StringLiteral => {
                     let text_block = Block::Text(parser.consume(), None);
-
-                    Err(ParserError::from(ErrorKind::Unimplemented))
+                    let index = ast.push(text_block);
+                    Ok(index)
                 }
                 TokenKind::NumberLiteral(_) => Err(ParserError::from(ErrorKind::Unimplemented)),
                 TokenKind::Label => Err(ParserError::from(ErrorKind::Unimplemented)),
