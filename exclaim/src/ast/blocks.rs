@@ -1,9 +1,10 @@
 // Temporary type names 
 use crate::common::serialize::*;
 use crate::tokens::Token;
-use super::AstIndex;
 
-type Statement = ();
+use super::AstIndex;
+use super::statements::Statement;
+
 type Scope = Vec<Block>;
 
 pub enum Block {
@@ -41,23 +42,27 @@ impl Block {
 }
 
 impl Serializable for Block {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
         match self {
-            Block::Text(text, _) => {
+            Block::Text(text, next) => {
                 let _block = serde.open_tag("TextBlock");
                 text.serialize(serde);
+                next
             }
-            Block::CodeEnclosed(stmt, _) => {
+            Block::CodeEnclosed(stmt, next) => {
                 let _block = serde.open_tag("EnclosedBlock");
                 stmt.serialize(serde);
+                next
             }
-            Block::CodeUnclosed(stmt, _, _) => {
+            Block::CodeUnclosed(stmt, _, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
                 stmt.serialize(serde);
+                next
             }
-            Block::CodeClosing(stmt, _) => {
+            Block::CodeClosing(stmt, next) => {
                 let _block = serde.open_tag("ClosingBlock");
                 stmt.serialize(serde);
+                next
             }
         }
     }

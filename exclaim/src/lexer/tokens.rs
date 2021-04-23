@@ -1,6 +1,6 @@
+use crate::ast::AstIndex;
 use crate::common::Location;
 use crate::common::serialize::*;
-
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
@@ -32,11 +32,12 @@ impl Token {
 }
 
 impl Serializable for Token {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
         let _token = serde.open_tag("Token");
         serde.terminal("kind", format!("{:?}", self.kind).as_str());
         serde.terminal("lexeme", format!("{:?}", self.lexeme).as_str());
         self.location.serialize(serde);
+        &None
     }
 }
 

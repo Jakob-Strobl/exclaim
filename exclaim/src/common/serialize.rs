@@ -1,34 +1,38 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
+use crate::ast::AstIndex;
+
 pub trait Serializable {
-    fn serialize(&self, serde: &mut Serializer);
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex>;
 }
 
 impl<T: Serializable> Serializable for Option<T> {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex>{
         match self {
             Some(val) => {
                 let _option = serde.open_tag("Option");
-                val.serialize(serde);
+                val.serialize(serde)
             }
             None => {
                 serde.terminal("Option", "None");
+                &None
             }
         }
     }
 }
 
 impl<T: Serializable> Serializable for Box<T> {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
         self.as_ref().serialize(serde)
     }
 }
 
-// For placeholders of implemented types 
+// For placeholding
 impl Serializable for () {
-    fn serialize(&self, serde: &mut Serializer) {
-        serde.push("()")
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+        serde.terminal("", "()");
+        &None
     }
 }
 

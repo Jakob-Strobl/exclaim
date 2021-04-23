@@ -41,11 +41,22 @@ impl Ast {
 }
 
 impl Serializable for Ast {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
         let _ast = serde.open_tag("Ast");
-        if let Some(head) = self.head {
-            self.get(head).unwrap().serialize(serde);
+
+        // Serialize head if it exists, 
+        //   serialize(), returns index to next item to serialize, serialize the next element until we get None
+        if let Some(mut current) = self.head {
+            loop { 
+                let next = self.get(current).unwrap().serialize(serde);
+                match next {
+                    Some(next) => current = *next,
+                    None => break,
+                }
+            }
         }
+        // End of Ast
+        &None
     }
 }
 
@@ -73,9 +84,9 @@ impl AstElement {
 }
 
 impl Serializable for AstElement {
-    fn serialize(&self, serde: &mut Serializer) {
+    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
         match self {
             AstElement::Block(_, block) => block.serialize(serde),
-        };
+        }
     }
 }

@@ -13,6 +13,7 @@ impl Deref for AstIndex {
 
 pub mod ast;
 pub mod blocks;
+pub mod statements;
 
 pub mod prelude {
     pub use super::AstIndex;
@@ -20,4 +21,5 @@ pub mod prelude {
     pub use super::ast::Pushable;
     pub use super::ast::AstElement;
     pub use super::blocks::Block;
+    pub use super::statements::Statement;
 }

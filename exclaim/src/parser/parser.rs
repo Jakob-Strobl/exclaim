@@ -80,21 +80,25 @@ impl Parser {
 
     pub fn parse(parser: &mut Parser) -> Result<Ast> {
         let mut ast = Ast::new();
-        let last_idx: Option<AstIndex> = None;
+        let mut last_idx: Option<AstIndex> = None;
 
         while !parser.end_of_token_stream() {
             let new_idx = Parser::start(parser, &mut ast)?;
             match last_idx {
                 Some(idx) => {
                     // Get last block so we can set next to current new block_idx
-                    let last = ast.get_mut(idx).unwrap();
-                    if let AstElement::Block(_, block)  = last {
-                        block.set_next(new_idx)
+                    let last_block = ast.get_mut(idx).unwrap();
+                    if let AstElement::Block(_, block) = last_block {
+                        block.set_next(new_idx);
+                        last_idx = Some(new_idx);
+                    } else {
+                        return Err(ParserError::from("Parser<parse>: last_idx does not point to a Block element."));
                     }
                 }
                 None => {
                     // First Block, Set Head! 
                     ast.set_head(new_idx);
+                    last_idx = Some(new_idx);
                 }
             }
         }
@@ -110,14 +114,61 @@ impl Parser {
                     let index = ast.push(text_block);
                     Ok(index)
                 }
-                TokenKind::NumberLiteral(_) => Err(ParserError::from(ErrorKind::Unimplemented)),
-                TokenKind::Label => Err(ParserError::from(ErrorKind::Unimplemented)),
-                TokenKind::Operator(_) => Err(ParserError::from(ErrorKind::Unimplemented)),
-                TokenKind::Action(_) => Err(ParserError::from(ErrorKind::Unimplemented)),
+                _ => Parser::parse_block_code(parser, ast)
+                
             }
         } else {
             Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
+    }
+
+    fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        let _block_open = if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::BlockOpen => parser.consume(),
+                        _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        };
+
+        let stmt = if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Action(action) => {
+                    match action {
+                        Action::End => {
+                            Statement::End(parser.consume())
+                        }
+                        _ => return Err(ParserError::from(ErrorKind::Unimplemented))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Action to start in Block")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        };
+
+        let _block_close = if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::BlockClose => parser.consume(),
+                        _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        };
+
+        let block = Block::CodeClosing(stmt, None);
+        Ok(ast.push(block))
     }
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {
     //     let mut ast = Ast::new();
