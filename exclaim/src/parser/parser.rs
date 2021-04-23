@@ -137,22 +137,7 @@ impl Parser {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         };
 
-        let stmt_idx = if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::Action(action) => {
-                    match action {
-                        Action::End => {
-                            let stmt = Statement::End(parser.consume());
-                            ast.push(stmt)
-                        }
-                        _ => return Err(ParserError::from(ErrorKind::Unimplemented))
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Action to start in Block")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        };
+        let stmt_idx = Parser::parse_stmt(parser, ast)?;
 
         let _block_close = if let Some(token) = parser.peek() {
             match token.kind() {
@@ -179,6 +164,25 @@ impl Parser {
         };
 
         Ok(ast.push(block))
+    }
+
+    fn parse_stmt(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::Action(action) => {
+                    match action {
+                        Action::End => {
+                            let stmt = Statement::End(parser.consume());
+                            Ok(ast.push(stmt))
+                        }
+                        _ => return Err(ParserError::from(ErrorKind::Unimplemented))
+                    }
+                },
+                _ => return Err(ParserError::from("Expected Action to start in Block")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
     }
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {
     //     let mut ast = Ast::new();
