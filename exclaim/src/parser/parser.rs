@@ -169,8 +169,15 @@ impl Parser {
         };
 
         // Derive the type of block by the statement
+        let statement = ast.get(stmt_idx).unwrap(); // This should exist, since it returns index where it pushed the statement
+        let block = if let AstElement::Statement(_, statement) = statement {
+            match statement {
+                Statement::End(_) => Block::CodeClosing(stmt_idx, None),
+            }
+        } else {
+            return Err(ParserError::from("Expected to fetch a statement to derive the block type."));
+        };
 
-        let mut block = Block::CodeClosing(stmt_idx, None);
         Ok(ast.push(block))
     }
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {
