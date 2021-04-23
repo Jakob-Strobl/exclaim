@@ -32,12 +32,13 @@ impl Token {
 }
 
 impl Serializable for Token {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        // TODO write explicitly per token-kind 
         let _token = serde.open_tag("Token");
         serde.terminal("kind", format!("{:?}", self.kind).as_str());
         serde.terminal("lexeme", format!("{:?}", self.lexeme).as_str());
         self.location.serialize(serde, ctx);
-        &None
+        None
     }
 }
 

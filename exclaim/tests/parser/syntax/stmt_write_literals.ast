@@ -1,0 +1,18 @@
+<Ast>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Token>
+        <kind>Action(Write)</kind>
+        <lexeme>"write!"</lexeme>
+        <location>{ 0, 3 }</location>
+      </Token>
+      <LiteralExpression>
+        <Token>
+          <kind>StringLiteral</kind>
+          <lexeme>"Hello!"</lexeme>
+          <location>{ 0, 10 }</location>
+        </Token>
+      </LiteralExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+</Ast>

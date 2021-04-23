@@ -11,23 +11,24 @@ pub trait Indexable {
 }
 
 pub trait Serializable {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex>;
+    /// Return type is an Owned Option<AstIndex> so we don't have to worry about the runtime of 'ctx' the AST context 
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex>;
 }
 
 pub trait IndexSerializable: Indexable + Serializable {}
 
 // Serializable implementations for used Rust standard library types
 impl<T> Serializable for Vec<T> where T: Serializable {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
         for element in self {
             element.serialize(serde, ctx);
         }
-        &None
+        None
     }
 }
 
 impl<T> Serializable for Option<T> where T: Serializable {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex>{
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex>{
         match self {
             Some(val) => {
                 let _option = serde.open_tag("Option");
@@ -35,22 +36,22 @@ impl<T> Serializable for Option<T> where T: Serializable {
             }
             None => {
                 serde.terminal("Option", "None");
-                &None
+                None
             }
         }
     }
 }
 
 impl<T> Serializable for Box<T> where T: Serializable {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
         self.as_ref().serialize(serde, ctx)
     }
 }
 
 impl Serializable for () {
-    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> Option<AstIndex> {
         serde.terminal("", "()");
-        &None
+        None
     }
 }
 

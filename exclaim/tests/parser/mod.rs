@@ -53,8 +53,8 @@ pub fn parse_text() {
 }
 
 #[test]
-fn parse_stmt_write_string() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_write_string.ast");
+fn parse_stmt_write_literals() {
+    let expected = read_file_to_string("./tests/parser/syntax/stmt_write_literals.ast");
     let input = "{{ write! \"Hello!\" }}";
 
     let tokens = exclaim::run_lexer(input);

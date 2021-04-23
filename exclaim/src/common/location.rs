@@ -44,9 +44,9 @@ impl convert::From<(usize, usize)> for Location {
     }
 }
 
-impl Serializable for Location {
-    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> &Option<AstIndex> {
+impl  Serializable for Location {
+    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> Option<AstIndex> {
         serde.terminal("location", format!("{{ {}, {} }}", self.line, self.column).as_str());
-        &None
+        None
     }
 }

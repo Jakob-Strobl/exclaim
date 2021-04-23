@@ -4,14 +4,20 @@ use crate::tokens::Token;
 
 use super::AstIndex;
 
-type Scope = Vec<AstIndex>;
+// Hopefully, helps clarifies what types of data structures the index points to
+type BlockIndex = AstIndex;
 type StatementIndex = AstIndex;
+type Scope = Vec<AstIndex>;
 
 pub enum Block {
-    Text(Token, Option<AstIndex>),
-    CodeEnclosed(StatementIndex, Option<AstIndex>),
-    CodeUnclosed(StatementIndex, Scope, Option<AstIndex>),
-    CodeClosing(StatementIndex, Option<AstIndex>),
+    /// Text(text: Token, next_block: Option<AstIndex>)
+    Text(Token, Option<BlockIndex>),
+    /// CodeEnclosed(stmt: AstIndex, next_block: Option<AstIndex>)
+    CodeEnclosed(StatementIndex, Option<BlockIndex>),
+    /// CodeUnclosed(stmt: AstIndex, scope: Vec<AstIndex>, next_block: Option<AstIndex>)
+    CodeUnclosed(StatementIndex, Scope, Option<BlockIndex>),
+    /// CodeClosing(stmt: AstIndex, next_block: Option<AstIndex>)
+    CodeClosing(StatementIndex, Option<BlockIndex>),
 }
 
 impl Block {
@@ -60,30 +66,30 @@ impl Block {
 }
 
 impl Serializable for Block {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
         match self {
             Block::Text(text, next) => {
                 let _block = serde.open_tag("TextBlock");
                 text.serialize(serde, ctx);
-                next
+                *next // copy
             }
             Block::CodeEnclosed(stmt_idx, next) => {
                 let _block = serde.open_tag("EnclosedBlock");
                 let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
-                next
+                *next // copy
             }
             Block::CodeUnclosed(stmt_idx, _, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
                 let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
-                next
+                *next // copy
             }
             Block::CodeClosing(stmt_idx, next) => {
                 let _block = serde.open_tag("ClosingBlock");
                 let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
-                next
+                *next // copy
             }
         }
     }

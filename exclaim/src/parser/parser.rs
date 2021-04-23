@@ -158,6 +158,7 @@ impl Parser {
         let block = if let AstElement::Statement(_, statement) = statement {
             match statement {
                 Statement::End(_) => Block::CodeClosing(stmt_idx, None),
+                Statement::Write(_, _) => Block::CodeEnclosed(stmt_idx, None),
             }
         } else {
             return Err(ParserError::from("Expected to fetch a statement to derive the block type."));
@@ -172,7 +173,29 @@ impl Parser {
                 TokenKind::Action(action) => {
                     match action {
                         Action::End => {
-                            let stmt = Statement::End(parser.consume());
+                            let action = parser.consume();
+                            let stmt = Statement::End(action);
+                            Ok(ast.push(stmt))
+                        },
+                        Action::Write => {
+                            let action = parser.consume();
+
+                            let expr_idx = if let Some(token) = parser.peek() {
+                                match token.kind() {
+                                    TokenKind::StringLiteral => {
+                                        let literal = parser.consume();
+                                        let expression = Expression::Literal(literal);
+                                        ast.push(expression)
+                                    },
+                                    TokenKind::NumberLiteral(_) => return Err(ParserError::from(ErrorKind::Unimplemented)),
+                                    TokenKind::Label => return Err(ParserError::from(ErrorKind::Unimplemented)),
+                                    _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
+                                }
+                            } else {
+                                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+                            };
+
+                            let stmt = Statement::Write(action, expr_idx);
                             Ok(ast.push(stmt))
                         }
                         _ => return Err(ParserError::from(ErrorKind::Unimplemented))
@@ -184,6 +207,7 @@ impl Parser {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
     }
+
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {
     //     let mut ast = Ast::new();
 
