@@ -187,7 +187,11 @@ impl Parser {
                                         let expression = Expression::Literal(literal);
                                         ast.push(expression)
                                     },
-                                    TokenKind::NumberLiteral(_) => return Err(ParserError::from(ErrorKind::Unimplemented)),
+                                    TokenKind::NumberLiteral(_) => {
+                                        let literal = parser.consume();
+                                        let expression = Expression::Literal(literal);
+                                        ast.push(expression)
+                                    },
                                     TokenKind::Label => return Err(ParserError::from(ErrorKind::Unimplemented)),
                                     _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
                                 }

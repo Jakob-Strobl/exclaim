@@ -15,4 +15,20 @@
       </LiteralExpression>
     </WriteStatement>
   </EnclosedBlock>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Token>
+        <kind>Action(Write)</kind>
+        <lexeme>"write!"</lexeme>
+        <location>{ 0, 24 }</location>
+      </Token>
+      <LiteralExpression>
+        <Token>
+          <kind>NumberLiteral(1234)</kind>
+          <lexeme>"1234"</lexeme>
+          <location>{ 0, 31 }</location>
+        </Token>
+      </LiteralExpression>
+    </WriteStatement>
+  </EnclosedBlock>
 </Ast>
