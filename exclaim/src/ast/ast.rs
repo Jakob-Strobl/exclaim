@@ -2,6 +2,7 @@ use crate::common::serialize::*;
 
 use super::AstIndex;
 use super::blocks::Block;
+use super::statements::Statement;
 
 // Implement for types we want to be able to push onto the AST
 pub trait Pushable<T> {
@@ -41,14 +42,14 @@ impl Ast {
 }
 
 impl Serializable for Ast {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
         let _ast = serde.open_tag("Ast");
 
         // Serialize head if it exists, 
         //   serialize(), returns index to next item to serialize, serialize the next element until we get None
         if let Some(mut current) = self.head {
             loop { 
-                let next = self.get(current).unwrap().serialize(serde);
+                let next = self.get(current).unwrap().serialize(serde, ctx);
                 match next {
                     Some(next) => current = *next,
                     None => break,
@@ -60,6 +61,14 @@ impl Serializable for Ast {
     }
 }
 
+impl Indexable for Ast {
+    fn get(&self, index: &AstIndex) -> Option<&AstElement> {
+        self.get(*index)
+    }
+}
+
+impl IndexSerializable for Ast {}
+
 // All types that can be pushed onto the AST
 impl Pushable<Block> for Ast {
     fn push(&mut self, block: Block) -> AstIndex {
@@ -70,23 +79,35 @@ impl Pushable<Block> for Ast {
     }
 }
 
+impl Pushable<Statement> for Ast {
+    fn push(&mut self, statement: Statement) -> AstIndex {
+        let insertion_index = AstIndex(self.tree.len());
+        let element = AstElement::Statement(insertion_index, statement);
+        self.tree.push(element);
+        insertion_index
+    }
+}
+
 pub enum AstElement {
     // First item of every AstElement is the index that points to itself 
     Block(AstIndex, Block),
+    Statement(AstIndex, Statement)
 }
 
 impl AstElement {
     pub fn index(&self) -> &AstIndex {
         match self {
             AstElement::Block(index, _) => index,
+            AstElement::Statement(index, _) => index,
         }
     }
 }
 
 impl Serializable for AstElement {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
         match self {
-            AstElement::Block(_, block) => block.serialize(serde),
+            AstElement::Block(_, block) => block.serialize(serde, ctx),
+            AstElement::Statement(_, statement) => statement.serialize(serde, ctx),
         }
     }
 }

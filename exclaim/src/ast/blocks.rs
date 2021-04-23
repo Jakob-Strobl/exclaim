@@ -3,15 +3,15 @@ use crate::common::serialize::*;
 use crate::tokens::Token;
 
 use super::AstIndex;
-use super::statements::Statement;
 
-type Scope = Vec<Block>;
+type Scope = Vec<AstIndex>;
+type StatementIndex = AstIndex;
 
 pub enum Block {
     Text(Token, Option<AstIndex>),
-    CodeEnclosed(Statement, Option<AstIndex>),
-    CodeUnclosed(Statement, Scope, Option<AstIndex>),
-    CodeClosing(Statement, Option<AstIndex>),
+    CodeEnclosed(StatementIndex, Option<AstIndex>),
+    CodeUnclosed(StatementIndex, Scope, Option<AstIndex>),
+    CodeClosing(StatementIndex, Option<AstIndex>),
 }
 
 impl Block {
@@ -19,6 +19,24 @@ impl Block {
         match self {
             Block::Text(text, _) => Some(text),
             _ => None,
+        }
+    }
+
+    pub fn stmt(&self) -> Option<&StatementIndex> {
+        match self {
+            Block::CodeEnclosed(stmt, _) => Some(stmt),
+            Block::CodeUnclosed(stmt, _, _) => Some(stmt),
+            Block::CodeClosing(stmt, _) => Some(stmt),
+            _ => None,
+        }
+    }
+
+    pub fn set_stmt(&mut self, statement: StatementIndex) {
+        match self {
+            Block::Text(_, _) => {}
+            Block::CodeEnclosed(stmt, _) => *stmt = statement,
+            Block::CodeUnclosed(stmt, _, _) => *stmt = statement,
+            Block::CodeClosing(stmt, _) => *stmt = statement,
         }
     }
 
@@ -42,26 +60,29 @@ impl Block {
 }
 
 impl Serializable for Block {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
         match self {
             Block::Text(text, next) => {
                 let _block = serde.open_tag("TextBlock");
-                text.serialize(serde);
+                text.serialize(serde, ctx);
                 next
             }
-            Block::CodeEnclosed(stmt, next) => {
+            Block::CodeEnclosed(stmt_idx, next) => {
                 let _block = serde.open_tag("EnclosedBlock");
-                stmt.serialize(serde);
+                let statement = ctx.get(stmt_idx).unwrap();
+                statement.serialize(serde, ctx);
                 next
             }
-            Block::CodeUnclosed(stmt, _, next) => {
+            Block::CodeUnclosed(stmt_idx, _, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
-                stmt.serialize(serde);
+                let statement = ctx.get(stmt_idx).unwrap();
+                statement.serialize(serde, ctx);
                 next
             }
-            Block::CodeClosing(stmt, next) => {
+            Block::CodeClosing(stmt_idx, next) => {
                 let _block = serde.open_tag("ClosingBlock");
-                stmt.serialize(serde);
+                let statement = ctx.get(stmt_idx).unwrap();
+                statement.serialize(serde, ctx);
                 next
             }
         }

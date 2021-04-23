@@ -6,7 +6,7 @@ use std::ops::{
     DerefMut
 };
 
-use crate::ast::prelude::*;
+use crate::{ast::prelude::*, common::Location};
 use crate::tokens::{
     Token,
     TokenKind,
@@ -137,12 +137,13 @@ impl Parser {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         };
 
-        let stmt = if let Some(token) = parser.peek() {
+        let stmt_idx = if let Some(token) = parser.peek() {
             match token.kind() {
                 TokenKind::Action(action) => {
                     match action {
                         Action::End => {
-                            Statement::End(parser.consume())
+                            let stmt = Statement::End(parser.consume());
+                            ast.push(stmt)
                         }
                         _ => return Err(ParserError::from(ErrorKind::Unimplemented))
                     }
@@ -167,7 +168,9 @@ impl Parser {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         };
 
-        let block = Block::CodeClosing(stmt, None);
+        // Derive the type of block by the statement
+
+        let mut block = Block::CodeClosing(stmt_idx, None);
         Ok(ast.push(block))
     }
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {

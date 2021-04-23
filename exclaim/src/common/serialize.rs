@@ -1,18 +1,27 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-use crate::ast::AstIndex;
+use crate::ast::prelude::{
+    AstIndex,
+    AstElement,
+};
 
-pub trait Serializable {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex>;
+pub trait Indexable {
+    fn get(&self, index: &AstIndex) -> Option<&AstElement>;
 }
 
-impl<T: Serializable> Serializable for Option<T> {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex>{
+pub trait Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex>;
+}
+
+pub trait IndexSerializable: Indexable + Serializable {}
+
+impl<T> Serializable for Option<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex>{
         match self {
             Some(val) => {
                 let _option = serde.open_tag("Option");
-                val.serialize(serde)
+                val.serialize(serde, ctx)
             }
             None => {
                 serde.terminal("Option", "None");
@@ -22,15 +31,15 @@ impl<T: Serializable> Serializable for Option<T> {
     }
 }
 
-impl<T: Serializable> Serializable for Box<T> {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
-        self.as_ref().serialize(serde)
+impl<T> Serializable for Box<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+        self.as_ref().serialize(serde, ctx)
     }
 }
 
 // For placeholding
 impl Serializable for () {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> &Option<AstIndex> {
         serde.terminal("", "()");
         &None
     }
@@ -42,9 +51,10 @@ pub struct Serializer {
 }
 
 impl Serializer {
-    pub fn serialize(item: &dyn Serializable) -> String {
+    // Can we reference the item throughout the whole chain of serialize functions?
+    pub fn serialize(item: &dyn IndexSerializable) -> String {
         let mut serde = Serializer::new();
-        item.serialize(&mut serde);
+        item.serialize(&mut serde, item);
         serde.buffer.take()
     }
 

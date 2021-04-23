@@ -11,11 +11,11 @@ pub enum Statement {
 }
 
 impl Serializable for Statement {
-    fn serialize(&self, serde: &mut Serializer) -> &Option<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
         match self {
             Statement::End(action) => {
                 let _statement = serde.open_tag("EndStatement");
-                action.serialize(serde);
+                action.serialize(serde, ctx);
                 &None 
             }
         }
