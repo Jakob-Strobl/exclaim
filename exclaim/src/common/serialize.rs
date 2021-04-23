@@ -16,6 +16,16 @@ pub trait Serializable {
 
 pub trait IndexSerializable: Indexable + Serializable {}
 
+// Serializable implementations for used Rust standard library types
+impl<T> Serializable for Vec<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex> {
+        for element in self {
+            element.serialize(serde, ctx);
+        }
+        &None
+    }
+}
+
 impl<T> Serializable for Option<T> where T: Serializable {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> &Option<AstIndex>{
         match self {
@@ -37,7 +47,6 @@ impl<T> Serializable for Box<T> where T: Serializable {
     }
 }
 
-// For placeholding
 impl Serializable for () {
     fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> &Option<AstIndex> {
         serde.terminal("", "()");
