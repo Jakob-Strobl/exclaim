@@ -1,25 +1,22 @@
 <Ast>
   <TextBlock>
-    <Token>
-      <kind>StringLiteral</kind>
-      <lexeme>"This is a string. "</lexeme>
+    <StringLiteral>
+      <value>"This is a string. "</value>
       <location>{ 0, 0 }</location>
-    </Token>
+    </StringLiteral>
   </TextBlock>
   <ClosingBlock>
     <EndStatement>
-      <Token>
-        <kind>Action(End)</kind>
-        <lexeme>"!"</lexeme>
+      <Action>
+        <value>End</value>
         <location>{ 0, 21 }</location>
-      </Token>
+      </Action>
     </EndStatement>
   </ClosingBlock>
   <TextBlock>
-    <Token>
-      <kind>StringLiteral</kind>
-      <lexeme>" and another one."</lexeme>
+    <StringLiteral>
+      <value>" and another one."</value>
       <location>{ 0, 25 }</location>
-    </Token>
+    </StringLiteral>
   </TextBlock>
 </Ast>

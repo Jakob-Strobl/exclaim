@@ -1,33 +1,29 @@
 <Ast>
   <EnclosedBlock>
     <WriteStatement>
-      <Token>
-        <kind>Action(Write)</kind>
-        <lexeme>"write!"</lexeme>
+      <Action>
+        <value>Write</value>
         <location>{ 0, 3 }</location>
-      </Token>
+      </Action>
       <LiteralExpression>
-        <Token>
-          <kind>StringLiteral</kind>
-          <lexeme>"Hello!"</lexeme>
+        <StringLiteral>
+          <value>"Hello!"</value>
           <location>{ 0, 10 }</location>
-        </Token>
+        </StringLiteral>
       </LiteralExpression>
     </WriteStatement>
   </EnclosedBlock>
   <EnclosedBlock>
     <WriteStatement>
-      <Token>
-        <kind>Action(Write)</kind>
-        <lexeme>"write!"</lexeme>
+      <Action>
+        <value>Write</value>
         <location>{ 0, 24 }</location>
-      </Token>
+      </Action>
       <LiteralExpression>
-        <Token>
-          <kind>NumberLiteral(1234)</kind>
-          <lexeme>"1234"</lexeme>
+        <NumberLiteral>
+          <value>1234</value>
           <location>{ 0, 31 }</location>
-        </Token>
+        </NumberLiteral>
       </LiteralExpression>
     </WriteStatement>
   </EnclosedBlock>

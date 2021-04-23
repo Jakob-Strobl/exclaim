@@ -1,9 +1,8 @@
 <Ast>
   <TextBlock>
-    <Token>
-      <kind>StringLiteral</kind>
-      <lexeme>"Hello, World!"</lexeme>
+    <StringLiteral>
+      <value>"Hello, World!"</value>
       <location>{ 0, 0 }</location>
-    </Token>
+    </StringLiteral>
   </TextBlock>
 </Ast>
