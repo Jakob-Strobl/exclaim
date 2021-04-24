@@ -23,3 +23,13 @@ impl Serializable for Expression {
         }
     }
 }
+
+// Transform(function: Token, args: Vec<Expression>)
+pub struct Transform(Token);
+
+impl Serializable for Transform {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        let _transform =  serde.open_tag("Transform");
+        self.0.serialize(serde, ctx)
+    }
+}

@@ -179,58 +179,7 @@ impl Parser {
                         },
                         Action::Write => {
                             let action = parser.consume();
-
-                            let expr_idx = if let Some(token) = parser.peek() {
-                                match token.kind() {
-                                    TokenKind::StringLiteral => {
-                                        let literal = parser.consume();
-                                        let expression = Expression::Literal(literal);
-                                        ast.push(expression)
-                                    },
-                                    TokenKind::NumberLiteral(_) => {
-                                        let literal = parser.consume();
-                                        let expression = Expression::Literal(literal);
-                                        ast.push(expression)
-                                    },
-                                    TokenKind::Label => {
-                                        let mut ref_list = vec![parser.consume()];
-                                        
-                                        // Build up ref_list
-                                        while let Some(token) = parser.peek() {
-                                            // Check for dot operator
-                                            match token.kind() {
-                                                TokenKind::Operator(op) => {
-                                                    match op {
-                                                        Op::Dot => {
-                                                            // Expect a label token 
-                                                            let _dot = parser.consume();
-                                                            let label = if let Some(token) = parser.peek() {
-                                                                match token.kind() {
-                                                                    TokenKind::Label => parser.consume(),
-                                                                    _ => return Err(ParserError::from("Expected a label after dot operator"))
-                                                                }
-                                                            } else {
-                                                                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-                                                            };
-
-                                                            ref_list.push(label);
-                                                        },
-                                                        _ => break,
-                                                    }
-                                                }
-                                                _ => break,
-                                            }
-                                        }
-
-                                        let expression = Expression::Reference(ref_list);
-                                        ast.push(expression)
-                                    },
-                                    _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
-                                }
-                            } else {
-                                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-                            };
-
+                            let expr_idx = Parser::parse_expr(parser, ast)?;
                             let stmt = Statement::Write(action, expr_idx);
                             Ok(ast.push(stmt))
                         }
@@ -238,6 +187,59 @@ impl Parser {
                     }
                 },
                 _ => return Err(ParserError::from("Expected Action to start in Block")),
+            }
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    }
+
+    fn parse_expr(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        if let Some(token) = parser.peek() {
+            match token.kind() {
+                TokenKind::StringLiteral => {
+                    let literal = parser.consume();
+                    let expression = Expression::Literal(literal);
+                    Ok(ast.push(expression))
+                },
+                TokenKind::NumberLiteral(_) => {
+                    let literal = parser.consume();
+                    let expression = Expression::Literal(literal);
+                    Ok(ast.push(expression))
+                },
+                TokenKind::Label => {
+                    let mut ref_list = vec![parser.consume()];
+                    
+                    // Collect dot operated references
+                    while let Some(token) = parser.peek() {
+                        // Check for dot operator
+                        match token.kind() {
+                            TokenKind::Operator(op) => {
+                                match op {
+                                    Op::Dot => {
+                                        // Expect a label token 
+                                        let _dot = parser.consume();
+                                        let label = if let Some(token) = parser.peek() {
+                                            match token.kind() {
+                                                TokenKind::Label => parser.consume(),
+                                                _ => return Err(ParserError::from("Expected a label after dot operator"))
+                                            }
+                                        } else {
+                                            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+                                        };
+
+                                        ref_list.push(label);
+                                    },
+                                    _ => break,
+                                }
+                            }
+                            _ => break,
+                        }
+                    }
+
+                    let expression = Expression::Reference(ref_list);
+                    Ok(ast.push(expression))
+                },
+                _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
             }
         } else {
             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
