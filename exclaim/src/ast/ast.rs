@@ -4,6 +4,7 @@ use super::AstIndex;
 use super::blocks::Block;
 use super::statements::Statement;
 use super::expressions::Expression;
+use super::expressions::Transform;
 
 // Implement for types we want to be able to push onto the AST
 pub trait Pushable<T> {
@@ -98,11 +99,21 @@ impl Pushable<Expression> for Ast {
     }
 }
 
+impl Pushable<Transform> for Ast {
+    fn push(&mut self, transform: Transform) -> AstIndex {
+        let insertion_index = AstIndex(self.tree.len());
+        let element = AstElement::Transform(insertion_index, transform);
+        self.tree.push(element);
+        insertion_index
+    }
+}
+
 pub enum AstElement {
     // First item of every AstElement is the index that points to itself 
     Block(AstIndex, Block),
     Statement(AstIndex, Statement),
-    Expression(AstIndex, Expression)
+    Expression(AstIndex, Expression),
+    Transform(AstIndex, Transform),
 }
 
 impl AstElement {
@@ -111,6 +122,7 @@ impl AstElement {
             AstElement::Block(index, _) => index,
             AstElement::Statement(index, _) => index,
             AstElement::Expression(index, _) => index,
+            AstElement::Transform(index, _) => index,
         }
     }
 }
@@ -121,6 +133,7 @@ impl Serializable for AstElement {
             AstElement::Block(_, block) => block.serialize(serde, ctx),
             AstElement::Statement(_, statement) => statement.serialize(serde, ctx),
             AstElement::Expression(_, expression) => expression.serialize(serde, ctx),
+            AstElement::Transform(_, transform) => transform.serialize(serde, ctx),
         }
     }
 }

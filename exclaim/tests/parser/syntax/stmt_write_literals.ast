@@ -10,6 +10,9 @@
           <value>"Hello!"</value>
           <location>{ 0, 10 }</location>
         </StringLiteral>
+        <Transforms>
+          <Option>None</Option>
+        </Transforms>
       </LiteralExpression>
     </WriteStatement>
   </EnclosedBlock>
@@ -24,6 +27,9 @@
           <value>1234</value>
           <location>{ 0, 31 }</location>
         </NumberLiteral>
+        <Transforms>
+          <Option>None</Option>
+        </Transforms>
       </LiteralExpression>
     </WriteStatement>
   </EnclosedBlock>

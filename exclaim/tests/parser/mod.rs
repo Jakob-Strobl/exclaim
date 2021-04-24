@@ -98,8 +98,8 @@ fn parse_expr_reference_invalid() {
 }
 
 #[test]
-fn parse_pipe_literal() {
-    let expected = read_file_to_string("./tests/parser/syntax/pipe_literal.ast");
+fn parse_transform_literal() {
+    let expected = read_file_to_string("./tests/parser/syntax/transform_literal.ast");
     let input = "{{ write! \"HELLO\" | lowercase | uppercase | lowercase }}";
 
     let tokens = exclaim::run_lexer(input);
@@ -110,8 +110,8 @@ fn parse_pipe_literal() {
 }
 
 #[test]
-fn parse_pipe_reference() {
-    let expected = read_file_to_string("./tests/parser/syntax/pipe_reference.ast");
+fn parse_transform_reference() {
+    let expected = read_file_to_string("./tests/parser/syntax/transform_reference.ast");
     let input = "{{ write! site.list | enumerate }}";
 
     let tokens = exclaim::run_lexer(input);
@@ -121,8 +121,8 @@ fn parse_pipe_reference() {
 }
 
 #[test]
-fn parse_pipe_args() {
-    let expected = read_file_to_string("./tests/parser/syntax/pipe_args.ast");
+fn parse_transform_args() {
+    let expected = read_file_to_string("./tests/parser/syntax/transform_args.ast");
     let input = "{{ write! \"ABCDEFG\" | take(1,\"2\",3) }}";
 
     let tokens = exclaim::run_lexer(input);

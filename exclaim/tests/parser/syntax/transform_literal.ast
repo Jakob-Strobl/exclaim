@@ -1,0 +1,38 @@
+<Ast>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <LiteralExpression>
+        <StringLiteral>
+          <value>"HELLO"</value>
+          <location>{ 0, 10 }</location>
+        </StringLiteral>
+        <Transforms>
+          <Option>
+            <Transform>
+              <Label>
+                <value>"lowercase"</value>
+                <location>{ 0, 20 }</location>
+              </Label>
+            </Transform>
+            <Transform>
+              <Label>
+                <value>"uppercase"</value>
+                <location>{ 0, 32 }</location>
+              </Label>
+            </Transform>
+            <Transform>
+              <Label>
+                <value>"lowercase"</value>
+                <location>{ 0, 44 }</location>
+              </Label>
+            </Transform>
+          </Option>
+        </Transforms>
+      </LiteralExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+</Ast>

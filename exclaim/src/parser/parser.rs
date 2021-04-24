@@ -83,7 +83,7 @@ impl Parser {
         let mut last_idx: Option<AstIndex> = None;
 
         while !parser.end_of_token_stream() {
-            let new_idx = Parser::start(parser, &mut ast)?;
+            let new_idx = Parser::parse_block(parser, &mut ast)?;
             match last_idx {
                 Some(idx) => {
                     // Get last block so we can set next to current new block_idx
@@ -106,7 +106,7 @@ impl Parser {
         Ok(ast)
     }
 
-    fn start(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+    fn parse_block(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         if let Some(token) = parser.peek() {
             match token.kind() {
                 TokenKind::StringLiteral => {
@@ -198,12 +198,14 @@ impl Parser {
             match token.kind() {
                 TokenKind::StringLiteral => {
                     let literal = parser.consume();
-                    let expression = Expression::Literal(literal);
+                    let transforms = Parser::parse_tranforms(parser, ast)?;
+                    let expression = Expression::Literal(literal, transforms);
                     Ok(ast.push(expression))
                 },
                 TokenKind::NumberLiteral(_) => {
                     let literal = parser.consume();
-                    let expression = Expression::Literal(literal);
+                    let transforms = Parser::parse_tranforms(parser, ast)?;
+                    let expression = Expression::Literal(literal, transforms);
                     Ok(ast.push(expression))
                 },
                 TokenKind::Label => {
@@ -236,13 +238,60 @@ impl Parser {
                         }
                     }
 
-                    let expression = Expression::Reference(ref_list);
+                    let transforms = Parser::parse_tranforms(parser, ast)?;
+                    let expression = Expression::Reference(ref_list, transforms);
                     Ok(ast.push(expression))
                 },
                 _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
             }
         } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+        }
+    }
+
+    fn parse_tranforms(parser: &mut Parser, ast: &mut Ast) -> OptionalResult<Vec<AstIndex>> {
+        let mut transforms: Vec<AstIndex> = vec![];
+
+        // collect as many transforms as possible 
+        loop {
+            let _pipe = if let Some(token) = parser.peek() {
+                match token.kind() {
+                    TokenKind::Operator(op) => {
+                        match op {
+                            Op::Pipe => {
+                                parser.consume() // Pipe operator |
+                            },
+                            _ => break,
+                        }
+                    }
+                    _ => break,
+                }
+            } else {
+                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+            };
+    
+            let label = if let Some(token) = parser.peek() {
+                match token.kind() {
+                    TokenKind::Label => {
+                        parser.consume()
+                    }
+                    _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
+                }
+            } else {
+                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+            };
+    
+    
+            let transform = Transform(label);
+            let index = ast.push(transform);
+            transforms.push(index);
+        }
+
+        // If no transforms were created, return None
+        if transforms.len() > 0 {
+            Ok(Some(transforms))
+        } else {
+            Ok(None)
         }
     }
 

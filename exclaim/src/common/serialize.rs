@@ -18,11 +18,27 @@ pub trait Serializable {
 pub trait IndexSerializable: Indexable + Serializable {}
 
 // Serializable implementations for used Rust standard library types
+
+/// Serialized a vector of type T, where T is serializable. 
+/// Note: This does not serialize the returned indices from the elements int the vector 
 impl<T> Serializable for Vec<T> where T: Serializable {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
         for element in self {
             element.serialize(serde, ctx);
         }
+
+        None
+    }
+}
+
+impl Serializable for Vec<AstIndex> {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        for index in self {
+            if let Some(element) = ctx.get(index) {
+                element.serialize(serde, ctx);
+            }
+        }
+        
         None
     }
 }
