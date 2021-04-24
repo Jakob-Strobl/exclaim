@@ -86,6 +86,18 @@ fn parse_expr_reference() {
 }
 
 #[test]
+#[should_panic]
+fn parse_expr_reference_invalid() {
+    let expected = "";
+    let input = "{{ write! variable. }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+
+    assert_eq!(&expected, &Serializer::serialize(&ast));
+}
+
+#[test]
 fn parse_pipe_literal() {
     let expected = read_file_to_string("./tests/parser/syntax/pipe_literal.ast");
     let input = "{{ write! \"HELLO\" | lowercase | uppercase | lowercase }}";

@@ -16,7 +16,10 @@ impl Serializable for Expression {
                 let _expression = serde.open_tag("LiteralExpression");
                 literal.serialize(serde, ctx)
             }
-            Expression::Reference(reference) => reference.serialize(serde, ctx),
+            Expression::Reference(reference) => {
+                let _expression = serde.open_tag("ReferenceExpression");
+                reference.serialize(serde, ctx)
+            }
         }
     }
 }
