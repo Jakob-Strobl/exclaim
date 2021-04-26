@@ -75,21 +75,33 @@ impl Parser {
     }
 }
 
-// I didnt realize that blocks are also resolved as expressions until I read this answer: https://stackoverflow.com/questions/27329653/writing-a-macro-that-contains-a-match-body
-macro_rules! match_token {
-    // Pass the token you want to match, then follow with arms for a match on token.kind()
-    {($token:expr) { $($pattern:pat => $expression:expr),* }} => {
+// Keeping this here for future reference
+// I didnt realize that blocks { ... } are also resolved as expressions until I read this answer: https://stackoverflow.com/questions/27329653/writing-a-macro-that-contains-a-match-body
+// macro_rules! match_token {
+//     // Pass the token you want to match, then follow with arms for a match on token.kind()
+//     {($token:expr) { $($pattern:pat => $expression:expr),* }} => {
+//         if let Some(token) = $token {
+//             match token.kind() {
+//                 $(
+//                     $pattern => $expression
+//                 ),*
+//             }
+//         } else {
+//             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+//         }
+//     };
+// }
+
+macro_rules! unwrap_token {
+    ($token:expr) => {
         if let Some(token) = $token {
-            match token.kind() {
-                $(
-                    $pattern => $expression
-                ),*
-            }
+            token
         } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
         }
     };
 }
+
 
 // Parsing functions
 impl Parser {
@@ -112,7 +124,7 @@ impl Parser {
                     }
                 }
                 None => {
-                    // First Block, Set Head! 
+                    // First Block -> Set Head! 
                     ast.set_head(new_idx);
                     last_idx = Some(new_idx);
                 }
@@ -123,14 +135,15 @@ impl Parser {
     }
 
     fn parse_block(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
-        match_token!(( parser.peek() ) {
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
             TokenKind::StringLiteral => {
                 let text_block = Block::Text(parser.consume(), None);
                 let index = ast.push(text_block);
                 Ok(index)
             },
             _ => Parser::parse_block_code(parser, ast)
-        })
+        }
     }
 
     fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
