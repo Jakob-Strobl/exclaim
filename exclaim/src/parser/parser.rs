@@ -176,6 +176,7 @@ impl Parser {
         let block = if let AstElement::Statement(_, statement) = statement {
             match statement {
                 Statement::End(_) => Block::CodeClosing(stmt_idx, None),
+                Statement::Let(_, _, _) => Block::CodeEnclosed(stmt_idx, None),
                 Statement::Write(_, _) => Block::CodeEnclosed(stmt_idx, None),
             }
         } else {
@@ -195,10 +196,38 @@ impl Parser {
                         let stmt = Statement::End(action);
                         Ok(ast.push(stmt))
                     },
+                    Action::Let => {
+                        let action = parser.consume();
+
+                        // Parse Pattern (Right now it just parses a unit-pattern)
+                        let token = unwrap_token!(parser.peek());
+                        let decl = match token.kind() {
+                            TokenKind::Label => parser.consume(),
+                            _ => return Err(ParserError::from("Expected a single label for a unit-pattern"))
+                        };
+                        let pattern = Pattern::Unit(decl);
+                        let pattern = ast.push(pattern);
+
+                        // Parse Operator(assign)
+                        let token = unwrap_token!(parser.peek());
+                        let _assign = match token.kind() {
+                            TokenKind::Operator(op) => {
+                                match op {
+                                    Op::Assign => parser.consume(),
+                                    _ => return Err(ParserError::from("Expected assign operator.")),
+                                }
+                            },
+                            _ => return Err(ParserError::from("Expected Operator(Assign).")),
+                        };
+
+                        let expr = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Let(action, pattern, expr);
+                        Ok(ast.push(stmt))
+                    },
                     Action::Write => {
                         let action = parser.consume();
-                        let expr_idx = Parser::parse_expr(parser, ast)?;
-                        let stmt = Statement::Write(action, expr_idx);
+                        let expr = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Write(action, expr);
                         Ok(ast.push(stmt))
                     }
                     _ => return Err(ParserError::from(ErrorKind::Unimplemented))

@@ -33,7 +33,7 @@ impl Serializable for Expression {
     }
 }
 
-// Transform(label: Token, args: Vec<Expression>)
+// Transform(label: Token, args: Vec<AstIndex>)
 pub struct Transform(Token, Vec<ExpressionIndex>);
 
 impl Transform {

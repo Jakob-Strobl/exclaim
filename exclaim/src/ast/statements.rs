@@ -4,6 +4,7 @@ use crate::tokens::Token;
 use super::AstIndex;
 
 type ExpressionIndex = AstIndex;
+type PatternIndex = AstIndex;
 
 pub enum Statement {
     /// End statement: {{!}}
@@ -11,8 +12,11 @@ pub enum Statement {
     /// End(action: Token, )
     End(Token),
 
-    /// Write(action: Token, expr_idx: ExpressionIndex)
-    Write(Token, ExpressionIndex)
+    /// Let(action: Token, pattern: AstIndex, expression: AstIndex)
+    Let(Token, PatternIndex, ExpressionIndex),
+
+    /// Write(action: Token, expression: AstIndex)
+    Write(Token, ExpressionIndex),
 }
 
 impl Serializable for Statement {
@@ -22,11 +26,21 @@ impl Serializable for Statement {
                 let _statement = serde.open_tag("EndStatement");
                 action.serialize(serde, ctx)
             }, 
-            Statement::Write(action, expr_idx) => {
+            Statement::Let(action, pattern, expression) => {
+                let _statement = serde.open_tag("LetStatement");
+                action.serialize(serde, ctx);
+
+                let pattern = ctx.get(pattern).unwrap();
+                pattern.serialize(serde, ctx);
+
+                let expression = ctx.get(expression).unwrap();
+                expression.serialize(serde, ctx)
+            },
+            Statement::Write(action, expression) => {
                 let _statement = serde.open_tag("WriteStatement");
                 action.serialize(serde, ctx);
                 
-                let expression = ctx.get(expr_idx).unwrap();
+                let expression = ctx.get(expression).unwrap();
                 expression.serialize(serde, ctx)
             }
         }
