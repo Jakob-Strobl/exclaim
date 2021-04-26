@@ -123,7 +123,7 @@ fn parse_transform_reference() {
 #[test]
 fn parse_transform_args() {
     let expected = read_file_to_string("./tests/parser/syntax/transform_args.ast");
-    let input = "{{ write! \"ABCDEFG\" | take(1,\"2\",3) }}";
+    let input = "{{ write! \"ABCDEFG\" | take(1,\"two\", 3) }}";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);

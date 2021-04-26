@@ -6,7 +6,7 @@ use std::ops::{
     DerefMut
 };
 
-use crate::{ast::prelude::*, common::Location};
+use crate::ast::prelude::*;
 use crate::tokens::{
     Token,
     TokenKind,
@@ -258,9 +258,7 @@ impl Parser {
                 match token.kind() {
                     TokenKind::Operator(op) => {
                         match op {
-                            Op::Pipe => {
-                                parser.consume() // Pipe operator |
-                            },
+                            Op::Pipe => parser.consume(), // Pipe operator |
                             _ => break,
                         }
                     }
@@ -272,17 +270,61 @@ impl Parser {
     
             let label = if let Some(token) = parser.peek() {
                 match token.kind() {
-                    TokenKind::Label => {
-                        parser.consume()
-                    }
+                    TokenKind::Label => parser.consume(), // Label
                     _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
                 }
             } else {
                 return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
             };
-    
-    
-            let transform = Transform(label);
+
+            // Parse arguments
+            let mut arguments: Vec<AstIndex> = vec![];
+            if let Some(token) = parser.peek() {
+                match token.kind() {
+                    TokenKind::Operator(op) => {
+                        match op {
+                            Op::ParenOpen => {
+                                let _paren_open = parser.consume(); // Paren open (
+
+                                loop {
+                                    let argument = Parser::parse_expr(parser, ast)?;
+                                    arguments.push(argument);
+
+                                    // Determine if a comma or an close parenthesis
+                                    if let Some(token) = parser.peek() {
+                                        match token.kind() {
+                                            TokenKind::Operator(op) => {
+                                                match op {
+                                                    Op::Comma => {
+                                                        let _comma = parser.consume();
+                                                        continue; // More arguments to parse!
+                                                    },
+                                                    Op::ParenClose => {
+                                                        let _close_paren = parser.consume();
+                                                        break; // End of argument list 
+                                                    },
+                                                    _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
+                                                }
+                                            },
+                                            _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
+                                        }
+                                    } else {
+                                        return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+                                    };
+                                }
+                            },
+                            _ => (), // do nothing
+                        }
+                    },
+                    _ => (), // do nothing
+                }
+            } else {
+                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+            };
+            
+            
+            // Create transform and add to list of transforms 
+            let transform = Transform::new(label, arguments);
             let index = ast.push(transform);
             transforms.push(index);
         }

@@ -17,18 +17,24 @@
                 <value>"lowercase"</value>
                 <location>{ 0, 20 }</location>
               </Label>
+              <Arguments>
+              </Arguments>
             </Transform>
             <Transform>
               <Label>
                 <value>"uppercase"</value>
                 <location>{ 0, 32 }</location>
               </Label>
+              <Arguments>
+              </Arguments>
             </Transform>
             <Transform>
               <Label>
                 <value>"lowercase"</value>
                 <location>{ 0, 44 }</location>
               </Label>
+              <Arguments>
+              </Arguments>
             </Transform>
           </Option>
         </Transforms>
