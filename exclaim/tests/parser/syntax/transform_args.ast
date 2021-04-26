@@ -11,43 +11,38 @@
           <location>{ 0, 10 }</location>
         </StringLiteral>
         <Transforms>
-          <Option>
-            <Transform>
-              <Label>
-                <value>"take"</value>
-                <location>{ 0, 22 }</location>
-              </Label>
-              <Arguments>
-                <LiteralExpression>
-                  <NumberLiteral>
-                    <value>1</value>
-                    <location>{ 0, 27 }</location>
-                  </NumberLiteral>
-                  <Transforms>
-                    <Option>None</Option>
-                  </Transforms>
-                </LiteralExpression>
-                <LiteralExpression>
-                  <StringLiteral>
-                    <value>"two"</value>
-                    <location>{ 0, 29 }</location>
-                  </StringLiteral>
-                  <Transforms>
-                    <Option>None</Option>
-                  </Transforms>
-                </LiteralExpression>
-                <LiteralExpression>
-                  <NumberLiteral>
-                    <value>3</value>
-                    <location>{ 0, 36 }</location>
-                  </NumberLiteral>
-                  <Transforms>
-                    <Option>None</Option>
-                  </Transforms>
-                </LiteralExpression>
-              </Arguments>
-            </Transform>
-          </Option>
+          <Transform>
+            <Label>
+              <value>"take"</value>
+              <location>{ 0, 22 }</location>
+            </Label>
+            <Arguments>
+              <LiteralExpression>
+                <NumberLiteral>
+                  <value>1</value>
+                  <location>{ 0, 27 }</location>
+                </NumberLiteral>
+                <Transforms>
+                </Transforms>
+              </LiteralExpression>
+              <LiteralExpression>
+                <StringLiteral>
+                  <value>"two"</value>
+                  <location>{ 0, 29 }</location>
+                </StringLiteral>
+                <Transforms>
+                </Transforms>
+              </LiteralExpression>
+              <LiteralExpression>
+                <NumberLiteral>
+                  <value>3</value>
+                  <location>{ 0, 36 }</location>
+                </NumberLiteral>
+                <Transforms>
+                </Transforms>
+              </LiteralExpression>
+            </Arguments>
+          </Transform>
         </Transforms>
       </LiteralExpression>
     </WriteStatement>

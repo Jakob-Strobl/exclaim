@@ -15,16 +15,14 @@
           <location>{ 0, 15 }</location>
         </Label>
         <Transforms>
-          <Option>
-            <Transform>
-              <Label>
-                <value>"enumerate"</value>
-                <location>{ 0, 22 }</location>
-              </Label>
-              <Arguments>
-              </Arguments>
-            </Transform>
-          </Option>
+          <Transform>
+            <Label>
+              <value>"enumerate"</value>
+              <location>{ 0, 22 }</location>
+            </Label>
+            <Arguments>
+            </Arguments>
+          </Transform>
         </Transforms>
       </ReferenceExpression>
     </WriteStatement>

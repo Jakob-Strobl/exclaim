@@ -249,7 +249,7 @@ impl Parser {
         }
     }
 
-    fn parse_tranforms(parser: &mut Parser, ast: &mut Ast) -> OptionalResult<Vec<AstIndex>> {
+    fn parse_tranforms(parser: &mut Parser, ast: &mut Ast) -> Result<Vec<AstIndex>> {
         let mut transforms: Vec<AstIndex> = vec![];
 
         // collect as many transforms as possible 
@@ -329,12 +329,7 @@ impl Parser {
             transforms.push(index);
         }
 
-        // If no transforms were created, return None
-        if transforms.len() > 0 {
-            Ok(Some(transforms))
-        } else {
-            Ok(None)
-        }
+        Ok(transforms)
     }
 
     // pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {

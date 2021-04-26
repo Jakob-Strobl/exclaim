@@ -19,7 +19,6 @@
           <location>{ 0, 24 }</location>
         </Label>
         <Transforms>
-          <Option>None</Option>
         </Transforms>
       </ReferenceExpression>
     </WriteStatement>

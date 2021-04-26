@@ -7,9 +7,9 @@ type ExpressionIndex = AstIndex;
 
 pub enum Expression {
     /// Literal(literal: Token)
-    Literal(Token, Option<Vec<TransformIndex>>),
+    Literal(Token, Vec<TransformIndex>),
     /// Reference(list: Vec<Token>)
-    Reference(Vec<Token>, Option<Vec<TransformIndex>>)
+    Reference(Vec<Token>, Vec<TransformIndex>)
 }
 
 impl Serializable for Expression {

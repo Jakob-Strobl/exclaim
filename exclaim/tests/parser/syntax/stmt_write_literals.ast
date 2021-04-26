@@ -11,7 +11,6 @@
           <location>{ 0, 10 }</location>
         </StringLiteral>
         <Transforms>
-          <Option>None</Option>
         </Transforms>
       </LiteralExpression>
     </WriteStatement>
@@ -28,7 +27,6 @@
           <location>{ 0, 31 }</location>
         </NumberLiteral>
         <Transforms>
-          <Option>None</Option>
         </Transforms>
       </LiteralExpression>
     </WriteStatement>
