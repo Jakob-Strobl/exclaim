@@ -1,4 +1,6 @@
 use std::ops::Deref;
+
+use crate::common::serialize::*;
 // Using a concrete type so one is not accidentally using indexes from normal math out of thin air 
 #[derive(Debug, Clone, Copy)]
 pub struct AstIndex(usize);
@@ -8,6 +10,16 @@ impl Deref for AstIndex {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl Serializable for AstIndex {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        if let Some(element) = ctx.get(self) {
+            return element.serialize(serde, ctx);
+        }
+
+        None
     }
 }
 

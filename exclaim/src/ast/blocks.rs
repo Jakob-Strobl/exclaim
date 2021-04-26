@@ -73,21 +73,18 @@ impl Serializable for Block {
                 text.serialize(serde, ctx);
                 *next // copy
             }
-            Block::CodeEnclosed(stmt_idx, next) => {
+            Block::CodeEnclosed(statement, next) => {
                 let _block = serde.open_tag("EnclosedBlock");
-                let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
                 *next // copy
             }
-            Block::CodeUnclosed(stmt_idx, _, next) => {
+            Block::CodeUnclosed(statement, _, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
-                let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
                 *next // copy
             }
-            Block::CodeClosing(stmt_idx, next) => {
+            Block::CodeClosing(statement, next) => {
                 let _block = serde.open_tag("ClosingBlock");
-                let statement = ctx.get(stmt_idx).unwrap();
                 statement.serialize(serde, ctx);
                 *next // copy
             }

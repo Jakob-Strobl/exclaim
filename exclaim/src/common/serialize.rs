@@ -31,18 +31,6 @@ impl<T> Serializable for Vec<T> where T: Serializable {
     }
 }
 
-impl Serializable for Vec<AstIndex> {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
-        for index in self {
-            if let Some(element) = ctx.get(index) {
-                element.serialize(serde, ctx);
-            }
-        }
-        
-        None
-    }
-}
-
 impl<T> Serializable for Option<T> where T: Serializable {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex>{
         match self {
