@@ -1,303 +1,156 @@
 <Ast>
-  <BlockNode>
-    <stmt>
-      <LetStatement>
-        <assignee>
-          <SimplePattern>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"cart"</lexeme>
-                <location>{ 0, 8 }</location>
-              </Token>
-            </decl>
-          </SimplePattern>
-        </assignee>
-        <expr>
-          <ReferenceExpression>
-            <reference>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"user"</lexeme>
-                <location>{ 0, 15 }</location>
-              </Token>
-            </reference>
-            <child>
-              <Option>
-                <ReferenceExpression>
-                  <reference>
-                    <Token>
-                      <kind>Label</kind>
-                      <lexeme>"cart"</lexeme>
-                      <location>{ 0, 20 }</location>
-                    </Token>
-                  </reference>
-                  <child>
-                    <Option>None</Option>
-                  </child>
-                  <pipe>
-                    <Option>None</Option>
-                  </pipe>
-                </ReferenceExpression>
-              </Option>
-            </child>
-            <pipe>
-              <Option>None</Option>
-            </pipe>
-          </ReferenceExpression>
-        </expr>
-      </LetStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"\nHello, "</lexeme>
-        <location>{ 0, 27 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 1, 10 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"user"</lexeme>
-                  <location>{ 1, 17 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>
-                  <ReferenceExpression>
-                    <reference>
-                      <Token>
-                        <kind>Label</kind>
-                        <lexeme>"name"</lexeme>
-                        <location>{ 1, 22 }</location>
-                      </Token>
-                    </reference>
-                    <child>
-                      <Option>None</Option>
-                    </child>
-                    <pipe>
-                      <Option>
-                        <Pipe>
-                          <call>
-                            <Call>
-                              <function>
-                                <Token>
-                                  <kind>Label</kind>
-                                  <lexeme>"capitalized"</lexeme>
-                                  <location>{ 1, 29 }</location>
-                                </Token>
-                              </function>
-                              <arguments>
-                                <Option>None</Option>
-                              </arguments>
-                            </Call>
-                          </call>
-                          <next>
-                            <Option>None</Option>
-                          </next>
-                        </Pipe>
-                      </Option>
-                    </pipe>
-                  </ReferenceExpression>
-                </Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>".\n\nYour cart ("</lexeme>
-        <location>{ 1, 43 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 3, 14 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"cart"</lexeme>
-                  <location>{ 3, 21 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>None</Option>
-              </child>
-              <pipe>
-                <Option>
-                  <Pipe>
-                    <call>
-                      <Call>
-                        <function>
-                          <Token>
-                            <kind>Label</kind>
-                            <lexeme>"length"</lexeme>
-                            <location>{ 3, 28 }</location>
-                          </Token>
-                        </function>
-                        <arguments>
-                          <Option>None</Option>
-                        </arguments>
-                      </Call>
-                    </call>
-                    <next>
-                      <Option>None</Option>
-                    </next>
-                  </Pipe>
-                </Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"): \n"</lexeme>
-        <location>{ 3, 37 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <RenderStatement>
-        <pattern>
-          <Option>
-            <SimplePattern>
-              <decl>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"item"</lexeme>
-                  <location>{ 4, 11 }</location>
-                </Token>
-              </decl>
-            </SimplePattern>
-          </Option>
-        </pattern>
-        <iterable>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"cart"</lexeme>
-                  <location>{ 4, 18 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>None</Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </iterable>
-      </RenderStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"\n  <li>"</lexeme>
-        <location>{ 4, 25 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(Write)</kind>
-            <lexeme>"write!"</lexeme>
-            <location>{ 5, 9 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"item"</lexeme>
-                  <location>{ 5, 16 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>None</Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"</li>\n"</lexeme>
-        <location>{ 5, 23 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(End)</kind>
-            <lexeme>"!"</lexeme>
-            <location>{ 6, 2 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>None</Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
+  <EnclosedBlock>
+    <LetStatement>
+      <Action>
+        <value>Let</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"cart"</value>
+          <location>{ 0, 8 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"user"</value>
+          <location>{ 0, 15 }</location>
+        </Label>
+        <Label>
+          <value>"cart"</value>
+          <location>{ 0, 20 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </LetStatement>
+  </EnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>"\nHello, "</value>
+      <location>{ 0, 27 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 1, 10 }</location>
+      </Action>
+      <ReferenceExpression>
+        <Label>
+          <value>"user"</value>
+          <location>{ 1, 17 }</location>
+        </Label>
+        <Label>
+          <value>"name"</value>
+          <location>{ 1, 22 }</location>
+        </Label>
+        <Transforms>
+          <Transform>
+            <Label>
+              <value>"capitalized"</value>
+              <location>{ 1, 29 }</location>
+            </Label>
+            <Arguments>
+            </Arguments>
+          </Transform>
+        </Transforms>
+      </ReferenceExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>".\n\nYour cart ("</value>
+      <location>{ 1, 43 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 3, 14 }</location>
+      </Action>
+      <ReferenceExpression>
+        <Label>
+          <value>"cart"</value>
+          <location>{ 3, 21 }</location>
+        </Label>
+        <Transforms>
+          <Transform>
+            <Label>
+              <value>"length"</value>
+              <location>{ 3, 28 }</location>
+            </Label>
+            <Arguments>
+            </Arguments>
+          </Transform>
+        </Transforms>
+      </ReferenceExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>"): \n"</value>
+      <location>{ 3, 37 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <UnclosedBlock>
+    <RenderStatment>
+      <Action>
+        <value>Render</value>
+        <location>{ 4, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"item"</value>
+          <location>{ 4, 11 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"cart"</value>
+          <location>{ 4, 18 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </RenderStatment>
+  </UnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>"\n  <li>"</value>
+      <location>{ 4, 25 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 5, 9 }</location>
+      </Action>
+      <ReferenceExpression>
+        <Label>
+          <value>"item"</value>
+          <location>{ 5, 16 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>"</li>\n"</value>
+      <location>{ 5, 23 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <ClosingBlock>
+    <EndStatement>
+      <Action>
+        <value>End</value>
+        <location>{ 6, 2 }</location>
+      </Action>
+    </EndStatement>
+  </ClosingBlock>
 </Ast>
