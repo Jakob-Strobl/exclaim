@@ -75,6 +75,22 @@ impl Parser {
     }
 }
 
+// I didnt realize that blocks are also resolved as expressions until I read this answer: https://stackoverflow.com/questions/27329653/writing-a-macro-that-contains-a-match-body
+macro_rules! match_token {
+    // Pass the token you want to match, then follow with arms for a match on token.kind()
+    {($token:expr) { $($pattern:pat => $expression:expr),* }} => {
+        if let Some(token) = $token {
+            match token.kind() {
+                $(
+                    $pattern => $expression
+                ),*
+            }
+        } else {
+            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    };
+}
+
 // Parsing functions
 impl Parser {
 
@@ -107,19 +123,14 @@ impl Parser {
     }
 
     fn parse_block(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::StringLiteral => {
-                    let text_block = Block::Text(parser.consume(), None);
-                    let index = ast.push(text_block);
-                    Ok(index)
-                }
-                _ => Parser::parse_block_code(parser, ast)
-                
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
+        match_token!(( parser.peek() ) {
+            TokenKind::StringLiteral => {
+                let text_block = Block::Text(parser.consume(), None);
+                let index = ast.push(text_block);
+                Ok(index)
+            },
+            _ => Parser::parse_block_code(parser, ast)
+        })
     }
 
     fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
