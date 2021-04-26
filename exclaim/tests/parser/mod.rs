@@ -154,6 +154,7 @@ fn parse_stmt_let_pattern() {
 }
 
 #[test]
+#[should_panic]
 fn parse_stmt_render_empty() {
     let expected = read_file_to_string("./tests/parser/syntax/stmt_render_empty.ast");
     let input = "{{ render! }}";
