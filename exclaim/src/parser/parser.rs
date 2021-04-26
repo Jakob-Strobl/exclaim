@@ -147,34 +147,28 @@ impl Parser {
     }
 
     fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
-        let _block_open = if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::Operator(op) => {
-                    match op {
-                        Op::BlockOpen => parser.consume(),
-                        _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        let token = unwrap_token!(parser.peek());
+        let _block_open = match token.kind() {
+            TokenKind::Operator(op) => {
+                match op {
+                    Op::BlockOpen => parser.consume(),
+                    _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
+                }
+            },
+            _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
         };
 
         let stmt_idx = Parser::parse_stmt(parser, ast)?;
 
-        let _block_close = if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::Operator(op) => {
-                    match op {
-                        Op::BlockClose => parser.consume(),
-                        _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        let token = unwrap_token!(parser.peek());
+        let _block_close = match token.kind() {
+            TokenKind::Operator(op) => {
+                match op {
+                    Op::BlockClose => parser.consume(),
+                    _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
+                }
+            },
+            _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
         };
 
         // Derive the type of block by the statement
@@ -192,84 +186,77 @@ impl Parser {
     }
 
     fn parse_stmt(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::Action(action) => {
-                    match action {
-                        Action::End => {
-                            let action = parser.consume();
-                            let stmt = Statement::End(action);
-                            Ok(ast.push(stmt))
-                        },
-                        Action::Write => {
-                            let action = parser.consume();
-                            let expr_idx = Parser::parse_expr(parser, ast)?;
-                            let stmt = Statement::Write(action, expr_idx);
-                            Ok(ast.push(stmt))
-                        }
-                        _ => return Err(ParserError::from(ErrorKind::Unimplemented))
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
+            TokenKind::Action(action) => {
+                match action {
+                    Action::End => {
+                        let action = parser.consume();
+                        let stmt = Statement::End(action);
+                        Ok(ast.push(stmt))
+                    },
+                    Action::Write => {
+                        let action = parser.consume();
+                        let expr_idx = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Write(action, expr_idx);
+                        Ok(ast.push(stmt))
                     }
-                },
-                _ => return Err(ParserError::from("Expected Action to start in Block")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+                    _ => return Err(ParserError::from(ErrorKind::Unimplemented))
+                }
+            },
+            _ => return Err(ParserError::from("Expected Action to start in Block")),
         }
     }
 
     fn parse_expr(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::StringLiteral => {
-                    let literal = parser.consume();
-                    let transforms = Parser::parse_tranforms(parser, ast)?;
-                    let expression = Expression::Literal(literal, transforms);
-                    Ok(ast.push(expression))
-                },
-                TokenKind::NumberLiteral(_) => {
-                    let literal = parser.consume();
-                    let transforms = Parser::parse_tranforms(parser, ast)?;
-                    let expression = Expression::Literal(literal, transforms);
-                    Ok(ast.push(expression))
-                },
-                TokenKind::Label => {
-                    let mut ref_list = vec![parser.consume()];
-                    
-                    // Collect dot operated references
-                    while let Some(token) = parser.peek() {
-                        // Check for dot operator
-                        match token.kind() {
-                            TokenKind::Operator(op) => {
-                                match op {
-                                    Op::Dot => {
-                                        // Expect a label token 
-                                        let _dot = parser.consume();
-                                        let label = if let Some(token) = parser.peek() {
-                                            match token.kind() {
-                                                TokenKind::Label => parser.consume(),
-                                                _ => return Err(ParserError::from("Expected a label after dot operator"))
-                                            }
-                                        } else {
-                                            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
+            TokenKind::StringLiteral => {
+                let literal = parser.consume();
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Literal(literal, transforms);
+                Ok(ast.push(expression))
+            },
+            TokenKind::NumberLiteral(_) => {
+                let literal = parser.consume();
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Literal(literal, transforms);
+                Ok(ast.push(expression))
+            },
+            TokenKind::Label => {
+                let mut ref_list = vec![parser.consume()];
+                
+                // Collect dot operated references
+                loop {
+                    // Check for dot operator
+                    let token = unwrap_token!(parser.peek());
+                    match token.kind() {
+                        TokenKind::Operator(op) => {
+                            match op {
+                                Op::Dot => {
+                                    // Expect a label token 
+                                    let _dot = parser.consume();
+
+                                    let token = unwrap_token!(parser.peek());
+                                    let label = match token.kind() {
+                                            TokenKind::Label => parser.consume(),
+                                            _ => return Err(ParserError::from("Expected a label after dot operator"))
                                         };
 
-                                        ref_list.push(label);
-                                    },
-                                    _ => break,
-                                }
+                                    ref_list.push(label);
+                                },
+                                _ => break,
                             }
-                            _ => break,
                         }
+                        _ => break,
                     }
+                }
 
-                    let transforms = Parser::parse_tranforms(parser, ast)?;
-                    let expression = Expression::Reference(ref_list, transforms);
-                    Ok(ast.push(expression))
-                },
-                _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Reference(ref_list, transforms);
+                Ok(ast.push(expression))
+            },
+            _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
         }
     }
 
@@ -278,73 +265,61 @@ impl Parser {
 
         // collect as many transforms as possible 
         loop {
-            let _pipe = if let Some(token) = parser.peek() {
-                match token.kind() {
-                    TokenKind::Operator(op) => {
-                        match op {
-                            Op::Pipe => parser.consume(), // Pipe operator |
-                            _ => break,
-                        }
+            let token = unwrap_token!(parser.peek());
+            let _pipe = match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::Pipe => parser.consume(), // Pipe operator |
+                        _ => break,
                     }
-                    _ => break,
                 }
-            } else {
-                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+                _ => break,
             };
-    
-            let label = if let Some(token) = parser.peek() {
-                match token.kind() {
-                    TokenKind::Label => parser.consume(), // Label
-                    _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
-                }
-            } else {
-                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
+            
+            let token = unwrap_token!(parser.peek());
+            let label = match token.kind() {
+                TokenKind::Label => parser.consume(), // Label
+                _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
             };
 
             // Parse arguments
             let mut arguments: Vec<AstIndex> = vec![];
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    TokenKind::Operator(op) => {
-                        match op {
-                            Op::ParenOpen => {
-                                let _paren_open = parser.consume(); // Paren open (
+            let token = unwrap_token!(parser.peek());
+            match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::ParenOpen => {
+                            let _paren_open = parser.consume(); // Paren open (
 
-                                loop {
-                                    let argument = Parser::parse_expr(parser, ast)?;
-                                    arguments.push(argument);
+                            loop {
+                                let argument = Parser::parse_expr(parser, ast)?;
+                                arguments.push(argument);
 
-                                    // Determine if a comma or an close parenthesis
-                                    if let Some(token) = parser.peek() {
-                                        match token.kind() {
-                                            TokenKind::Operator(op) => {
-                                                match op {
-                                                    Op::Comma => {
-                                                        let _comma = parser.consume();
-                                                        continue; // More arguments to parse!
-                                                    },
-                                                    Op::ParenClose => {
-                                                        let _close_paren = parser.consume();
-                                                        break; // End of argument list 
-                                                    },
-                                                    _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
-                                                }
+                                // Determine if a comma or an close parenthesis
+                                let token = unwrap_token!(parser.peek());
+                                match token.kind() {
+                                    TokenKind::Operator(op) => {
+                                        match op {
+                                            Op::Comma => {
+                                                let _comma = parser.consume();
+                                                continue; // More arguments to parse!
+                                            },
+                                            Op::ParenClose => {
+                                                let _close_paren = parser.consume();
+                                                break; // End of argument list 
                                             },
                                             _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
                                         }
-                                    } else {
-                                        return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
-                                    };
+                                    },
+                                    _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
                                 }
-                            },
-                            _ => (), // do nothing
-                        }
-                    },
-                    _ => (), // do nothing
-                }
-            } else {
-                return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream));
-            };
+                            }
+                        },
+                        _ => (), // do nothing
+                    }
+                },
+                _ => (), // do nothing
+            }
             
             
             // Create transform and add to list of transforms 
