@@ -1,0 +1,34 @@
+<Ast>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <LiteralExpression>
+        <StringLiteral>
+          <value>"Hello!"</value>
+          <location>{ 0, 10 }</location>
+        </StringLiteral>
+        <Transforms>
+        </Transforms>
+      </LiteralExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+  <EnclosedBlock>
+    <WriteStatement>
+      <Action>
+        <value>Write</value>
+        <location>{ 0, 24 }</location>
+      </Action>
+      <LiteralExpression>
+        <NumberLiteral>
+          <value>1234</value>
+          <location>{ 0, 31 }</location>
+        </NumberLiteral>
+        <Transforms>
+        </Transforms>
+      </LiteralExpression>
+    </WriteStatement>
+  </EnclosedBlock>
+</Ast>

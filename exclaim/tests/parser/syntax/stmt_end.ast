@@ -1,36 +1,22 @@
 <Ast>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>"This is a string. "</lexeme>
-        <location>{ 0, 0 }</location>
-      </Token>
-    </text>
-  </TextNode>
-  <BlockNode>
-    <stmt>
-      <SimpleStatement>
-        <action>
-          <Token>
-            <kind>Action(End)</kind>
-            <lexeme>"!"</lexeme>
-            <location>{ 0, 21 }</location>
-          </Token>
-        </action>
-        <expr>
-          <Option>None</Option>
-        </expr>
-      </SimpleStatement>
-    </stmt>
-  </BlockNode>
-  <TextNode>
-    <text>
-      <Token>
-        <kind>StringLiteral</kind>
-        <lexeme>" and another one."</lexeme>
-        <location>{ 0, 25 }</location>
-      </Token>
-    </text>
-  </TextNode>
+  <TextBlock>
+    <StringLiteral>
+      <value>"This is a string. "</value>
+      <location>{ 0, 0 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <ClosingBlock>
+    <EndStatement>
+      <Action>
+        <value>End</value>
+        <location>{ 0, 21 }</location>
+      </Action>
+    </EndStatement>
+  </ClosingBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>" and another one."</value>
+      <location>{ 0, 25 }</location>
+    </StringLiteral>
+  </TextBlock>
 </Ast>

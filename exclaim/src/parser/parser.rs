@@ -6,17 +6,19 @@ use std::ops::{
     DerefMut
 };
 
-use super::ast::prelude::*;
-use super::error::{
-    ParserError,
-    ErrorKind,
-};
+use crate::ast::prelude::*;
 use crate::tokens::{
     Token,
     TokenKind,
     Op,
     Action,
 };
+
+use super::error::{
+    ParserError,
+    ErrorKind,
+};
+
 
 type Result<T> = result::Result<T, ParserError>;
 type OptionalResult<T> = result::Result<Option<T>, ParserError>;
@@ -44,6 +46,14 @@ pub struct Parser {
     token_stream: ParserList<Token>,
 }
 
+impl convert::From<Vec<Token>> for Parser {
+    fn from(tokens: Vec<Token>) -> Parser {
+        Parser {
+            token_stream: ParserList(tokens.into_iter().collect()),
+        }
+    }
+}
+
 // Methods
 impl Parser {
     fn peek(&self) -> Option<&Token> {
@@ -65,437 +75,353 @@ impl Parser {
     }
 }
 
+// Keeping this here for future reference
+// I didnt realize that blocks { ... } are also resolved as expressions until I read this answer: https://stackoverflow.com/questions/27329653/writing-a-macro-that-contains-a-match-body
+// macro_rules! match_token {
+//     // Pass the token you want to match, then follow with arms for a match on token.kind()
+//     {($token:expr) { $($pattern:pat => $expression:expr),* }} => {
+//         if let Some(token) = $token {
+//             match token.kind() {
+//                 $(
+//                     $pattern => $expression
+//                 ),*
+//             }
+//         } else {
+//             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+//         }
+//     };
+// }
+
+macro_rules! unwrap_token {
+    ($token:expr) => {
+        if let Some(token) = $token {
+            token
+        } else {
+            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+        }
+    };
+}
+
+
 // Parsing functions
 impl Parser {
-    pub fn parse(parser: &mut Parser) -> result::Result<Ast, ParserError> {
+
+    pub fn parse(parser: &mut Parser) -> Result<Ast> {
         let mut ast = Ast::new();
+        let mut last_idx: Option<AstIndex> = None;
 
         while !parser.end_of_token_stream() {
-            match Parser::start(parser) {
-                Ok(node) => {
-                    if let Some(node) = node {
-                        ast.push_block(node);
+            let new_idx = Parser::parse_block(parser, &mut ast)?;
+            match last_idx {
+                Some(idx) => {
+                    // Get last block so we can set next to current new block_idx
+                    let last_block = ast.get_mut(idx).unwrap();
+                    if let AstElement::Block(_, block) = last_block {
+                        block.set_next(new_idx);
+                        last_idx = Some(new_idx);
+                    } else {
+                        return Err(ParserError::from("Parser<parse>: last_idx does not point to a Block element."));
                     }
-                },
-                Err(e) => return Err(e),
+                }
+                None => {
+                    // First Block -> Set Head! 
+                    ast.set_head(new_idx);
+                    last_idx = Some(new_idx);
+                }
             }
         }
 
         Ok(ast)
     }
 
-    fn start(parser: &mut Parser) -> OptionalResult<Node> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::StringLiteral => Ok(Some(Node::Text(Parser::text(parser)))),
-                // TODO _ => Parser::block()
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::BlockOpen => Ok(Some(Node::Block(Parser::block(parser)?))),
-                        _ => Err(ParserError::from(format!("Unexpected operator found: {:?}", op)))
-                    }
-                },
-                _ => Err(ParserError::from(ErrorKind::Unimplemented))
-            }
-        } else {
-            Ok(None)
+    fn parse_block(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
+            TokenKind::StringLiteral => {
+                let text_block = Block::Text(parser.consume(), None);
+                let index = ast.push(text_block);
+                Ok(index)
+            },
+            _ => Parser::parse_block_code(parser, ast)
         }
     }
 
-    fn text(parser: &mut Parser) -> TextNode {
-        let text_node = TextNode::new(parser.consume()); 
-        text_node
-    }
-
-    /// Parses a Block := {{ BLOCK_STMT }}
-    /// parser: the current Parser context
-    /// block: the open block (rest of the fields needs to be parsed)
-    /// Warning: We should know the next token is Operator(OpenBlock) before calling this function
-    fn block(parser: &mut Parser) -> Result<BlockNode> {
-        // Parse block close field
-        fn parse_close(parser: &mut Parser) -> Result<()> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    &TokenKind::Operator(op) => {
-                        match op {
-                            Op::BlockClose => {
-                                let _ = parser.consume();
-                                Ok(())
-                            },
-                            _ => Err(ParserError::from(format!("Unexpected operator: {:?}, expected BlockClose operator.", op)))
-                        }
-                    },
-                    _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected Operator(BlockClose) token.", token))),
+    fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        let token = unwrap_token!(parser.peek());
+        let _block_open = match token.kind() {
+            TokenKind::Operator(op) => {
+                match op {
+                    Op::BlockOpen => parser.consume(),
+                    _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
                 }
-            } else {
-                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-            }
-        }
-
-        let _ = parser.consume(); // Open Block Operator
-        let stmt = Parser::stmt(parser)?;
-        let _ = parse_close(parser)?;
-
-        let block = BlockNode::new(stmt);
-        Ok(block)
-    }
-
-    fn stmt(parser: &mut Parser) -> Result<Statement> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Action(action) => {
-                    match action {
-                        Action::End => Parser::stmt_end(parser),
-                        Action::Let => Parser::stmt_let(parser),
-                        Action::Render => Parser::stmt_render(parser),
-                        Action::Write => Parser::stmt_write(parser),
-                    }
-                },
-                _ => Err(ParserError::from(format!("Unexpected token: {:?}, expected an Action Token", token)))
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-    }
-
-    fn stmt_end(parser: &mut Parser) -> Result<Statement> {
-        let action = parser.consume(); // Action End
-        let expr = Parser::expr(parser)?;
-        Ok(Statement::Simple(SimpleStatement::new(action, expr)))
-    }
-
-    fn stmt_let(parser: &mut Parser) -> Result<Statement> {
-        let _ = parser.consume(); // Action Let; We don't need the action since it's implicitly defined in the type 
-        let pattern = Parser::pattern(parser)?.unwrap(); // TODO handle unwrap properly 
-
-        // Parse assign operator: =
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::Assign => {
-                            let _ = parser.consume(); // assign operator
-                        },
-                        _ => return Err(ParserError::from("Expected assign operator.")),
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(Assign).")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-
-        let expr = Parser::expr(parser)?.unwrap(); // There should be an expression
-        // TODO better error reporting (I have a lot of errors to fix...)
-
-        Ok(Statement::Let(LetStatement::new(pattern, expr)))
-    }
-
-    fn stmt_render(parser: &mut Parser) -> Result<Statement> {
-        let _ = parser.consume(); // Action render; We don't need the action since it's implicitly defined in the type 
-        let pattern = Parser::pattern(parser)?;
-        // Return empty Render Stmt if there is no pattern given 
-        if pattern.is_none() {
-            return Ok(Statement::Render(RenderStatement::new(None, None)))
-        }
-
-        // Parse each operator: :
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::Each => {
-                            let _ = parser.consume(); // each operator
-                        },
-                        _ => return Err(ParserError::from("Expected each operator."))
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(Each).")),
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-
-        let expr = Parser::expr(parser)?; // There should be an expression
-        // TODO handle unwrap properly 
-
-        Ok(Statement::Render(RenderStatement::new(pattern, expr)))
-    }
-
-    fn stmt_write(parser: &mut Parser) -> Result<Statement> {
-        let action = parser.consume(); // Action Write
-        let expr = Parser::expr(parser)?;
-        Ok(Statement::Simple(SimpleStatement::new(action, expr)))
-    }
-
-    fn pattern(parser: &mut Parser) -> OptionalResult<Pattern> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                TokenKind::Label => Ok(Some(Parser::pattern_simple(parser)?)),
-                _ => Parser::pattern_tuple(parser),
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-    }
-
-    fn pattern_simple(parser: &mut Parser) -> Result<Pattern> {
-        let decl = parser.consume(); // We know it's a label
-        Ok(Pattern::Simple(SimplePattern::new(decl)))
-    }
-
-    fn pattern_tuple(parser: &mut Parser) -> OptionalResult<Pattern> {
-        // Parse Open Parenthesis 
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::ParenOpen => { 
-                            let _ = parser.consume(); // ParenOpen: (
-                        },
-                        _ => return Ok(None)
-                    }
-                },
-                _ => return Ok(None)
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-
-        // Parse Declerations in Tuple Pattern
-        let mut decls: Vec<Token> = Vec::new();
-
-        loop {
-            let decl = Parser::parse_label(parser)?;
-            decls.push(decl);
-
-            // If there isnt a following comma, break
-            if Parser::parse_comma(parser)?.is_none() {
-                break;
-            }
-        }
-
-        // Parse Close Parenthesis 
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::ParenClose => { 
-                            let _ = parser.consume(); // ParenClose: )
-                        },
-                        _ => return Err(ParserError::from(format!("Expected CloseParen operator, found {:?}", token)))
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(CloseParen)"))
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-
-        Ok(Some(Pattern::Tuple(TuplePattern::new(decls))))
-    }
-    
-    fn expr(parser: &mut Parser) -> OptionalResult<Expression> {
-        // Lets just parse Literal Expressions for now :D
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::NumberLiteral(_) | &TokenKind::StringLiteral => Ok(Some(Expression::Literal(Parser::expr_lit(parser)?))),
-                &TokenKind::Label => Ok(Some(Expression::Reference(Parser::expr_ref(parser)?))),
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::BlockClose => Ok(None),
-                        _ => Err(ParserError::from(ErrorKind::Unimplemented)),
-                    }
-                }
-                _ => Err(ParserError::from(format!("Parser<EXPR>: Unexpected token in expression: {:?}, expected a NumberLiteral or StringLiteral.", token)))
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-    }
-
-    fn expr_lit(parser: &mut Parser) -> Result<LiteralExpression> {
-        let literal = parser.consume();
-        let pipe = Parser::expr_pipe(parser)?;
-        let lit_expr = LiteralExpression::new(literal, pipe);
-        Ok(lit_expr)
-    }
-
-    fn expr_ref(parser: &mut Parser) -> Result<ReferenceExpression> {
-        // Parses REF
-        fn parse_reference(parser: &mut Parser) -> Result<Token> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    &TokenKind::Label => Ok(parser.consume()),
-                    _ => Err(ParserError::from("Parser<EXPR_REF>: Unexpected token, expected a reference (label token)."))
-                }
-            } else {
-                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-            }
-        }
-
-        // Parses REF_PRIME
-        fn parse_child(parser: &mut Parser) -> OptionalResult<Box<ReferenceExpression>> {
-            if let Some(token) = parser.peek() {
-                match token.kind() {
-                    &TokenKind::Operator(op) => {
-                        match op {
-                            Op::Dot => {
-                                let _ = parser.consume(); // Operator(Dot)
-                                Ok(Some(Box::new(Parser::expr_ref(parser)?)))
-                            },
-                            _ => Ok(None),
-                        }
-                    },
-                    _ => Err(ParserError::from(ErrorKind::Unimplemented))
-                }
-            } else {
-                Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-            }
-        }
-        
-        let reference = parse_reference(parser)?;
-        let child = parse_child(parser)?;
-        let pipe = Parser::expr_pipe(parser)?;
-        Ok(ReferenceExpression::new(reference, child, pipe))
-    }
-
-    fn expr_pipe(parser: &mut Parser) -> OptionalResult<Pipe> {
-        fn parse_pipe(parser: &mut Parser) -> Result<Pipe> {
-            let _ = parser.consume(); // Consume Pipe operator |
-            let call = Parser::call(parser)?;
-            let next = match Parser::expr_pipe(parser)? {
-                Some(pipe) => Some(Box::new(pipe)),
-                None => None,
-            };
-
-            Ok(Pipe::new(call, next))
-        }
-
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::Pipe => Ok(Some(parse_pipe(parser)?)),
-                        _ => Ok(None)
-                    }
-                }
-                _ => Ok(None)
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-    }
-
-    fn call(parser: &mut Parser) -> Result<Call> {
-        let function = if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Label => Ok(parser.consume()),
-                _ => Err(ParserError::from("Expected a function to be named here! Expected Token Label."))
-            }
-        } else {
-            Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }?;
-
-        let arguments = Parser::arguments(parser)?;
-
-        Ok(Call::new(function, arguments))
-    }
-
-    fn arguments(parser: &mut Parser) -> OptionalResult<Arguments> {
-        fn parse_arg(parser: &mut Parser) -> Result<Expression> {
-            match Parser::expr(parser)? {
-                Some(expr) => Ok(expr),
-                None => Err(ParserError::from("Expected an argument"))
-            }
-        }
-
-        // Parse Open Parenthesis
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::ParenOpen => { 
-                            let _ = parser.consume(); // ParenOpen (
-                        },
-                        _ => return Ok(None)
-                    }
-                },
-                _ => return Ok(None)
-            }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-        }
-
-        let mut args: Vec<Expression> = Vec::new();
-        
-        // Parse arguments
-        loop {
-            let arg = parse_arg(parser)?;
-            args.push(arg);
-
-            // If there isnt a following comma, break
-            if Parser::parse_comma(parser)?.is_none() {
-                break;
-            }
-        }
-        
-        // Parse Close Parentheses
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Operator(op) => {
-                    match op {
-                        Op::ParenClose => { 
-                            let _ = parser.consume(); // ParenClose )
-                        },
-                        _ => return Err(ParserError::from("Expected ParenClose operator."))
-                    }
-                },
-                _ => return Err(ParserError::from("Expected Operator(ParenClose)"))
-            }
+            },
+            _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
         };
 
-        Ok(Some(Arguments::new(args)))
-    }
+        let stmt_idx = Parser::parse_stmt(parser, ast)?;
 
-
-    // Unit Parsing functions
-    fn parse_label(parser: &mut Parser) -> Result<Token> {
-        if let Some(token) = parser.peek() {
-            match token.kind() {
-                &TokenKind::Label => {
-                    Ok(parser.consume())
+        let token = unwrap_token!(parser.peek());
+        let _block_close = match token.kind() {
+            TokenKind::Operator(op) => {
+                match op {
+                    Op::BlockClose => parser.consume(),
+                    _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
                 }
-                _ => return Err(ParserError::from("Expected a Label Token")),
+            },
+            _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
+        };
+
+        // Derive the type of block by the statement
+        let statement = ast.get(stmt_idx).unwrap(); // This should exist, since it returns index where it pushed the statement
+        let block = if let AstElement::Statement(_, statement) = statement {
+            match statement {
+                Statement::End(_) => Block::CodeClosing(stmt_idx, None),
+                Statement::Let(_, _, _) => Block::CodeEnclosed(stmt_idx, None),
+                Statement::Render(_, _, _) => Block::CodeUnclosed(stmt_idx, vec![], None), // Scope is filled in during semantic analysis
+                Statement::Write(_, _) => Block::CodeEnclosed(stmt_idx, None)
             }
         } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            return Err(ParserError::from("Expected to fetch a statement to derive the block type."));
+        };
+
+        Ok(ast.push(block))
+    }
+
+    fn parse_stmt(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
+            TokenKind::Action(action) => {
+                match action {
+                    Action::End => {
+                        let action = parser.consume();
+                        let stmt = Statement::End(action);
+                        Ok(ast.push(stmt))
+                    },
+                    Action::Let => {
+                        let action = parser.consume();
+                        let pattern = Parser::parse_pattern_decleration(parser, ast)?;
+
+                        // Parse Operator(assign)
+                        let token = unwrap_token!(parser.peek());
+                        let _assign = match token.kind() {
+                            TokenKind::Operator(op) => {
+                                match op {
+                                    Op::Assign => parser.consume(),
+                                    _ => return Err(ParserError::from("Expected assign operator.")),
+                                }
+                            },
+                            _ => return Err(ParserError::from("Expected Operator(Assign).")),
+                        };
+
+                        let expr = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Let(action, pattern, expr);
+                        Ok(ast.push(stmt))
+                    },
+                    Action::Render => {
+                        let action = parser.consume();
+                        let pattern = Parser::parse_pattern_decleration(parser, ast)?;
+                    
+                        // Parse Operator(each)
+                        let token = unwrap_token!(parser.peek());
+                        let _each = match token.kind() {
+                            TokenKind::Operator(op) => {
+                                match op {
+                                    Op::Each => parser.consume(),
+                                    _ => return Err(ParserError::from("Expected each operator.")),
+                                }
+                            },
+                            _ => return Err(ParserError::from("Expected Operator(Each)"))
+                        };
+
+                        let expr = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Render(action, pattern, expr);
+                        Ok(ast.push(stmt))
+                    },
+                    Action::Write => {
+                        let action = parser.consume();
+                        let expr = Parser::parse_expr(parser, ast)?;
+                        let stmt = Statement::Write(action, expr);
+                        Ok(ast.push(stmt))
+                    }
+                    _ => return Err(ParserError::from(ErrorKind::Unimplemented))
+                }
+            },
+            _ => return Err(ParserError::from("Expected Action to start in Block")),
         }
     }
 
-    fn parse_comma(parser: &mut Parser) -> OptionalResult<Token> {
-        if let Some(token) = parser.peek() {
+    fn parse_expr(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        let token = unwrap_token!(parser.peek());
+        match token.kind() {
+            TokenKind::StringLiteral => {
+                let literal = parser.consume();
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Literal(literal, transforms);
+                Ok(ast.push(expression))
+            },
+            TokenKind::NumberLiteral(_) => {
+                let literal = parser.consume();
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Literal(literal, transforms);
+                Ok(ast.push(expression))
+            },
+            TokenKind::Label => {
+                let mut ref_list = vec![parser.consume()];
+                
+                // Collect dot operated references
+                loop {
+                    // Check for dot operator
+                    let token = unwrap_token!(parser.peek());
+                    match token.kind() {
+                        TokenKind::Operator(op) => {
+                            match op {
+                                Op::Dot => {
+                                    // Expect a label token 
+                                    let _dot = parser.consume();
+
+                                    let token = unwrap_token!(parser.peek());
+                                    let label = match token.kind() {
+                                            TokenKind::Label => parser.consume(),
+                                            _ => return Err(ParserError::from("Expected a label after dot operator"))
+                                        };
+
+                                    ref_list.push(label);
+                                },
+                                _ => break,
+                            }
+                        }
+                        _ => break,
+                    }
+                }
+
+                let transforms = Parser::parse_tranforms(parser, ast)?;
+                let expression = Expression::Reference(ref_list, transforms);
+                Ok(ast.push(expression))
+            },
+            _ => return Err(ParserError::from("Expected expressions: Reference, StringLiteral, NumberLiteral")),
+        }
+    }
+
+    fn parse_tranforms(parser: &mut Parser, ast: &mut Ast) -> Result<Vec<AstIndex>> {
+        let mut transforms: Vec<AstIndex> = vec![];
+
+        // collect as many transforms as possible 
+        loop {
+            let token = unwrap_token!(parser.peek());
+            let _pipe = match token.kind() {
+                TokenKind::Operator(op) => {
+                    match op {
+                        Op::Pipe => parser.consume(), // Pipe operator |
+                        _ => break,
+                    }
+                }
+                _ => break,
+            };
+            
+            let token = unwrap_token!(parser.peek());
+            let label = match token.kind() {
+                TokenKind::Label => parser.consume(), // Label
+                _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
+            };
+
+            // Parse arguments
+            let mut arguments: Vec<AstIndex> = vec![];
+            let token = unwrap_token!(parser.peek());
             match token.kind() {
                 TokenKind::Operator(op) => {
                     match op {
-                        Op::Comma => {
-                            Ok(Some(parser.consume()))
+                        Op::ParenOpen => {
+                            let _paren_open = parser.consume(); // Paren open (
+
+                            loop {
+                                let argument = Parser::parse_expr(parser, ast)?;
+                                arguments.push(argument);
+
+                                // Determine if a comma or an close parenthesis
+                                let token = unwrap_token!(parser.peek());
+                                match token.kind() {
+                                    TokenKind::Operator(op) => {
+                                        match op {
+                                            Op::Comma => {
+                                                let _comma = parser.consume();
+                                                continue; // More arguments to parse!
+                                            },
+                                            Op::ParenClose => {
+                                                let _close_paren = parser.consume();
+                                                break; // End of argument list 
+                                            },
+                                            _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
+                                        }
+                                    },
+                                    _ => return Err(ParserError::from("Expected a comma or close parenthesis to complete an argument list."))
+                                }
+                            }
                         },
-                        _ => Ok(None),
+                        _ => (), // do nothing
                     }
                 },
-                _ => Ok(None),
+                _ => (), // do nothing
             }
-        } else {
-            return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
+            
+            
+            // Create transform and add to list of transforms 
+            let transform = Transform::new(label, arguments);
+            let index = ast.push(transform);
+            transforms.push(index);
         }
-    }
-}
 
-impl convert::From<Vec<Token>> for Parser {
-    fn from(tokens: Vec<Token>) -> Parser {
-        Parser {
-            token_stream: ParserList(tokens.into_iter().collect()),
-        }
+        Ok(transforms)
+    }
+
+    fn parse_pattern_decleration(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
+        // Parse Pattern 
+        let token = unwrap_token!(parser.peek());
+        let decls = match token.kind() {
+            TokenKind::Label => vec![parser.consume()],
+            TokenKind::Operator(op) => {
+                match op {
+                    Op::ParenOpen => {
+                        let _open_paren = parser.consume();
+
+                        // Parse declerations 
+                        let mut decls: Vec<Token> = vec![];
+                        loop {
+                            let token = unwrap_token!(parser.peek());
+                            let decl = match token.kind() {
+                                TokenKind::Label => parser.consume(),
+                                _ => return Err(ParserError::from("Expected label for decleration in Pattern"))
+                            };
+
+                            decls.push(decl);
+
+                            // Determine if end of pattern or more declerations to parse
+                            let token = unwrap_token!(parser.peek());
+                            match token.kind() {
+                                TokenKind::Operator(op) => {
+                                    match op {
+                                        Op::Comma => {
+                                            let _comma = parser.consume();
+                                            continue; // More declerations!
+                                        },
+                                        Op::ParenClose => {
+                                            let _close_paren = parser.consume();
+                                            break; // End of pattern
+                                        }
+                                        _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                                    }
+                                },
+                                _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                            }
+                        }
+
+                        decls
+                    },
+                    _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                }
+            }
+            _ => return Err(ParserError::from("Expected a Decleration Pattern to assign an expression to in a let! statement."))
+        };
+        let pattern = Pattern::Decleration(decls);
+        Ok(ast.push(pattern))
     }
 }

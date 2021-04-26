@@ -1,6 +1,6 @@
+use crate::ast::AstIndex;
 use crate::common::Location;
 use crate::common::serialize::*;
-
 
 #[derive(Debug, PartialEq)]
 pub struct Token {
@@ -32,11 +32,34 @@ impl Token {
 }
 
 impl Serializable for Token {
-    fn serialize(&self, serde: &mut Serializer) {
-        let _token = serde.open_tag("Token");
-        serde.terminal("kind", format!("{:?}", self.kind).as_str());
-        serde.terminal("lexeme", format!("{:?}", self.lexeme).as_str());
-        self.location.serialize(serde);
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        match self.kind {
+            TokenKind::StringLiteral => {
+                let _token = serde.open_tag("StringLiteral");
+                serde.terminal("value", &format!("{:?}", self.lexeme()));
+                self.location().serialize(serde, ctx)
+            }
+            TokenKind::NumberLiteral(num) => {
+                let _token = serde.open_tag("NumberLiteral");
+                serde.terminal("value", &num.to_string());
+                self.location().serialize(serde, ctx)
+            }
+            TokenKind::Label => {
+                let _token = serde.open_tag("Label");
+                serde.terminal("value", &format!("{:?}", self.lexeme()));
+                self.location().serialize(serde, ctx)
+            }
+            TokenKind::Operator(op) => {
+                let _token = serde.open_tag("Operator");
+                serde.terminal("value", &format!("{:?}", op));
+                self.location().serialize(serde, ctx)
+            }
+            TokenKind::Action(action) => {
+                let _token = serde.open_tag("Action");
+                serde.terminal("value", &format!("{:?}", action));
+                self.location().serialize(serde, ctx)
+            }
+        }
     }
 }
 

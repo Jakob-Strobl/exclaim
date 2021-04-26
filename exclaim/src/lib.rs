@@ -1,12 +1,14 @@
 pub mod common;
 
+mod ast;
+use ast::prelude::*;
+
 mod lexer;
 use lexer::lexer::Lexer;
 use lexer::tokens;
 
 mod parser;
 use parser::parser::Parser;
-use parser::ast::prelude::*;
 
 pub fn run(input: &str) {
     let tokens = run_lexer(input);

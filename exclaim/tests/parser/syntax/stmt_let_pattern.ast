@@ -1,63 +1,36 @@
 <Ast>
-  <BlockNode>
-    <stmt>
-      <LetStatement>
-        <assignee>
-          <TuplePattern>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"item"</lexeme>
-                <location>{ 0, 9 }</location>
-              </Token>
-            </decl>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"index"</lexeme>
-                <location>{ 0, 15 }</location>
-              </Token>
-            </decl>
-          </TuplePattern>
-        </assignee>
-        <expr>
-          <ReferenceExpression>
-            <reference>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"list"</lexeme>
-                <location>{ 0, 24 }</location>
-              </Token>
-            </reference>
-            <child>
-              <Option>None</Option>
-            </child>
-            <pipe>
-              <Option>
-                <Pipe>
-                  <call>
-                    <Call>
-                      <function>
-                        <Token>
-                          <kind>Label</kind>
-                          <lexeme>"enumerate"</lexeme>
-                          <location>{ 0, 31 }</location>
-                        </Token>
-                      </function>
-                      <arguments>
-                        <Option>None</Option>
-                      </arguments>
-                    </Call>
-                  </call>
-                  <next>
-                    <Option>None</Option>
-                  </next>
-                </Pipe>
-              </Option>
-            </pipe>
-          </ReferenceExpression>
-        </expr>
-      </LetStatement>
-    </stmt>
-  </BlockNode>
+  <EnclosedBlock>
+    <LetStatement>
+      <Action>
+        <value>Let</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"item"</value>
+          <location>{ 0, 9 }</location>
+        </Label>
+        <Label>
+          <value>"index"</value>
+          <location>{ 0, 15 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"list"</value>
+          <location>{ 0, 24 }</location>
+        </Label>
+        <Transforms>
+          <Transform>
+            <Label>
+              <value>"enumerate"</value>
+              <location>{ 0, 31 }</location>
+            </Label>
+            <Arguments>
+            </Arguments>
+          </Transform>
+        </Transforms>
+      </ReferenceExpression>
+    </LetStatement>
+  </EnclosedBlock>
 </Ast>

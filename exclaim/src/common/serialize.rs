@@ -1,34 +1,61 @@
 use std::rc::Rc;
 use std::cell::RefCell;
 
-pub trait Serializable {
-    fn serialize(&self, serde: &mut Serializer);
+use crate::ast::prelude::{
+    AstIndex,
+    AstElement,
+};
+
+pub trait Indexable {
+    fn get(&self, index: &AstIndex) -> Option<&AstElement>;
 }
 
-impl<T: Serializable> Serializable for Option<T> {
-    fn serialize(&self, serde: &mut Serializer) {
+pub trait Serializable {
+    /// Return type is an Owned Option<AstIndex> so we don't have to worry about the runtime of 'ctx' the AST context 
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex>;
+}
+
+pub trait IndexSerializable: Indexable + Serializable {}
+
+// Serializable implementations for used Rust standard library types
+
+/// Serialized a vector of type T, where T is serializable. 
+/// Note: This does not serialize the returned indices from the elements int the vector 
+impl<T> Serializable for Vec<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        for element in self {
+            element.serialize(serde, ctx);
+        }
+
+        None
+    }
+}
+
+impl<T> Serializable for Option<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex>{
         match self {
             Some(val) => {
                 let _option = serde.open_tag("Option");
-                val.serialize(serde);
+                val.serialize(serde, ctx)
             }
             None => {
                 serde.terminal("Option", "None");
+                None
             }
         }
     }
 }
 
-impl<T: Serializable> Serializable for Box<T> {
-    fn serialize(&self, serde: &mut Serializer) {
-        self.as_ref().serialize(serde)
+impl<T> Serializable for Box<T> where T: Serializable {
+    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
+        self.as_ref().serialize(serde, ctx)
     }
 }
 
-// For placeholders of implemented types 
 impl Serializable for () {
-    fn serialize(&self, serde: &mut Serializer) {
-        serde.push("()")
+    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> Option<AstIndex> {
+        serde.terminal("", "()");
+        None
     }
 }
 
@@ -38,9 +65,10 @@ pub struct Serializer {
 }
 
 impl Serializer {
-    pub fn serialize(item: &dyn Serializable) -> String {
+    // Can we reference the item throughout the whole chain of serialize functions?
+    pub fn serialize(item: &dyn IndexSerializable) -> String {
         let mut serde = Serializer::new();
-        item.serialize(&mut serde);
+        item.serialize(&mut serde, item);
         serde.buffer.take()
     }
 

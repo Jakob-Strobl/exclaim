@@ -1,36 +1,24 @@
 <Ast>
-  <BlockNode>
-    <stmt>
-      <LetStatement>
-        <assignee>
-          <SimplePattern>
-            <decl>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"x"</lexeme>
-                <location>{ 0, 8 }</location>
-              </Token>
-            </decl>
-          </SimplePattern>
-        </assignee>
-        <expr>
-          <ReferenceExpression>
-            <reference>
-              <Token>
-                <kind>Label</kind>
-                <lexeme>"y"</lexeme>
-                <location>{ 0, 12 }</location>
-              </Token>
-            </reference>
-            <child>
-              <Option>None</Option>
-            </child>
-            <pipe>
-              <Option>None</Option>
-            </pipe>
-          </ReferenceExpression>
-        </expr>
-      </LetStatement>
-    </stmt>
-  </BlockNode>
+  <EnclosedBlock>
+    <LetStatement>
+      <Action>
+        <value>Let</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"x"</value>
+          <location>{ 0, 8 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"y"</value>
+          <location>{ 0, 12 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </LetStatement>
+  </EnclosedBlock>
 </Ast>

@@ -1,56 +1,28 @@
 <Ast>
-  <BlockNode>
-    <stmt>
-      <RenderStatement>
-        <pattern>
-          <Option>
-            <SimplePattern>
-              <decl>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"page"</lexeme>
-                  <location>{ 0, 11 }</location>
-                </Token>
-              </decl>
-            </SimplePattern>
-          </Option>
-        </pattern>
-        <iterable>
-          <Option>
-            <ReferenceExpression>
-              <reference>
-                <Token>
-                  <kind>Label</kind>
-                  <lexeme>"site"</lexeme>
-                  <location>{ 0, 18 }</location>
-                </Token>
-              </reference>
-              <child>
-                <Option>
-                  <ReferenceExpression>
-                    <reference>
-                      <Token>
-                        <kind>Label</kind>
-                        <lexeme>"pages"</lexeme>
-                        <location>{ 0, 23 }</location>
-                      </Token>
-                    </reference>
-                    <child>
-                      <Option>None</Option>
-                    </child>
-                    <pipe>
-                      <Option>None</Option>
-                    </pipe>
-                  </ReferenceExpression>
-                </Option>
-              </child>
-              <pipe>
-                <Option>None</Option>
-              </pipe>
-            </ReferenceExpression>
-          </Option>
-        </iterable>
-      </RenderStatement>
-    </stmt>
-  </BlockNode>
+  <UnclosedBlock>
+    <RenderStatment>
+      <Action>
+        <value>Render</value>
+        <location>{ 0, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"page"</value>
+          <location>{ 0, 11 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"site"</value>
+          <location>{ 0, 18 }</location>
+        </Label>
+        <Label>
+          <value>"pages"</value>
+          <location>{ 0, 23 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </RenderStatment>
+  </UnclosedBlock>
 </Ast>

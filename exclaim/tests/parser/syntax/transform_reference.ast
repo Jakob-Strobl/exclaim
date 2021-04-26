@@ -7,18 +7,22 @@
       </Action>
       <ReferenceExpression>
         <Label>
-          <value>"variable"</value>
+          <value>"site"</value>
           <location>{ 0, 10 }</location>
         </Label>
         <Label>
-          <value>"data"</value>
-          <location>{ 0, 19 }</location>
-        </Label>
-        <Label>
-          <value>"field"</value>
-          <location>{ 0, 24 }</location>
+          <value>"list"</value>
+          <location>{ 0, 15 }</location>
         </Label>
         <Transforms>
+          <Transform>
+            <Label>
+              <value>"enumerate"</value>
+              <location>{ 0, 22 }</location>
+            </Label>
+            <Arguments>
+            </Arguments>
+          </Transform>
         </Transforms>
       </ReferenceExpression>
     </WriteStatement>

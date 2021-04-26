@@ -1,5 +1,6 @@
 use std::convert;
 
+use crate::ast::AstIndex;
 use crate::common::serialize::*;
 
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -43,8 +44,9 @@ impl convert::From<(usize, usize)> for Location {
     }
 }
 
-impl Serializable for Location {
-    fn serialize(&self, serde: &mut Serializer) {
+impl  Serializable for Location {
+    fn serialize(&self, serde: &mut Serializer, _: &dyn IndexSerializable) -> Option<AstIndex> {
         serde.terminal("location", format!("{{ {}, {} }}", self.line, self.column).as_str());
+        None
     }
 }
