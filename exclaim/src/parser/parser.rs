@@ -199,13 +199,54 @@ impl Parser {
                     Action::Let => {
                         let action = parser.consume();
 
-                        // Parse Pattern (Right now it just parses a unit-pattern)
+                        // Parse Pattern 
                         let token = unwrap_token!(parser.peek());
-                        let decl = match token.kind() {
-                            TokenKind::Label => parser.consume(),
-                            _ => return Err(ParserError::from("Expected a single label for a unit-pattern"))
+                        let decls = match token.kind() {
+                            TokenKind::Label => vec![parser.consume()],
+                            TokenKind::Operator(op) => {
+                                match op {
+                                    Op::ParenOpen => {
+                                        let _open_paren = parser.consume();
+
+                                        // Parse declerations 
+                                        let mut decls: Vec<Token> = vec![];
+                                        loop {
+                                            let token = unwrap_token!(parser.peek());
+                                            let decl = match token.kind() {
+                                                TokenKind::Label => parser.consume(),
+                                                _ => return Err(ParserError::from("Expected label for decleration in Pattern"))
+                                            };
+
+                                            decls.push(decl);
+
+                                            // Determine if end of pattern or more declerations to parse
+                                            let token = unwrap_token!(parser.peek());
+                                            match token.kind() {
+                                                TokenKind::Operator(op) => {
+                                                    match op {
+                                                        Op::Comma => {
+                                                            let _comma = parser.consume();
+                                                            continue; // More declerations!
+                                                        },
+                                                        Op::ParenClose => {
+                                                            let _close_paren = parser.consume();
+                                                            break; // End of pattern
+                                                        }
+                                                        _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                                                    }
+                                                },
+                                                _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                                            }
+                                        }
+
+                                        decls
+                                    },
+                                    _ => return Err(ParserError::from("Expected either a Close Parenthesis to end the Pattern, or a comma to continue the pattern."))
+                                }
+                            }
+                            _ => return Err(ParserError::from("Expected a Decleration Pattern to assign an expression to in a let! statement."))
                         };
-                        let pattern = Pattern::Unit(decl);
+                        let pattern = Pattern::Decleration(decls);
                         let pattern = ast.push(pattern);
 
                         // Parse Operator(assign)

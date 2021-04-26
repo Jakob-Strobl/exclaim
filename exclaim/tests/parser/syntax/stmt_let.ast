@@ -5,12 +5,12 @@
         <value>Let</value>
         <location>{ 0, 3 }</location>
       </Action>
-      <UnitPattern>
+      <DeclerationPattern>
         <Label>
           <value>"x"</value>
           <location>{ 0, 8 }</location>
         </Label>
-      </UnitPattern>
+      </DeclerationPattern>
       <ReferenceExpression>
         <Label>
           <value>"y"</value>
