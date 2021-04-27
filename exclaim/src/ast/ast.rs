@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+
 use crate::common::serialize::*;
 
 use super::AstIndex;
@@ -14,7 +16,7 @@ pub trait Pushable<T> {
 
 pub struct Ast {
     // Arena-allocated tree: uses a vector
-    tree: Vec<AstElement>,
+    tree: Vec<RefCell<AstElement>>,
     // The head of the Ast is not necessarily the start of the vector
     // Depends on how the parser allocated elements in the tree. (Probably will be built bottom up per block)
     head: Option<AstIndex>,
@@ -39,12 +41,8 @@ impl Ast {
         }
     }
 
-    pub fn get(&self, index: AstIndex) -> Option<&AstElement> {
-        self.tree.get(index.0)
-    }
-
-    pub fn get_mut(&mut self, index: AstIndex) -> Option<&mut AstElement> {
-        self.tree.get_mut(index.0)
+    pub fn get(&self, index: AstIndex) -> &RefCell<AstElement> {
+        self.tree.get(index.0).unwrap()
     }
 }
 
@@ -56,7 +54,7 @@ impl Serializable for Ast {
         //   serialize(), returns index to next item to serialize, serialize the next element until we get None
         if let Some(mut current) = self.head {
             loop { 
-                let next = self.get(current).unwrap().serialize(serde, ctx);
+                let next = self.get(current).borrow().serialize(serde, ctx);
                 match next {
                     Some(next) => current = next,
                     None => break,
@@ -69,7 +67,7 @@ impl Serializable for Ast {
 }
 
 impl Indexable for Ast {
-    fn get(&self, index: &AstIndex) -> Option<&AstElement> {
+    fn get(&self, index: &AstIndex) -> &RefCell<AstElement> {
         self.get(*index)
     }
 }
@@ -81,7 +79,7 @@ impl Pushable<Block> for Ast {
     fn push(&mut self, block: Block) -> AstIndex {
         let insertion_index = AstIndex(self.tree.len());
         let element = AstElement::Block(insertion_index, block);
-        self.tree.push(element);
+        self.tree.push(RefCell::new(element));
         insertion_index
     }
 }
@@ -90,7 +88,7 @@ impl Pushable<Statement> for Ast {
     fn push(&mut self, statement: Statement) -> AstIndex {
         let insertion_index = AstIndex(self.tree.len());
         let element = AstElement::Statement(insertion_index, statement);
-        self.tree.push(element);
+        self.tree.push(RefCell::new(element));
         insertion_index
     }
 }
@@ -99,7 +97,7 @@ impl Pushable<Expression> for Ast {
     fn push(&mut self, expression: Expression) -> AstIndex {
         let insertion_index = AstIndex(self.tree.len());
         let element = AstElement::Expression(insertion_index, expression);
-        self.tree.push(element);
+        self.tree.push(RefCell::new(element));
         insertion_index
     }
 }
@@ -108,7 +106,7 @@ impl Pushable<Transform> for Ast {
     fn push(&mut self, transform: Transform) -> AstIndex {
         let insertion_index = AstIndex(self.tree.len());
         let element = AstElement::Transform(insertion_index, transform);
-        self.tree.push(element);
+        self.tree.push(RefCell::new(element));
         insertion_index
     }
 }
@@ -117,7 +115,7 @@ impl Pushable<Pattern> for Ast {
     fn push(&mut self, pattern: Pattern) -> AstIndex {
         let insertion_index = AstIndex(self.tree.len());
         let element = AstElement::Pattern(insertion_index, pattern);
-        self.tree.push(element);
+        self.tree.push(RefCell::new(element));
         insertion_index
     }
 }
