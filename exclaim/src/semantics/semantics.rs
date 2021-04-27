@@ -22,7 +22,7 @@ pub mod Semantics {
                     None => break,
                 }
             }
-        } 
+        }
 
         Ok(ast)
     }
@@ -37,9 +37,18 @@ pub mod Semantics {
                 match block {
                     // Text Blocks can't fail in this context, because they are just text
                     Block::Text(_, next) => Ok(*next), // This works because by dereferencing we implicitly copy the AstIndex
-                    Block::CodeEnclosed(_, next) => { Ok(*next) }
-                    Block::CodeUnclosed(_, _, next) => { Ok(*next) }
-                    Block::CodeClosing(_, next) => { Ok(*next) }
+                    Block::CodeEnclosed(_, next) => {
+                        // TODO analyze the contents of the block 
+                        Ok(*next) 
+                    }
+                    Block::CodeUnclosed(_, _, next) => { 
+                        // TODO analyze the contents of the block 
+                        Ok(*next) 
+                    }
+                    Block::CodeClosing(_, _) => {
+                        // A closing block should not exist by itself in the file scope
+                        Err("Invalid lone closing block in file scope. Closing blocks must only be used to close an opened scope.".to_string())
+                    }
                 }
             }
             _ => return Err("Expected Block!".to_string()),
