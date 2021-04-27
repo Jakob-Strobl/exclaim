@@ -28,6 +28,10 @@ impl Ast {
         }
     }
 
+    pub fn head(&self) -> Option<AstIndex> {
+        self.head
+    }
+
     pub fn set_head(&mut self, index: AstIndex) {
         match self.head {
             Some(head_index) => panic!("Ast: Head already set to {:?}, trying to reset to {:?}.", head_index, index),
