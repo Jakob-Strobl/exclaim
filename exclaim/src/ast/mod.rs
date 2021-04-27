@@ -15,11 +15,7 @@ impl Deref for AstIndex {
 
 impl Serializable for AstIndex {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
-        if let Some(element) = ctx.get(self) {
-            return element.serialize(serde, ctx);
-        }
-
-        None
+        ctx.get(self).borrow().serialize(serde, ctx)
     }
 }
 

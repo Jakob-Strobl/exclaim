@@ -115,8 +115,8 @@ impl Parser {
             match last_idx {
                 Some(idx) => {
                     // Get last block so we can set next to current new block_idx
-                    let last_block = ast.get_mut(idx).unwrap();
-                    if let AstElement::Block(_, block) = last_block {
+                    let last_block = ast.get(idx);
+                    if let AstElement::Block(_, block) = &mut *last_block.borrow_mut() {
                         block.set_next(new_idx);
                         last_idx = Some(new_idx);
                     } else {
@@ -172,8 +172,8 @@ impl Parser {
         };
 
         // Derive the type of block by the statement
-        let statement = ast.get(stmt_idx).unwrap(); // This should exist, since it returns index where it pushed the statement
-        let block = if let AstElement::Statement(_, statement) = statement {
+        let statement = ast.get(stmt_idx);
+        let block = if let AstElement::Statement(_, statement) = &*statement.borrow_mut() {
             match statement {
                 Statement::End(_) => Block::CodeClosing(stmt_idx, None),
                 Statement::Let(_, _, _) => Block::CodeEnclosed(stmt_idx, None),
@@ -281,9 +281,9 @@ impl Parser {
 
                                     let token = unwrap_token!(parser.peek());
                                     let label = match token.kind() {
-                                            TokenKind::Label => parser.consume(),
-                                            _ => return Err(ParserError::from("Expected a label after dot operator"))
-                                        };
+                                        TokenKind::Label => parser.consume(),
+                                        _ => return Err(ParserError::from("Expected a label after dot operator"))
+                                    };
 
                                     ref_list.push(label);
                                 },
