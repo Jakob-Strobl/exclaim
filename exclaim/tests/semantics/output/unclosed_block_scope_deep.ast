@@ -1,0 +1,184 @@
+<Ast>
+  <TextBlock>
+    <StringLiteral>
+      <value>"\nStart File Scope\n"</value>
+      <location>{ 0, 0 }</location>
+    </StringLiteral>
+  </TextBlock>
+  <UnclosedBlock>
+    <RenderStatment>
+      <Action>
+        <value>Render</value>
+        <location>{ 2, 3 }</location>
+      </Action>
+      <DeclerationPattern>
+        <Label>
+          <value>"a"</value>
+          <location>{ 2, 11 }</location>
+        </Label>
+      </DeclerationPattern>
+      <ReferenceExpression>
+        <Label>
+          <value>"b"</value>
+          <location>{ 2, 15 }</location>
+        </Label>
+        <Transforms>
+        </Transforms>
+      </ReferenceExpression>
+    </RenderStatment>
+    <scope>
+      <TextBlock>
+        <StringLiteral>
+          <value>"\nStart Scope 1\n"</value>
+          <location>{ 2, 19 }</location>
+        </StringLiteral>
+      </TextBlock>
+      <UnclosedBlock>
+        <RenderStatment>
+          <Action>
+            <value>Render</value>
+            <location>{ 4, 3 }</location>
+          </Action>
+          <DeclerationPattern>
+            <Label>
+              <value>"c"</value>
+              <location>{ 4, 11 }</location>
+            </Label>
+          </DeclerationPattern>
+          <ReferenceExpression>
+            <Label>
+              <value>"d"</value>
+              <location>{ 4, 15 }</location>
+            </Label>
+            <Transforms>
+            </Transforms>
+          </ReferenceExpression>
+        </RenderStatment>
+        <scope>
+          <TextBlock>
+            <StringLiteral>
+              <value>"\nStart Scope 2\n"</value>
+              <location>{ 4, 19 }</location>
+            </StringLiteral>
+          </TextBlock>
+          <UnclosedBlock>
+            <RenderStatment>
+              <Action>
+                <value>Render</value>
+                <location>{ 6, 3 }</location>
+              </Action>
+              <DeclerationPattern>
+                <Label>
+                  <value>"e"</value>
+                  <location>{ 6, 11 }</location>
+                </Label>
+              </DeclerationPattern>
+              <ReferenceExpression>
+                <Label>
+                  <value>"f"</value>
+                  <location>{ 6, 15 }</location>
+                </Label>
+                <Transforms>
+                </Transforms>
+              </ReferenceExpression>
+            </RenderStatment>
+            <scope>
+              <TextBlock>
+                <StringLiteral>
+                  <value>"\nScope 3\n"</value>
+                  <location>{ 6, 19 }</location>
+                </StringLiteral>
+              </TextBlock>
+              <ClosingBlock>
+                <EndStatement>
+                  <Action>
+                    <value>End</value>
+                    <location>{ 8, 2 }</location>
+                  </Action>
+                </EndStatement>
+              </ClosingBlock>
+            </scope>
+          </UnclosedBlock>
+          <TextBlock>
+            <StringLiteral>
+              <value>"\nScope 2\n"</value>
+              <location>{ 8, 5 }</location>
+            </StringLiteral>
+          </TextBlock>
+          <UnclosedBlock>
+            <RenderStatment>
+              <Action>
+                <value>Render</value>
+                <location>{ 10, 3 }</location>
+              </Action>
+              <DeclerationPattern>
+                <Label>
+                  <value>"e"</value>
+                  <location>{ 10, 11 }</location>
+                </Label>
+              </DeclerationPattern>
+              <ReferenceExpression>
+                <Label>
+                  <value>"f"</value>
+                  <location>{ 10, 15 }</location>
+                </Label>
+                <Transforms>
+                </Transforms>
+              </ReferenceExpression>
+            </RenderStatment>
+            <scope>
+              <TextBlock>
+                <StringLiteral>
+                  <value>"\nScope 3 part 2\n"</value>
+                  <location>{ 10, 19 }</location>
+                </StringLiteral>
+              </TextBlock>
+              <ClosingBlock>
+                <EndStatement>
+                  <Action>
+                    <value>End</value>
+                    <location>{ 12, 2 }</location>
+                  </Action>
+                </EndStatement>
+              </ClosingBlock>
+            </scope>
+          </UnclosedBlock>
+          <TextBlock>
+            <StringLiteral>
+              <value>"\nEnd Scope 2\n"</value>
+              <location>{ 12, 5 }</location>
+            </StringLiteral>
+          </TextBlock>
+          <ClosingBlock>
+            <EndStatement>
+              <Action>
+                <value>End</value>
+                <location>{ 14, 2 }</location>
+              </Action>
+            </EndStatement>
+          </ClosingBlock>
+        </scope>
+      </UnclosedBlock>
+      <TextBlock>
+        <StringLiteral>
+          <value>"\nEnd Scope 1\n"</value>
+          <location>{ 14, 5 }</location>
+        </StringLiteral>
+      </TextBlock>
+      <ClosingBlock>
+        <EndStatement>
+          <Action>
+            <value>End</value>
+            <location>{ 16, 2 }</location>
+          </Action>
+        </EndStatement>
+      </ClosingBlock>
+    </scope>
+  </UnclosedBlock>
+  <TextBlock>
+    <StringLiteral>
+      <value>"\nEnd File Scope\n"</value>
+      <location>{ 16, 5 }</location>
+    </StringLiteral>
+  </TextBlock>
+</Ast>

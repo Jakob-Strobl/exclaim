@@ -48,3 +48,34 @@ Text
 
     assert_eq!(&Serializer::serialize(&ast), &expected);
 }
+
+#[test]
+fn unclosed_block_scope_deep() {
+    let input = r#"
+Start File Scope
+{{ render! a : b }}
+Start Scope 1
+{{ render! c : d }}
+Start Scope 2
+{{ render! e : f }}
+Scope 3
+{{!}}
+Scope 2
+{{ render! e : f }}
+Scope 3 part 2
+{{!}}
+End Scope 2
+{{!}}
+End Scope 1
+{{!}}
+End File Scope
+"#;
+
+    let expected = read_file_to_string("./tests/semantics/output/unclosed_block_scope_deep.ast");
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+    let ast = exclaim::run_semantics(ast);
+
+    assert_eq!(&Serializer::serialize(&ast), &expected);
+}
