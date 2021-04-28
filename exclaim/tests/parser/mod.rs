@@ -12,11 +12,10 @@ use crate::assert_eq;
 
 #[test]
 pub fn parse_empty_input() {
+    let input = "";
     let expected = r"<Ast>
 </Ast>
 ";
-
-    let input = "";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -27,8 +26,8 @@ pub fn parse_empty_input() {
 
 #[test]
 pub fn parse_text() {
-    let expected = read_file_to_string("./tests/parser/syntax/text.ast");
     let input = "Hello, World!";
+    let expected = read_file_to_string("./tests/parser/output/text.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -38,8 +37,8 @@ pub fn parse_text() {
 
 #[test]
 fn parse_stmt_write_literals() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_write_literals.ast");
     let input = "{{ write! \"Hello!\" }}{{ write! 1234 }}";
+    let expected = read_file_to_string("./tests/parser/output/stmt_write_literals.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -49,8 +48,8 @@ fn parse_stmt_write_literals() {
 
 #[test]
 fn parse_stmt_end() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_end.ast");
     let input = "This is a string. {{ ! }} and another one.";
+    let expected = read_file_to_string("./tests/parser/output/stmt_end.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -60,8 +59,8 @@ fn parse_stmt_end() {
 
 #[test]
 fn parse_expr_reference() {
-    let expected = read_file_to_string("./tests/parser/syntax/expr_reference.ast");
     let input = "{{ write! variable.data.field }}";
+    let expected = read_file_to_string("./tests/parser/output/expr_reference.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -72,8 +71,8 @@ fn parse_expr_reference() {
 #[test]
 #[should_panic]
 fn parse_expr_reference_invalid() {
-    let expected = "";
     let input = "{{ write! variable. }}";
+    let expected = "";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -83,8 +82,8 @@ fn parse_expr_reference_invalid() {
 
 #[test]
 fn parse_transform_literal() {
-    let expected = read_file_to_string("./tests/parser/syntax/transform_literal.ast");
     let input = "{{ write! \"HELLO\" | lowercase | uppercase | lowercase }}";
+    let expected = read_file_to_string("./tests/parser/output/transform_literal.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -94,8 +93,8 @@ fn parse_transform_literal() {
 
 #[test]
 fn parse_transform_reference() {
-    let expected = read_file_to_string("./tests/parser/syntax/transform_reference.ast");
     let input = "{{ write! site.list | enumerate }}";
+    let expected = read_file_to_string("./tests/parser/output/transform_reference.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -105,8 +104,8 @@ fn parse_transform_reference() {
 
 #[test]
 fn parse_transform_args() {
-    let expected = read_file_to_string("./tests/parser/syntax/transform_args.ast");
     let input = "{{ write! \"ABCDEFG\" | take(1,\"two\", 3) }}";
+    let expected = read_file_to_string("./tests/parser/output/transform_args.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -116,8 +115,8 @@ fn parse_transform_args() {
 
 #[test]
 fn parse_stmt_let() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_let.ast");
     let input = "{{ let! x = y }}";
+    let expected = read_file_to_string("./tests/parser/output/stmt_let.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -127,8 +126,8 @@ fn parse_stmt_let() {
 
 #[test]
 fn parse_stmt_let_pattern() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_let_pattern.ast");
     let input = "{{ let! (item, index) = list | enumerate }}";
+    let expected = read_file_to_string("./tests/parser/output/stmt_let_pattern.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -139,19 +138,19 @@ fn parse_stmt_let_pattern() {
 #[test]
 #[should_panic]
 fn parse_stmt_render_empty() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_render_empty.ast");
     let input = "{{ render! }}";
+    let expected = "";
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&Serializer::serialize(&ast), &expected);
+    assert_eq!(&Serializer::serialize(&ast), expected);
 }
 
 #[test]
 fn parse_stmt_render_iterable() {
-    let expected = read_file_to_string("./tests/parser/syntax/stmt_render_iterable.ast");
     let input = "{{ render! page : site.pages }}";
+    let expected = read_file_to_string("./tests/parser/output/stmt_render_iterable.ast");
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -161,8 +160,8 @@ fn parse_stmt_render_iterable() {
 
 #[test]
 fn parse_sample() {
-    let expected = read_file_to_string("./tests/parser/syntax/sample.ast");
-    let input = read_file_to_string("./tests/parser/syntax/sample.txt");
+    let input = read_file_to_string("./tests/parser/input/sample.txt");
+    let expected = read_file_to_string("./tests/parser/output/sample.ast");
 
     let tokens = exclaim::run_lexer(&input);
     let ast = exclaim::run_parser(tokens);

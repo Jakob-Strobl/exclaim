@@ -116,6 +116,8 @@
         </Transforms>
       </ReferenceExpression>
     </RenderStatment>
+    <scope>
+    </scope>
   </UnclosedBlock>
   <TextBlock>
     <StringLiteral>
