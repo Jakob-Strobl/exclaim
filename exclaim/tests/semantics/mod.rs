@@ -31,3 +31,20 @@ fn invalid_end_block() {
     let ast = exclaim::run_parser(tokens);
     let _ast = exclaim::run_semantics(ast);
 }
+
+#[test]
+fn unclosed_block_scope_shallow() {
+    let input = r#"
+{{ render! a : b }}
+<p>{{ write! a }}</p>
+{{!}}
+Text
+"#;
+    let expected = read_file_to_string("./tests/semantics/output/unclosed_block_scope_shallow.ast");
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+    let ast = exclaim::run_semantics(ast);
+
+    assert_eq!(&Serializer::serialize(&ast), &expected);
+}
