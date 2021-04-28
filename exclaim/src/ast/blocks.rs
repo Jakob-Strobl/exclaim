@@ -81,7 +81,7 @@ impl Serializable for Block {
             Block::CodeUnclosed(statement, scope, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
                 statement.serialize(serde, ctx);
-                // let _scope = serde.open_tag("scope");
+                let _scope = serde.open_tag("scope");
                 scope.serialize(serde, ctx);
                 *next // copy
             }
