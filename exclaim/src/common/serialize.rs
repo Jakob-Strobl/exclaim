@@ -7,7 +7,7 @@ use crate::ast::prelude::{
 };
 
 pub trait Indexable {
-    fn get(&self, index: &AstIndex) -> &RefCell<AstElement>;
+    fn get(&self, index: &AstIndex) -> Rc<RefCell<AstElement>>;
 }
 
 pub trait Serializable {

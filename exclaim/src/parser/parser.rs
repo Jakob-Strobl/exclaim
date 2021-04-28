@@ -121,7 +121,7 @@ impl Parser {
                         last_idx = Some(new_idx);
                     } else {
                         return Err(ParserError::from("Parser<parse>: last_idx does not point to a Block element."));
-                    }
+                    };
                 }
                 None => {
                     // First Block -> Set Head! 
