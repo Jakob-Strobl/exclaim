@@ -22,7 +22,7 @@ pub fn parse_empty_input() {
     let ast = exclaim::run_parser(tokens);
 
     
-    assert_eq!(expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), expected);
 }
 
 #[test]
@@ -33,7 +33,7 @@ pub fn parse_text() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn parse_stmt_write_literals() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn parse_stmt_end() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn parse_expr_reference() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -78,7 +78,7 @@ fn parse_expr_reference_invalid() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -89,8 +89,7 @@ fn parse_transform_literal() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
-
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -101,7 +100,7 @@ fn parse_transform_reference() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -112,7 +111,7 @@ fn parse_transform_args() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -123,7 +122,7 @@ fn parse_stmt_let() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -134,7 +133,7 @@ fn parse_stmt_let_pattern() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -146,7 +145,7 @@ fn parse_stmt_render_empty() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -157,7 +156,7 @@ fn parse_stmt_render_iterable() {
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
 
 #[test]
@@ -168,5 +167,5 @@ fn parse_sample() {
     let tokens = exclaim::run_lexer(&input);
     let ast = exclaim::run_parser(tokens);
 
-    assert_eq!(&expected, &Serializer::serialize(&ast));
+    assert_eq!(&Serializer::serialize(&ast), &expected);
 }
