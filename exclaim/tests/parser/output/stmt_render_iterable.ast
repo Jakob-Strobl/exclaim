@@ -1,6 +1,6 @@
 <Ast>
   <UnclosedBlock>
-    <RenderStatment>
+    <RenderStatement>
       <Action>
         <value>Render</value>
         <location>{ 0, 3 }</location>
@@ -23,7 +23,7 @@
         <Transforms>
         </Transforms>
       </ReferenceExpression>
-    </RenderStatment>
+    </RenderStatement>
     <scope>
     </scope>
   </UnclosedBlock>

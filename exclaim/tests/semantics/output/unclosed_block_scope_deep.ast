@@ -6,7 +6,7 @@
     </StringLiteral>
   </TextBlock>
   <UnclosedBlock>
-    <RenderStatment>
+    <RenderStatement>
       <Action>
         <value>Render</value>
         <location>{ 2, 3 }</location>
@@ -25,7 +25,7 @@
         <Transforms>
         </Transforms>
       </ReferenceExpression>
-    </RenderStatment>
+    </RenderStatement>
     <scope>
       <TextBlock>
         <StringLiteral>
@@ -34,7 +34,7 @@
         </StringLiteral>
       </TextBlock>
       <UnclosedBlock>
-        <RenderStatment>
+        <RenderStatement>
           <Action>
             <value>Render</value>
             <location>{ 4, 3 }</location>
@@ -53,7 +53,7 @@
             <Transforms>
             </Transforms>
           </ReferenceExpression>
-        </RenderStatment>
+        </RenderStatement>
         <scope>
           <TextBlock>
             <StringLiteral>
@@ -62,7 +62,7 @@
             </StringLiteral>
           </TextBlock>
           <UnclosedBlock>
-            <RenderStatment>
+            <RenderStatement>
               <Action>
                 <value>Render</value>
                 <location>{ 6, 3 }</location>
@@ -81,7 +81,7 @@
                 <Transforms>
                 </Transforms>
               </ReferenceExpression>
-            </RenderStatment>
+            </RenderStatement>
             <scope>
               <TextBlock>
                 <StringLiteral>
@@ -106,7 +106,7 @@
             </StringLiteral>
           </TextBlock>
           <UnclosedBlock>
-            <RenderStatment>
+            <RenderStatement>
               <Action>
                 <value>Render</value>
                 <location>{ 10, 3 }</location>
@@ -125,7 +125,7 @@
                 <Transforms>
                 </Transforms>
               </ReferenceExpression>
-            </RenderStatment>
+            </RenderStatement>
             <scope>
               <TextBlock>
                 <StringLiteral>

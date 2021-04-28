@@ -33,7 +33,7 @@ impl Serializable for Statement {
                 expression.serialize(serde, ctx)
             },
             Statement::Render(action, pattern, expression) => {
-                let _statement = serde.open_tag("RenderStatment");
+                let _statement = serde.open_tag("RenderStatement");
                 action.serialize(serde, ctx);
                 pattern.serialize(serde, ctx);
                 expression.serialize(serde, ctx)
