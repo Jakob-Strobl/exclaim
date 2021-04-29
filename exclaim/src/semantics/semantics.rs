@@ -115,33 +115,33 @@ pub mod Semantics {
                         // TODO analyze the statement
                         Ok(*next) 
                     }
-                    Block::CodeUnclosed(_, scope, next) => { 
+                    Block::CodeUnclosed(_, block_scope, block_next) => { 
                         // TODO analyze the statement
                         
                         // Open Scope 
                         ctx.scope().open();
 
                         // Build Scope
-                        let mut current_idx = next.unwrap(); // TODO handle unwrap properly
-                        loop {
-                            match analyze_block(ast, ctx, current_idx) {
-                                Ok(next_idx) => {
-                                    scope.push(current_idx);
-                                    if ctx.scope().was_closed() {
-                                        *next = next_idx;
-                                        break;
-                                    } else {
-                                        match next_idx {
-                                            Some(next_idx) => current_idx = next_idx,
-                                            None => return Err("Expected the scope to be closed with {{!}}".to_string()),
-                                        }
+                        if let Some(mut current_idx) = *block_next {
+                            loop {
+                                let next_idx = analyze_block(ast, ctx, current_idx)?;
+                                block_scope.push(current_idx);
+
+                                if ctx.scope().was_closed() {
+                                    *block_next = next_idx;
+                                    break;
+                                } else {
+                                    match next_idx {
+                                        Some(next_idx) => current_idx = next_idx,
+                                        None => return Err("Expected the scope to be closed with {{!}}".to_string()),
                                     }
-                                },
-                                Err(e) => return Err(e),
+                                }
                             }
+                        } else {
+                            return Err("Unexpected end of AST when creating a nested scope".to_string());
                         }
 
-                        Ok(*next)
+                        Ok(*block_next)
                     }
                     Block::CodeClosing(_, next) => {
                         if ctx.scope().level() == FILE_SCOPE {

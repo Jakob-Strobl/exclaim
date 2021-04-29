@@ -79,3 +79,13 @@ End File Scope
 
     assert_eq!(&Serializer::serialize(&ast), &expected);
 }
+
+#[test]
+#[should_panic(expected = "Unexpected end of AST when creating a nested scope")]
+fn unclosed_block_ends_early() {
+    let input = "{{ render! a : b }}";
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+    let _ast = exclaim::run_semantics(ast);
+}
