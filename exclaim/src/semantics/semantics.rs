@@ -83,78 +83,70 @@ pub mod Semantics {
     pub fn analyze(mut ast: Ast) -> SemanticResult<Ast> {
         let mut ctx = Context::new();
 
-        if let Some(head) = ast.head() {
-            let mut current_block = head;
-            loop {
-                let next_block = analyze_block(&mut ast, &mut ctx, current_block)?;
-
-                match next_block {
-                    Some(index) => current_block = index,
-                    None => break,
-                }
-            }
+        let mut current_block = ast.head();
+        while current_block.is_some() {
+            current_block = analyze_block(&mut ast, &mut ctx, current_block)?;
         }
 
         Ok(ast)
     }
 
-    fn analyze_block(ast: &mut Ast, ctx: &mut Context, block_idx: AstIndex) -> SemanticResult<Option<AstIndex>> {
-        let element_cell = ast.get(block_idx);
-
-        // Check element is a block
-        let mut element_ref = element_cell.borrow_mut();
-        match &mut *element_ref {
-            AstElement::Block(_, block) => { 
-                println!("Block.text: {:?}", block.text());
-                println!("Block.stmt: {:?}", block.stmt());
-                
-                match block {
-                    // Text Blocks can't fail in this context, because they are just text
-                    Block::Text(_, next) => Ok(*next),
-                    Block::CodeEnclosed(_, next) => {
-                        // TODO analyze the statement
-                        Ok(*next) 
-                    }
-                    Block::CodeUnclosed(_, block_scope, block_next) => { 
-                        // TODO analyze the statement
-                        
-                        // Open Scope 
-                        ctx.scope().open();
-
-                        // Build Scope
-                        if let Some(mut current_idx) = *block_next {
-                            loop {
-                                let next_idx = analyze_block(ast, ctx, current_idx)?;
-                                block_scope.push(current_idx);
-
-                                if ctx.scope().was_closed() {
-                                    *block_next = next_idx;
-                                    break;
-                                } else {
-                                    match next_idx {
-                                        Some(next_idx) => current_idx = next_idx,
-                                        None => return Err("Expected the scope to be closed with {{!}}".to_string()),
-                                    }
-                                }
-                            }
-                        } else {
-                            return Err("Unexpected end of AST when creating a nested scope".to_string());
+    fn analyze_block(ast: &mut Ast, ctx: &mut Context, block_idx: Option<AstIndex>) -> SemanticResult<Option<AstIndex>> {
+        if let Some(block_idx) = block_idx {
+            let element_cell = ast.get(block_idx);
+            
+            // Check element is a block
+            let mut element_ref = element_cell.borrow_mut();
+            match &mut *element_ref {
+                AstElement::Block(_, block) => { 
+                    println!("Block.text: {:?}", block.text());
+                    println!("Block.stmt: {:?}", block.stmt());
+                    
+                    match block {
+                        // Text Blocks can't fail in this context, because they are just text
+                        Block::Text(_, next) => Ok(*next),
+                        Block::CodeEnclosed(_, next) => {
+                            // TODO analyze the statement
+                            Ok(*next) 
                         }
+                        Block::CodeUnclosed(_, block_scope, block_next) => { 
+                            // TODO analyze the statement
+                            
+                            // Open Scope 
+                            ctx.scope().open();
 
-                        Ok(*block_next)
-                    }
-                    Block::CodeClosing(_, next) => {
-                        if ctx.scope().level() == FILE_SCOPE {
-                            // A closing block should not exist by itself in the file scope
-                            return Err("Invalid lone closing block in file scope. Closing blocks must only be used to close an opened scope.".to_string());
-                        } else {
-                            ctx.scope().close();
-                            Ok(*next)
+                            // Build the scope until it is closed
+                            let mut current_idx = *block_next;
+                            while !ctx.scope().was_closed() {
+                                let next_idx = match analyze_block(ast, ctx, current_idx) {
+                                    Ok(idx) => idx,
+                                    Err(_) => return Err("Expected the scope to be closed with {{!}}".to_string()),
+                                };
+
+                                // analyze_block() would return an error if current_idx is None
+                                // so, we know we can unwrap current_idx
+                                block_scope.push(current_idx.unwrap());
+                                current_idx = next_idx;
+                            }
+                            *block_next = current_idx;
+
+                            Ok(*block_next)
+                        }
+                        Block::CodeClosing(_, next) => {
+                            if ctx.scope().level() == FILE_SCOPE {
+                                // A closing block should not exist by itself in the file scope
+                                return Err("Invalid lone closing block in file scope. Closing blocks must only be used to close an opened scope.".to_string());
+                            } else {
+                                ctx.scope().close();
+                                Ok(*next)
+                            }
                         }
                     }
                 }
+                _ => return Err("Expected a Block!".to_string()),
             }
-            _ => return Err("Expected Block!".to_string()),
+        } else {
+            return Err("Unexpected end of AST. Expected a block.".to_string());
         }
     }
 }

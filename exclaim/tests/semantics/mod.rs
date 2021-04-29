@@ -9,13 +9,10 @@ use crate::common::{
 // Defined in 'tests/common/mod.rs'
 use crate::assert_eq;
 
+
 #[test]
-#[should_panic(expected = "Expected the scope to be closed with {{!}}")]
-fn missing_closing_block() {
-    let input = r#"
-{{ render! a : b }}
-    {{ write! a }}
-"#;
+fn empty() {
+    let input = r#""#;
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -26,6 +23,19 @@ fn missing_closing_block() {
 #[should_panic(expected = "Invalid lone closing block in file scope.")]
 fn invalid_end_block() {
     let input = r#"{{!}}"#;
+
+    let tokens = exclaim::run_lexer(input);
+    let ast = exclaim::run_parser(tokens);
+    let _ast = exclaim::run_semantics(ast);
+}
+
+#[test]
+#[should_panic(expected = "Expected the scope to be closed with {{!}}")]
+fn unclosed_block_missing_closing_block() {
+    let input = r#"
+{{ render! a : b }}
+    {{ write! a }}
+"#;
 
     let tokens = exclaim::run_lexer(input);
     let ast = exclaim::run_parser(tokens);
@@ -78,14 +88,4 @@ End File Scope
     let ast = exclaim::run_semantics(ast);
 
     assert_eq!(&Serializer::serialize(&ast), &expected);
-}
-
-#[test]
-#[should_panic(expected = "Unexpected end of AST when creating a nested scope")]
-fn unclosed_block_ends_early() {
-    let input = "{{ render! a : b }}";
-
-    let tokens = exclaim::run_lexer(input);
-    let ast = exclaim::run_parser(tokens);
-    let _ast = exclaim::run_semantics(ast);
 }
