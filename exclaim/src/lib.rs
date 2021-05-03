@@ -3,6 +3,8 @@ pub mod common;
 mod ast;
 use ast::prelude::*;
 
+mod data;
+
 mod lexer;
 use lexer::lexer::Lexer;
 use lexer::tokens;
@@ -13,10 +15,14 @@ use parser::parser::Parser;
 mod semantics;
 use semantics::semantics::Semantics;
 
-pub fn run(input: &str) {
+mod runtime;
+use runtime::Runtime;
+
+pub fn run(input: &str) -> String {
     let tokens = run_lexer(input);
     let ast = run_parser(tokens);
-    let _ast = run_semantics(ast);
+    let ast = run_semantics(ast);
+    run_runtime(ast)
 }
 
 pub fn run_lexer(input: &str) -> Vec<tokens::Token> {
@@ -36,5 +42,12 @@ pub fn run_semantics(input: Ast) -> Ast {
     match Semantics::analyze(input) {
         Ok(ast) => ast,
         Err(e) => panic!("Semantic Analysis failed with the error: {:?}", e),
+    }
+}
+
+pub fn run_runtime(input: Ast) -> String {
+    match Runtime::run(input) {
+        Ok(output) => output,
+        Err(e) => panic!("Runtime failed with the error: {:?}", e),
     }
 }

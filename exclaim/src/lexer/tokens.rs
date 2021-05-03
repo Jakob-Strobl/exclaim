@@ -2,6 +2,8 @@ use crate::ast::AstIndex;
 use crate::common::Location;
 use crate::common::serialize::*;
 
+use crate::data::traits::Renderable;
+
 #[derive(Debug, PartialEq)]
 pub struct Token {
     kind: TokenKind,
@@ -59,6 +61,15 @@ impl Serializable for Token {
                 serde.terminal("value", &format!("{:?}", action));
                 self.location().serialize(serde, ctx)
             }
+        }
+    }
+}
+
+impl Renderable for Token {
+    fn render(&self) -> String {
+        match self.kind() {
+            TokenKind::StringLiteral => self.lexeme().to_string(),
+            _ => panic!("Renderable Token panicked!"),
         }
     }
 }
