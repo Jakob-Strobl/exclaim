@@ -69,6 +69,7 @@ impl Renderable for Token {
     fn render(&self) -> String {
         match self.kind() {
             TokenKind::StringLiteral => self.lexeme().to_string(),
+            TokenKind::NumberLiteral(num) => num.to_string(),
             _ => panic!("Renderable Token panicked!"),
         }
     }
