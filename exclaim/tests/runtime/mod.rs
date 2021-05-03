@@ -19,8 +19,8 @@ fn render_plain_text() {
 
 #[test]
 fn render_string_literal() {
-    let input = r#"{{ write! "Hello!" }}"#;
-    let expected = "Hello!";
+    let input = r#"{{ write! "Hello" }} world!"#;
+    let expected = "Hello world!";
 
     let output = exclaim::run(input);
 
