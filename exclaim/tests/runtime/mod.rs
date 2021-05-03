@@ -26,3 +26,35 @@ fn render_string_literal() {
 
     assert_eq!(&output, expected);
 }
+
+#[test]
+fn render_number_literal() {
+    let input = r#"Number is {{ write! 1337 }}"#;
+    let expected = "Number is 1337";
+
+    let output = exclaim::run(input);
+
+    assert_eq!(&output, expected);
+}
+
+#[test]
+fn render_assigned_variable_str_literal() {
+    let input = r#"{{ let! notes = "ABCDEFG" }}{{ write! notes }}"#;
+
+    let expected = "ABCDEFG";
+
+    let output = exclaim::run(input);
+
+    assert_eq!(&output, expected);
+}
+
+#[test]
+fn render_assigned_variable_number_literal() {
+    let input = r#"{{ let! num = 6 }}{{ write! num }}"#;
+
+    let expected = "6";
+
+    let output = exclaim::run(input);
+
+    assert_eq!(&output, expected);
+}
