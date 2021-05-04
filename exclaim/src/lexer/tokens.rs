@@ -4,62 +4,80 @@ use crate::common::serialize::*;
 
 use crate::data::traits::Renderable;
 
-#[derive(Debug, PartialEq)]
-pub struct Token {
-    kind: TokenKind,
-    lexeme: String, 
-    location: Location,
+#[derive(Debug, PartialEq, Clone)]
+pub enum Token {
+    StringLiteral(String, Location),
+    NumberLiteral(usize, Location),
+
+    Label(String, Location),
+    Operator(Op, Location),
+    Action(Action, Location),
 }
 
 impl Token {
-    pub fn new(kind: TokenKind, lexeme: String, location: Location) -> Token {
-        Token {
-            kind,
-            lexeme,
-            location,
+    pub fn string_literal(&self) -> Option<&String> {
+        match self {
+            Token::StringLiteral(literal, _) => Some(literal),
+            _ => None
         }
     }
 
-    pub fn kind(&self) -> &TokenKind {
-        &self.kind
+    pub fn number_literal(&self) -> Option<&usize> {
+        match self {
+            Token::NumberLiteral(literal, _) => Some(literal),
+            _ => None
+        }
     }
 
-    pub fn lexeme(&self) -> &str {
-        &self.lexeme
+    pub fn label(&self) -> Option<&str> {
+        match self {
+            Token::Label(label, _) => Some(label),
+            _ => None,
+        }
     }
 
-    pub fn location(&self) -> &Location {
-        &self.location
+    pub fn operator(&self) -> Option<&Op> {
+        match self {
+            Token::Operator(op, _) => Some(op),
+            _ => None
+        }
+    }
+
+    pub fn action(&self) -> Option<&Action> {
+        match self {
+            Token::Action(action, _) => Some(action),
+            _ => None
+        }
     }
 }
 
 impl Serializable for Token {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
-        match self.kind {
-            TokenKind::StringLiteral => {
+        match self {
+            Token::StringLiteral(literal, loc) => {
                 let _token = serde.open_tag("StringLiteral");
-                serde.terminal("value", &format!("{:?}", self.lexeme()));
-                self.location().serialize(serde, ctx)
+                serde.terminal("value", &format!("{:?}", literal));
+                loc.serialize(serde, ctx)
             }
-            TokenKind::NumberLiteral(num) => {
+            Token::NumberLiteral(literal, loc) => {
                 let _token = serde.open_tag("NumberLiteral");
-                serde.terminal("value", &num.to_string());
-                self.location().serialize(serde, ctx)
+                serde.terminal("value", &literal.to_string());
+                loc.serialize(serde, ctx)
             }
-            TokenKind::Label => {
+            Token::Label(label, loc) => {
                 let _token = serde.open_tag("Label");
-                serde.terminal("value", &format!("{:?}", self.lexeme()));
-                self.location().serialize(serde, ctx)
+                serde.terminal("value", &format!("{:?}", label));
+                loc.serialize(serde, ctx)
             }
-            TokenKind::Operator(op) => {
+            Token::Operator(op, loc) => {
                 let _token = serde.open_tag("Operator");
                 serde.terminal("value", &format!("{:?}", op));
-                self.location().serialize(serde, ctx)
+                loc.serialize(serde, ctx)
             }
-            TokenKind::Action(action) => {
+            Token::Action(action, loc) => {
                 let _token = serde.open_tag("Action");
                 serde.terminal("value", &format!("{:?}", action));
-                self.location().serialize(serde, ctx)
+                loc.serialize(serde, ctx)
             }
         }
     }
@@ -67,22 +85,14 @@ impl Serializable for Token {
 
 impl Renderable for Token {
     fn render(&self) -> String {
-        match self.kind() {
-            TokenKind::StringLiteral => self.lexeme().to_string(),
-            TokenKind::NumberLiteral(num) => num.to_string(),
-            _ => panic!("Renderable Token panicked!"),
+        match self {
+            Token::StringLiteral(literal, _) => literal.to_string(),
+            Token::NumberLiteral(literal, _) => literal.to_string(),
+            Token::Label(label, _) => label.to_string(),
+            Token::Operator(op, _) => format!("{:?}", op),
+            Token::Action(action, _) => format!("{:?}", action),
         }
     }
-}
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum TokenKind {
-    StringLiteral,
-    NumberLiteral(usize),
-
-    Label,
-    Operator(Op),
-    Action(Action),
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]

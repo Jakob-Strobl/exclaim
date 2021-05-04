@@ -2,7 +2,7 @@ use std::convert;
 use std::fs::File;
 use std::io::Read;
 
-use crate::tokens::{Token, TokenKind}; 
+use crate::tokens::Token;
 use automata::StackMachine;
 use states::State;
 
@@ -26,7 +26,7 @@ impl Lexer {
 
         // consume leftovers
         if !self.stack.empty() {
-            self.stack.accept_token(TokenKind::StringLiteral);
+            self.stack.accept_token(Token::StringLiteral(self.stack.view_stack().to_string(), self.stack.location()));
         }
 
         self.stack.get_tokens()
@@ -45,7 +45,7 @@ impl Lexer {
 
         // Consume leftovers
         // This might return an empty string literal 
-        self.stack.accept_token(TokenKind::StringLiteral);
+        self.stack.accept_token(Token::StringLiteral(self.stack.view_stack().to_string(), self.stack.location()));
         self.stack.get_token().unwrap()
     }
 }
@@ -91,7 +91,7 @@ impl convert::From<File> for Lexer {
 
 mod states {
     use super::automata::StackMachine;
-    use crate::tokens::{TokenKind, Op, Action};
+    use crate::tokens::{Token, Op, Action};
     
     pub struct State(fn(&mut StackMachine) -> &'static State);
 
@@ -130,7 +130,7 @@ mod states {
                 '{' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockOpen 
                     if !stack.empty() {
-                        stack.accept_token(TokenKind::StringLiteral);
+                        stack.accept_token(Token::StringLiteral(stack.view_stack().to_string(), stack.location()));
                     }
                     &ACCEPT_OPEN_BLOCK
                 },
@@ -149,7 +149,7 @@ mod states {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
-                        stack.accept_token(TokenKind::StringLiteral);
+                        stack.accept_token(Token::StringLiteral(stack.view_stack().to_string(), stack.location()));
                     }
                     &ACCEPT_CLOSE_BLOCK
                 },
@@ -165,7 +165,7 @@ mod states {
         |stack| {
             stack.push(); // {
             stack.push(); // {{
-            stack.accept_token(TokenKind::Operator(Op::BlockOpen));
+            stack.accept_token(Token::Operator(Op::BlockOpen, stack.location()));
             &STATE_BLOCK
         }
     );
@@ -174,7 +174,7 @@ mod states {
         |stack| {
             stack.push(); // }
             stack.push(); // }}
-            stack.accept_token(TokenKind::Operator(Op::BlockClose));
+            stack.accept_token(Token::Operator(Op::BlockClose, stack.location()));
             &STATE_START
         }
     );
@@ -191,17 +191,17 @@ mod states {
                 '&' => &STATE_BLOCK_AND,
                 ',' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Comma));
+                    stack.accept_token(Token::Operator(Op::Comma, stack.location()));
                     &STATE_BLOCK
                 }
                 '.' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Dot));
+                    stack.accept_token(Token::Operator(Op::Dot, stack.location()));
                     &STATE_BLOCK
                 },
                 ':' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::Each));
+                    stack.accept_token(Token::Operator(Op::Each, stack.location()));
                     &STATE_BLOCK
                 },
                 '"' => {
@@ -210,28 +210,28 @@ mod states {
                 },
                 '[' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::ClosureOpen));
+                    stack.accept_token(Token::Operator(Op::ClosureOpen, stack.location()));
                     &STATE_BLOCK
                 },
                 ']' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::ClosureClose));
+                    stack.accept_token(Token::Operator(Op::ClosureClose, stack.location()));
                     &STATE_BLOCK
                 },
                 '(' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::ParenOpen));
+                    stack.accept_token(Token::Operator(Op::ParenOpen, stack.location()));
                     &STATE_BLOCK
                 },
                 ')' => {
                     stack.push();
-                    stack.accept_token(TokenKind::Operator(Op::ParenClose));
+                    stack.accept_token(Token::Operator(Op::ParenClose, stack.location()));
                     &STATE_BLOCK
                 },
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
-                        &STATE_LABEL
+                        &STATE_LABEL_ACTION
                     } else if ch.is_numeric() {
                         stack.push();
                         &STATE_DIGIT
@@ -257,7 +257,7 @@ mod states {
                 '{' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockOpen 
                     if !stack.empty() {
-                        stack.accept_token(TokenKind::StringLiteral);
+                        stack.accept_token(Token::StringLiteral(stack.view_stack().to_string(), stack.location()));
                     }
                     &ACCEPT_OPEN_BLOCK
                 },
@@ -276,7 +276,7 @@ mod states {
                 '}' => {
                     // Accept string literal if the stack is not empty, because next token is a BlockClose 
                     if !stack.empty() {
-                        stack.accept_token(TokenKind::StringLiteral);
+                        stack.accept_token(Token::StringLiteral(stack.view_stack().to_string(), stack.location()));
                     }
                     &ACCEPT_CLOSE_BLOCK
                 },
@@ -295,11 +295,11 @@ mod states {
                 '=' => {
                     stack.push(); // !
                     stack.push(); // !=
-                    stack.accept_token(TokenKind::Operator(Op::Inequality));
+                    stack.accept_token(Token::Operator(Op::Inequality, stack.location()));
                 }
                 _ => {
                     stack.push();
-                    stack.accept_token(TokenKind::Action(Action::End));
+                    stack.accept_token(Token::Action(Action::End, stack.location()));
                 }
             }
 
@@ -315,11 +315,11 @@ mod states {
                 '=' => {
                     stack.push(); // =
                     stack.push(); // ==
-                    stack.accept_token(TokenKind::Operator(Op::Equality));
+                    stack.accept_token(Token::Operator(Op::Equality, stack.location()));
                 }
                 _ => {
                     stack.push(); // =
-                    stack.accept_token(TokenKind::Operator(Op::Assign));
+                    stack.accept_token(Token::Operator(Op::Assign, stack.location()));
                 }
             }
 
@@ -332,7 +332,7 @@ mod states {
             match stack.peek() {
                 '"' => { 
                     stack.skip_current();   // Skip closing double quote
-                    stack.accept_token(TokenKind::StringLiteral);
+                    stack.accept_token(Token::StringLiteral(stack.view_stack().to_string(), stack.location()));
                     &STATE_BLOCK
                 },
                 '\\' => { // ESCAPE CHARACTER
@@ -355,7 +355,7 @@ mod states {
                 '&' => {
                     stack.push(); // &
                     stack.push(); // &&
-                    stack.accept_token(TokenKind::Operator(Op::And));
+                    stack.accept_token(Token::Operator(Op::And, stack.location()));
                     &STATE_BLOCK
                 }
                 _ => {
@@ -376,29 +376,30 @@ mod states {
                 '|' => {
                     stack.push(); // |
                     stack.push(); // || Or
-                    stack.accept_token(TokenKind::Operator(Op::Or));
+                    stack.accept_token(Token::Operator(Op::Or, stack.location()));
                 }
                 _ => {
                     stack.push(); // | Pipe
-                    stack.accept_token(TokenKind::Operator(Op::Pipe));
+                    stack.accept_token(Token::Operator(Op::Pipe, stack.location()));
                 }
             }
             &STATE_BLOCK
         }
     );
 
-    static STATE_LABEL: State = State(
+    // TODO support underscore labels
+    static STATE_LABEL_ACTION: State = State(
         |stack| {
             let ch = stack.peek();
-            if ch.is_alphabetic() {
+            if ch.is_alphabetic() || ch == '_' {
                 stack.push();
-                &STATE_LABEL
+                &STATE_LABEL_ACTION
             } else if ch == '!' && *stack.lookahead().unwrap_or(&' ') != '=' {
                 // If the following two characters are not: !=
                 // Push ! 
                 stack.push();
 
-                // Derive action variant
+                // Get action variant
                 let action = match stack.view_stack() {
                     // There is no way it should be an empty string, since one character has to be consumed to even be in this state.
                     "let!" => Action::Let,
@@ -410,7 +411,7 @@ mod states {
                                     "expected one of the following defined actions: let!, write!, render!, or !."))
                 };
 
-                stack.accept_token(TokenKind::Action(action));
+                stack.accept_token(Token::Action(action, stack.location()));
                 &STATE_BLOCK
 
             } else if ch.is_numeric() {
@@ -421,7 +422,7 @@ mod states {
                 ));
             } else {
                 // Accept Label 
-                stack.accept_token(TokenKind::Label);
+                stack.accept_token(Token::Label(stack.view_stack().to_string(), stack.location()));
                 &STATE_BLOCK
             }
         }
@@ -442,7 +443,8 @@ mod states {
             } else {
                 // Accept Number 
                 let number: usize = stack.view_stack().parse::<usize>().unwrap();
-                stack.accept_token(TokenKind::NumberLiteral(number));
+                let token = Token::NumberLiteral(number, stack.location());
+                stack.accept_token(token);
                 &STATE_BLOCK
             }
         }
@@ -450,7 +452,7 @@ mod states {
 }
 
 mod automata {
-    use crate::tokens::{Token, TokenKind};
+    use crate::tokens::Token;
     use crate::common::Location;
 
     pub struct StackMachine {
@@ -522,15 +524,15 @@ mod automata {
             self.current.newline();
         }
 
-        fn consume_stack(&mut self) -> String {
-            let consumed = self.stack.clone();
-            self.stack.clear();
-            consumed 
+        pub fn location(&self) -> Location {
+            self.start.clone()
         }
 
-        pub fn accept_token(&mut self, kind: TokenKind) {
-            let t = Token::new(kind, self.consume_stack(), self.start);
-            self.tokens.push(t);
+        pub fn accept_token(&mut self, token: Token) {
+            self.tokens.push(token);
+
+            // Set for new fresh token
+            self.stack = String::new();
             self.start = self.current;
         }
 
@@ -587,14 +589,13 @@ mod automata {
 #[cfg(test)]
 mod tests {
     use crate::common::Location;
-    use crate::tokens::{Token, TokenKind, Op, Action};
+    use crate::tokens::{Token, Op, Action};
     use super::Lexer;
 
     fn token_string_literal(string: &str, location: (usize, usize)) -> Token {
-        Token::new(
-            TokenKind::StringLiteral,
+        Token::StringLiteral(
             string.to_string(),
-            Location::from(location),
+            Location::from(location)
         )
     }
 
@@ -627,11 +628,7 @@ mod tests {
 
         let expected = vec![
             token_string_literal("test ", (0, 0)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0, 5)
-            )
+            Token::Operator(Op::BlockOpen, Location::new(0, 5))
         ];
 
         assert_eq!(tokens, expected);
@@ -646,11 +643,7 @@ mod tests {
 
         let expected = vec![
             token_string_literal("this is { a test ",  (0, 0)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0, 17)
-            ), 
+            Token::Operator(Op::BlockOpen, Location::new(0, 17)), 
             token_string_literal("{",  (0, 19)),
         ];
 
@@ -666,11 +659,7 @@ mod tests {
 
         let expected = vec![
             token_string_literal("This is a not a closed block }, and neither is this ",  (0, 0)),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0, 52)
-            ), 
+            Token::Operator(Op::BlockClose, Location::new(0, 52)), 
         ];
 
         assert_eq!(tokens, expected);
@@ -684,16 +673,8 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0),
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,2)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Operator(Op::BlockClose, Location::new(0,2)),
         ];
 
         assert_eq!(tokens, expected);
@@ -707,21 +688,9 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1234),
-                String::from("1234"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,8)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(1234, Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,8)),
         ];
 
         assert_eq!(tokens, expected);
@@ -739,27 +708,15 @@ mod tests {
     
     #[test]
     fn lexer_block_label() {
-        let input = "{{label}}";
+        let input = "{{label_label}}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("label"),
-                Location::new(0,2)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,7)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("label_label"), Location::new(0,2)),
+            Token::Operator(Op::BlockClose, Location::new(0,13)),
         ];
 
         assert_eq!(tokens, expected);
@@ -782,21 +739,9 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::StringLiteral,
-                String::from("string \" literal"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,23)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::StringLiteral(String::from("string \" literal"), Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,23)),
         ];
 
         assert_eq!(tokens, expected);
@@ -811,21 +756,9 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Action(Action::Render),
-                String::from("render!"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,11)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Action(Action::Render, Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,11)),
         ];
 
         assert_eq!(tokens, expected);
@@ -839,36 +772,12 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Action(Action::Render),
-                String::from("render!"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Label, 
-                String::from("render"),
-                Location::new(0,10)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Inequality), 
-                String::from("!="),
-                Location::new(0,16)
-            ),
-            Token::new(
-                TokenKind::Label, 
-                String::from("abc"),
-                Location::new(0,18)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,22)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Action(Action::Render, Location::new(0,3)),
+            Token::Label(String::from("render"), Location::new(0,10)),
+            Token::Operator(Op::Inequality, Location::new(0,16)),
+            Token::Label(String::from("abc"), Location::new(0,18)),
+            Token::Operator(Op::BlockClose, Location::new(0,22)),
         ];
 
         assert_eq!(tokens, expected);
@@ -891,41 +800,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::And),
-                String::from("&&"),
-                Location::new(0,5)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("test"),
-                Location::new(0,8)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::And),
-                String::from("&&"),
-                Location::new(0,13)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(3),
-                String::from("3"),
-                Location::new(0,16)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,18)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(1, Location::new(0,3)),
+            Token::Operator(Op::And, Location::new(0,5)),
+            Token::Label(String::from("test"), Location::new(0,8)),
+            Token::Operator(Op::And, Location::new(0,13)),
+            Token::NumberLiteral(3, Location::new(0,16)),
+            Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
         assert_eq!(tokens, expected);
@@ -939,31 +820,11 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("pages"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Assign),
-                String::from("="),
-                Location::new(0,9)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("site"),
-                Location::new(0,11)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,16)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("pages"), Location::new(0,3)),
+            Token::Operator(Op::Assign, Location::new(0,9)),
+            Token::Label(String::from("site"), Location::new(0,11)),
+            Token::Operator(Op::BlockClose, Location::new(0,16)),
         ];
 
         assert_eq!(tokens, expected);
@@ -977,41 +838,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("test"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Comma),
-                String::from(","),
-                Location::new(0,7)
-            ),
-            Token::new(
-                TokenKind::StringLiteral,
-                String::from("test"),
-                Location::new(0,9)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Comma),
-                String::from(","),
-                Location::new(0,15)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(2),
-                String::from("2"),
-                Location::new(0,17)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,19)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("test"), Location::new(0,3)),
+            Token::Operator(Op::Comma, Location::new(0,7)),
+            Token::StringLiteral(String::from("test"), Location::new(0,9)),
+            Token::Operator(Op::Comma, Location::new(0,15)),
+            Token::NumberLiteral(2, Location::new(0,17)),
+            Token::Operator(Op::BlockClose, Location::new(0,19)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1025,41 +858,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::ClosureOpen),
-                String::from("["),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("self"),
-                Location::new(0,4)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Dot),
-                String::from("."),
-                Location::new(0,8)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("album"),
-                Location::new(0,9)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::ClosureClose),
-                String::from("]"),
-                Location::new(0,14)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,16)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Operator(Op::ClosureOpen, Location::new(0,3)),
+            Token::Label(String::from("self"), Location::new(0,4)),
+            Token::Operator(Op::Dot, Location::new(0,8)),
+            Token::Label(String::from("album"), Location::new(0,9)),
+            Token::Operator(Op::ClosureClose, Location::new(0,14)),
+            Token::Operator(Op::BlockClose, Location::new(0,16)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1073,31 +878,11 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("site"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Dot),
-                String::from("."),
-                Location::new(0,7)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("posts"),
-                Location::new(0,8)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,14)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("site"), Location::new(0,3)),
+            Token::Operator(Op::Dot, Location::new(0,7)),
+            Token::Label(String::from("posts"), Location::new(0,8)),
+            Token::Operator(Op::BlockClose, Location::new(0,14)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1111,31 +896,11 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("item"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Each),
-                String::from(":"),
-                Location::new(0,8)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("items"),
-                Location::new(0,10)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,16)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("item"), Location::new(0,3)),
+            Token::Operator(Op::Each, Location::new(0,8)),
+            Token::Label(String::from("items"), Location::new(0,10)),
+            Token::Operator(Op::BlockClose, Location::new(0,16)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1149,41 +914,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("falsy"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Assign),
-                String::from("="),
-                Location::new(0,9)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
-                Location::new(0,11)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Equality),
-                String::from("=="),
-                Location::new(0,13)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(2),
-                String::from("2"),
-                Location::new(0,16)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,18)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("falsy"), Location::new(0,3)),
+            Token::Operator(Op::Assign, Location::new(0,9)),
+            Token::NumberLiteral(1, Location::new(0,11)),
+            Token::Operator(Op::Equality, Location::new(0,13)),
+            Token::NumberLiteral(2, Location::new(0,16)),
+            Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1197,41 +934,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("truthy"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Assign),
-                String::from("="),
-                Location::new(0,10)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
-                Location::new(0,12)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Inequality),
-                String::from("!="),
-                Location::new(0,14)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(2),
-                String::from("2"),
-                Location::new(0,17)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,19)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("truthy"), Location::new(0,3)),
+            Token::Operator(Op::Assign, Location::new(0,10)),
+            Token::NumberLiteral(1, Location::new(0,12)),
+            Token::Operator(Op::Inequality, Location::new(0,14)),
+            Token::NumberLiteral(2, Location::new(0,17)),
+            Token::Operator(Op::BlockClose, Location::new(0,19)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1245,41 +954,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Or),
-                String::from("||"),
-                Location::new(0,5)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("test"),
-                Location::new(0,8)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Or),
-                String::from("||"),
-                Location::new(0,13)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(3),
-                String::from("3"),
-                Location::new(0,16)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,18)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(1, Location::new(0,3)),
+            Token::Operator(Op::Or, Location::new(0,5)),
+            Token::Label(String::from("test"),Location::new(0,8)),
+            Token::Operator(Op::Or, Location::new(0,13)),
+            Token::NumberLiteral(3, Location::new(0,16)),
+            Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1302,41 +983,13 @@ mod tests {
         let tokens = lexer.tokenize();
 
         let expected = vec![
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(0,0)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("posts"),
-                Location::new(0,3)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Pipe),
-                String::from("|"),
-                Location::new(0,9)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("reverse"),
-                Location::new(0,11)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Pipe),
-                String::from("|"),
-                Location::new(0,19)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("take"),
-                Location::new(0,21)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(0,26)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::Label(String::from("posts"), Location::new(0,3)),
+            Token::Operator(Op::Pipe, Location::new(0,9)),
+            Token::Label(String::from("reverse"),Location::new(0,11)),
+            Token::Operator(Op::Pipe, Location::new(0,19)),
+            Token::Label(String::from("take"), Location::new(0,21)),
+            Token::Operator(Op::BlockClose, Location::new(0,26)),
         ];
 
         assert_eq!(tokens, expected);
@@ -1352,123 +1005,31 @@ mod tests {
 
         let expected = vec![
             token_string_literal("<h1>Tests</h1>\n",  (0, 0)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(1,0)
-            ),
-            Token::new(
-                TokenKind::Action(Action::Render),
-                String::from("render!"),
-                Location::new(1,3)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("tests"),
-                Location::new(1,11)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Each),
-                String::from(":"),
-                Location::new(1,17)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("site"),
-                Location::new(1,19)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Dot),
-                String::from("."),
-                Location::new(1,23)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("tests"),
-                Location::new(1,24)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Pipe),
-                String::from("|"),
-                Location::new(1,30)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("take"),
-                Location::new(1,32)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::ParenOpen),
-                String::from("("),
-                Location::new(1,36)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(1),
-                String::from("1"),
-                Location::new(1,37)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Comma),
-                String::from(","),
-                Location::new(1,38)
-            ),
-            Token::new(
-                TokenKind::NumberLiteral(5),
-                String::from("5"),
-                Location::new(1,39)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::ParenClose),
-                String::from(")"),
-                Location::new(1,40)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(1,42)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(1,0)),
+            Token::Action(Action::Render, Location::new(1,3)),
+            Token::Label(String::from("tests"), Location::new(1,11)),
+            Token::Operator(Op::Each, Location::new(1,17)),
+            Token::Label(String::from("site"), Location::new(1,19)),
+            Token::Operator(Op::Dot, Location::new(1,23)),
+            Token::Label(String::from("tests"), Location::new(1,24)),
+            Token::Operator(Op::Pipe, Location::new(1,30)),
+            Token::Label(String::from("take"), Location::new(1,32)),
+            Token::Operator(Op::ParenOpen, Location::new(1,36)),
+            Token::NumberLiteral(1, Location::new(1,37)),
+            Token::Operator(Op::Comma, Location::new(1,38)),
+            Token::NumberLiteral(5, Location::new(1,39)),
+            Token::Operator(Op::ParenClose, Location::new(1,40)),
+            Token::Operator(Op::BlockClose, Location::new(1,42)),
             token_string_literal("\n<li>", (1, 44)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(2,4)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("tests"),
-                Location::new(2,7)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::Dot),
-                String::from("."),
-                Location::new(2,12)
-            ),
-            Token::new(
-                TokenKind::Label,
-                String::from("name"),
-                Location::new(2,13)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(2,18)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(2,4)),
+            Token::Label(String::from("tests"), Location::new(2,7)),
+            Token::Operator(Op::Dot, Location::new(2,12)),
+            Token::Label(String::from("name"), Location::new(2,13)),
+            Token::Operator(Op::BlockClose, Location::new(2,18)),
             token_string_literal("</li>\n", (2, 20)),
-            Token::new(
-                TokenKind::Operator(Op::BlockOpen),
-                String::from("{{"),
-                Location::new(3,0)
-            ),
-            Token::new(
-                TokenKind::Action(Action::End),
-                String::from("!"),
-                Location::new(3,2)
-            ),
-            Token::new(
-                TokenKind::Operator(Op::BlockClose),
-                String::from("}}"),
-                Location::new(3,3)
-            ),
+            Token::Operator(Op::BlockOpen, Location::new(3,0)),
+            Token::Action(Action::End, Location::new(3,2)),
+            Token::Operator(Op::BlockClose, Location::new(3,3)),
         ];
 
         assert_eq!(tokens, expected);
