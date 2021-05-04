@@ -231,7 +231,7 @@ mod states {
                 _ => {
                     if ch.is_alphabetic() {
                         stack.push();
-                        &STATE_LABEL
+                        &STATE_LABEL_ACTION
                     } else if ch.is_numeric() {
                         stack.push();
                         &STATE_DIGIT
@@ -388,12 +388,12 @@ mod states {
     );
 
     // TODO support underscore labels
-    static STATE_LABEL: State = State(
+    static STATE_LABEL_ACTION: State = State(
         |stack| {
             let ch = stack.peek();
-            if ch.is_alphabetic() {
+            if ch.is_alphabetic() || ch == '_' {
                 stack.push();
-                &STATE_LABEL
+                &STATE_LABEL_ACTION
             } else if ch == '!' && *stack.lookahead().unwrap_or(&' ') != '=' {
                 // If the following two characters are not: !=
                 // Push ! 
@@ -708,15 +708,15 @@ mod tests {
     
     #[test]
     fn lexer_block_label() {
-        let input = "{{label}}";
+        let input = "{{label_label}}";
         let lexer = Lexer::from(input);
 
         let tokens = lexer.tokenize();
 
         let expected = vec![
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
-            Token::Label(String::from("label"), Location::new(0,2)),
-            Token::Operator(Op::BlockClose, Location::new(0,7)),
+            Token::Label(String::from("label_label"), Location::new(0,2)),
+            Token::Operator(Op::BlockClose, Location::new(0,13)),
         ];
 
         assert_eq!(tokens, expected);

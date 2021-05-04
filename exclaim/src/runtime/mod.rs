@@ -1,5 +1,3 @@
-use std::env::var;
-
 use crate::ast::prelude::*;
 use crate::tokens::Token;
 use crate::data::traits::Renderable;
