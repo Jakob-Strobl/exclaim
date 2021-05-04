@@ -74,23 +74,6 @@ impl Parser {
     }
 }
 
-// Keeping this here for future reference
-// I didnt realize that blocks { ... } are also resolved as expressions until I read this answer: https://stackoverflow.com/questions/27329653/writing-a-macro-that-contains-a-match-body
-// macro_rules! match_token {
-//     // Pass the token you want to match, then follow with arms for a match on token.kind()
-//     {($token:expr) { $($pattern:pat => $expression:expr),* }} => {
-//         if let Some(token) = $token {
-//             match token.kind() {
-//                 $(
-//                     $pattern => $expression
-//                 ),*
-//             }
-//         } else {
-//             return Err(ParserError::from(ErrorKind::UnexpectedEndOfTokenStream))
-//         }
-//     };
-// }
-
 macro_rules! unwrap_token {
     ($token:expr) => {
         if let Some(token) = $token {
@@ -100,7 +83,6 @@ macro_rules! unwrap_token {
         }
     };
 }
-
 
 // Parsing functions
 impl Parser {
@@ -242,7 +224,6 @@ impl Parser {
                         let stmt = Statement::Write(action, expr);
                         Ok(ast.push(stmt))
                     }
-                    _ => return Err(ParserError::from(ErrorKind::Unimplemented))
                 }
             },
             _ => return Err(ParserError::from("Expected Action to start in Block")),
@@ -331,12 +312,13 @@ impl Parser {
                     match op {
                         Op::ParenOpen => {
                             let _paren_open = parser.consume(); // Paren open (
-
+                            
+                            // Parse argument list
                             loop {
                                 let argument = Parser::parse_expr(parser, ast)?;
                                 arguments.push(argument);
 
-                                // Determine if a comma or an close parenthesis
+                                // Check if next token is a comma or an close parenthesis
                                 let token = unwrap_token!(parser.peek());
                                 match token {
                                     Token::Operator(op, _) => {
