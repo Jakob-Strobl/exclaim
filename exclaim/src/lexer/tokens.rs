@@ -15,10 +15,38 @@ pub enum Token {
 }
 
 impl Token {
+    pub fn string_literal(&self) -> Option<&String> {
+        match self {
+            Token::StringLiteral(literal, _) => Some(literal),
+            _ => None
+        }
+    }
+
+    pub fn number_literal(&self) -> Option<&usize> {
+        match self {
+            Token::NumberLiteral(literal, _) => Some(literal),
+            _ => None
+        }
+    }
+
     pub fn label(&self) -> Option<&str> {
         match self {
             Token::Label(label, _) => Some(label),
             _ => None,
+        }
+    }
+
+    pub fn operator(&self) -> Option<&Op> {
+        match self {
+            Token::Operator(op, _) => Some(op),
+            _ => None
+        }
+    }
+
+    pub fn action(&self) -> Option<&Action> {
+        match self {
+            Token::Action(action, _) => Some(action),
+            _ => None
         }
     }
 }

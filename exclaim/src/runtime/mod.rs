@@ -1,3 +1,5 @@
+use std::env::var;
+
 use crate::ast::prelude::*;
 use crate::tokens::Token;
 use crate::data::traits::Renderable;
@@ -85,7 +87,8 @@ impl Runtime {
                                     Expression::Reference(reference, _) => {
                                         // TODO handle dot operator references 
                                         let variable = reference.get(0).unwrap();
-                                        runtime.render_context(variable.label().unwrap());
+                                        let variable = variable.label().unwrap();
+                                        runtime.render_context(variable);
                                         Ok(())
                                     }
                                 }
