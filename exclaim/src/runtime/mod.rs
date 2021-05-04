@@ -1,5 +1,5 @@
 use crate::ast::prelude::*;
-use crate::tokens::TokenKind;
+use crate::tokens::Token;
 use crate::data::traits::Renderable;
 use crate::data::DataContext;
 use crate::data::types::DataType;
@@ -85,7 +85,7 @@ impl Runtime {
                                     Expression::Reference(reference, _) => {
                                         // TODO handle dot operator references 
                                         let variable = reference.get(0).unwrap();
-                                        runtime.render_context(variable.lexeme());
+                                        runtime.render_context(variable.label().unwrap());
                                         Ok(())
                                     }
                                 }
@@ -107,7 +107,7 @@ impl Runtime {
                                 match pat {
                                     Pattern::Decleration(decls) => {
                                         for decl in decls {
-                                            variables.push((decl.lexeme().to_string(), DataType::Any));
+                                            variables.push((decl.label().unwrap().to_string(), DataType::Any));
                                         }
                                     }
                                 }
@@ -124,9 +124,9 @@ impl Runtime {
                             AstElement::Expression(_, expr) => {
                                 match expr {
                                     Expression::Literal(literal, _) => {
-                                        variables.get_mut(0).unwrap().1 = match literal.kind() {
-                                            TokenKind::StringLiteral => DataType::String(literal.lexeme().to_string()),
-                                            TokenKind::NumberLiteral(num) => DataType::Uint(*num),
+                                        variables.get_mut(0).unwrap().1 = match literal {
+                                            Token::StringLiteral(str_lit, _) => DataType::String(str_lit.to_string()),
+                                            Token::NumberLiteral(num, _) => DataType::Uint(*num),
                                             _ => return Err("Runtime Error: Let! token variant unimplemented".to_string()),
                                         };
                                     },

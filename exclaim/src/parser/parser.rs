@@ -9,7 +9,6 @@ use std::ops::{
 use crate::ast::prelude::*;
 use crate::tokens::{
     Token,
-    TokenKind,
     Op,
     Action,
 };
@@ -136,8 +135,8 @@ impl Parser {
 
     fn parse_block(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         let token = unwrap_token!(parser.peek());
-        match token.kind() {
-            TokenKind::StringLiteral => {
+        match token {
+            Token::StringLiteral(_, _) => {
                 let text_block = Block::Text(parser.consume(), None);
                 let index = ast.push(text_block);
                 Ok(index)
@@ -148,8 +147,8 @@ impl Parser {
 
     fn parse_block_code(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         let token = unwrap_token!(parser.peek());
-        let _block_open = match token.kind() {
-            TokenKind::Operator(op) => {
+        let _block_open = match token {
+            Token::Operator(op, _) => {
                 match op {
                     Op::BlockOpen => parser.consume(),
                     _ => return Err(ParserError::from("Expected Operator(BlockOpen)")),
@@ -161,8 +160,8 @@ impl Parser {
         let stmt_idx = Parser::parse_stmt(parser, ast)?;
 
         let token = unwrap_token!(parser.peek());
-        let _block_close = match token.kind() {
-            TokenKind::Operator(op) => {
+        let _block_close = match token {
+            Token::Operator(op, _) => {
                 match op {
                     Op::BlockClose => parser.consume(),
                     _ => return Err(ParserError::from("Expected Operator(BlockClose)")),
@@ -189,8 +188,8 @@ impl Parser {
 
     fn parse_stmt(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         let token = unwrap_token!(parser.peek());
-        match token.kind() {
-            TokenKind::Action(action) => {
+        match token {
+            Token::Action(action, _) => {
                 match action {
                     Action::End => {
                         let action = parser.consume();
@@ -203,8 +202,8 @@ impl Parser {
 
                         // Parse Operator(assign)
                         let token = unwrap_token!(parser.peek());
-                        let _assign = match token.kind() {
-                            TokenKind::Operator(op) => {
+                        let _assign = match token {
+                            Token::Operator(op, _) => {
                                 match op {
                                     Op::Assign => parser.consume(),
                                     _ => return Err(ParserError::from("Expected assign operator.")),
@@ -223,8 +222,8 @@ impl Parser {
                     
                         // Parse Operator(each)
                         let token = unwrap_token!(parser.peek());
-                        let _each = match token.kind() {
-                            TokenKind::Operator(op) => {
+                        let _each = match token {
+                            Token::Operator(op, _) => {
                                 match op {
                                     Op::Each => parser.consume(),
                                     _ => return Err(ParserError::from("Expected each operator.")),
@@ -252,36 +251,36 @@ impl Parser {
 
     fn parse_expr(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         let token = unwrap_token!(parser.peek());
-        match token.kind() {
-            TokenKind::StringLiteral => {
+        match token {
+            Token::StringLiteral(_, _) => {
                 let literal = parser.consume();
                 let transforms = Parser::parse_tranforms(parser, ast)?;
                 let expression = Expression::Literal(literal, transforms);
                 Ok(ast.push(expression))
             },
-            TokenKind::NumberLiteral(_) => {
+            Token::NumberLiteral(_, _) => {
                 let literal = parser.consume();
                 let transforms = Parser::parse_tranforms(parser, ast)?;
                 let expression = Expression::Literal(literal, transforms);
                 Ok(ast.push(expression))
             },
-            TokenKind::Label => {
+            Token::Label(_, _) => {
                 let mut ref_list = vec![parser.consume()];
                 
                 // Collect dot operated references
                 loop {
                     // Check for dot operator
                     let token = unwrap_token!(parser.peek());
-                    match token.kind() {
-                        TokenKind::Operator(op) => {
+                    match token {
+                        Token::Operator(op, _) => {
                             match op {
                                 Op::Dot => {
                                     // Expect a label token 
                                     let _dot = parser.consume();
 
                                     let token = unwrap_token!(parser.peek());
-                                    let label = match token.kind() {
-                                        TokenKind::Label => parser.consume(),
+                                    let label = match token {
+                                        Token::Label(_, _) => parser.consume(),
                                         _ => return Err(ParserError::from("Expected a label after dot operator"))
                                     };
 
@@ -308,8 +307,8 @@ impl Parser {
         // collect as many transforms as possible 
         loop {
             let token = unwrap_token!(parser.peek());
-            let _pipe = match token.kind() {
-                TokenKind::Operator(op) => {
+            let _pipe = match token {
+                Token::Operator(op, _) => {
                     match op {
                         Op::Pipe => parser.consume(), // Pipe operator |
                         _ => break,
@@ -319,16 +318,16 @@ impl Parser {
             };
             
             let token = unwrap_token!(parser.peek());
-            let label = match token.kind() {
-                TokenKind::Label => parser.consume(), // Label
+            let label = match token {
+                Token::Label(_, _) => parser.consume(), // Label
                 _ => return Err(ParserError::from("Expected transform label after Pipe Operator.")),
             };
 
             // Parse arguments
             let mut arguments: Vec<AstIndex> = vec![];
             let token = unwrap_token!(parser.peek());
-            match token.kind() {
-                TokenKind::Operator(op) => {
+            match token {
+                Token::Operator(op, _) => {
                     match op {
                         Op::ParenOpen => {
                             let _paren_open = parser.consume(); // Paren open (
@@ -339,8 +338,8 @@ impl Parser {
 
                                 // Determine if a comma or an close parenthesis
                                 let token = unwrap_token!(parser.peek());
-                                match token.kind() {
-                                    TokenKind::Operator(op) => {
+                                match token {
+                                    Token::Operator(op, _) => {
                                         match op {
                                             Op::Comma => {
                                                 let _comma = parser.consume();
@@ -376,9 +375,9 @@ impl Parser {
     fn parse_pattern_decleration(parser: &mut Parser, ast: &mut Ast) -> Result<AstIndex> {
         // Parse Pattern 
         let token = unwrap_token!(parser.peek());
-        let decls = match token.kind() {
-            TokenKind::Label => vec![parser.consume()],
-            TokenKind::Operator(op) => {
+        let decls = match token {
+            Token::Label(_, _) => vec![parser.consume()],
+            Token::Operator(op, _) => {
                 match op {
                     Op::ParenOpen => {
                         let _open_paren = parser.consume();
@@ -387,8 +386,8 @@ impl Parser {
                         let mut decls: Vec<Token> = vec![];
                         loop {
                             let token = unwrap_token!(parser.peek());
-                            let decl = match token.kind() {
-                                TokenKind::Label => parser.consume(),
+                            let decl = match token {
+                                Token::Label(_, _) => parser.consume(),
                                 _ => return Err(ParserError::from("Expected label for decleration in Pattern"))
                             };
 
@@ -396,8 +395,8 @@ impl Parser {
 
                             // Determine if end of pattern or more declerations to parse
                             let token = unwrap_token!(parser.peek());
-                            match token.kind() {
-                                TokenKind::Operator(op) => {
+                            match token {
+                                Token::Operator(op, _) => {
                                     match op {
                                         Op::Comma => {
                                             let _comma = parser.consume();
