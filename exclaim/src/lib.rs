@@ -16,7 +16,6 @@ mod semantics;
 use semantics::semantics::Semantics;
 
 mod runtime;
-use runtime::Runtime;
 
 pub fn run(input: &str) -> String {
     let tokens = run_lexer(input);
@@ -46,7 +45,7 @@ pub fn run_semantics(input: Ast) -> Ast {
 }
 
 pub fn run_runtime(input: Ast) -> String {
-    match Runtime::run(input) {
+    match runtime::run(input) {
         Ok(output) => output,
         Err(e) => panic!("Runtime failed with the error: {:?}", e),
     }
