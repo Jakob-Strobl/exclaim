@@ -24,6 +24,7 @@ pub mod blocks;
 pub mod statements;
 pub mod expressions;
 pub mod patterns;
+pub mod transforms;
 
 pub mod prelude {
     pub use super::AstIndex;
@@ -33,6 +34,6 @@ pub mod prelude {
     pub use super::blocks::Block;
     pub use super::statements::Statement;
     pub use super::expressions::Expression;
-    pub use super::expressions::Transform;
+    pub use super::transforms::Transform;
     pub use super::patterns::Pattern;
 }
