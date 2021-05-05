@@ -54,8 +54,8 @@ fn render_assigned_variable_number_literal() {
 
 #[test]
 fn render_transformed_literal() {
-    let input = r#"{{ write! "ABC" | lowercase }}"#;
-    let expected = "abc";
+    let input = r#"{{ write! "Abc" | lowercase | uppercase }}"#;
+    let expected = "ABC";
 
     let output = exclaim::run(input);
     assert_eq!(&output, expected);
