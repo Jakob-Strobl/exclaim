@@ -5,18 +5,6 @@ use super::AstIndex;
 
 type ExpressionIndex = AstIndex;
 
-pub struct TransformSignature<'a>(&'a str, usize);
-
-impl<'a> TransformSignature<'a> {
-    pub fn name(&self) -> &'a str {
-        self.0
-    }
-
-    pub fn args(&self) -> usize {
-        self.1
-    }
-}
-
 // Transform(label: Token, args: Vec<AstIndex>)
 #[derive(Debug)]
 pub struct Transform(Token, Vec<ExpressionIndex>);
@@ -26,8 +14,8 @@ impl Transform {
         Transform(label, arguments)
     }
 
-    pub fn signature(&self) -> TransformSignature {
-        TransformSignature(self.name(), self.1.len())
+    pub fn signature(&self) -> (&str, usize) {
+        (self.name(), self.1.len())
     }
 
     pub fn has_arguments(&self) -> bool {

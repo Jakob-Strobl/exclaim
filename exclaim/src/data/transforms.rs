@@ -3,9 +3,9 @@ use crate::ast::transforms::Transform;
 use super::Data;
 
 pub fn apply_transform(data: Data, transform: &Transform) -> Data {
-    match transform.name() {
-        "lowercase" => lowercase(data),
-        "uppercase" => uppercase(data),
+    match transform.signature() {
+        ("lowercase", 0) => lowercase(data),
+        ("uppercase", 0) => uppercase(data),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
