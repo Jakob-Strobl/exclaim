@@ -60,3 +60,21 @@ fn render_transformed_literal() {
     let output = exclaim::run(input);
     assert_eq!(&output, expected);
 }
+
+#[test]
+fn render_transformed_reference() {
+    let input = r#"{{ let! string = "Hello!" }}{{ write! string | uppercase }}"#;
+    let expected = "HELLO!";
+
+    let output = exclaim::run(input);
+    assert_eq!(&output, expected);
+}
+
+#[test]
+fn render_transformed_assignment() {
+    let input = r#"{{ let! string = "test 123" | uppercase }}{{ write! string }}"#;
+    let expected = "TEST 123";
+
+    let output = exclaim::run(input);
+    assert_eq!(&output, expected)
+}
