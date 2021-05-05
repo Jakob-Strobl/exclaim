@@ -1,3 +1,5 @@
+use std::collections::binary_heap::Drain;
+
 use crate::ast::prelude::*;
 use crate::tokens::Token;
 use crate::data::traits::Renderable;
@@ -55,40 +57,12 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
     match &mut *element_ref {
         AstElement::Statement(_, stmt) => {
             match stmt {
-                Statement::Write(_action, expr_idx) => {
-                    let element_cell = ast.get(*expr_idx);
-                    let mut element_ref = element_cell.borrow_mut();
+                Statement::Write(_action, expression) => {
+                    let data = run_expression(ast, runtime, *expression)?;
 
-                    match &mut *element_ref {
-                        AstElement::Expression(_, expr) => {
-                            match expr {
-                                Expression::Literal(token, transforms_idx) => {
-                                    let literal = Data::from(token.clone());
+                    runtime.render(&data);
 
-                                    // Apply transformations
-                                    let literal = run_transformations(ast, literal, transforms_idx);
-
-                                    runtime.render(&literal);
-                                    Ok(())
-                                },
-                                Expression::Reference(reference, transforms_idx) => {
-                                    // TODO handle dot operator references 
-                                    let variable = reference.get(0).unwrap();
-                                    let variable = variable.label().unwrap();
-
-                                    // We clone the data, because all transformation happen out of place
-                                    let variable = runtime.get(variable).clone();
-
-                                    // Apply transformations
-                                    let variable = run_transformations(ast, variable, transforms_idx);
-
-                                    runtime.render(&variable);
-                                    Ok(())
-                                }
-                            }
-                        },
-                        _ => Err("Runtime Error: Expected an expression".to_string()),
-                    }
+                    Ok(())
                 },
                 Statement::Let(_action, pat_idx, expr_idx) => {
                     let pat_cell = ast.get(*pat_idx);
@@ -129,7 +103,7 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
                                         _ => return Err("Runtime Error: Let! token variant unimplemented".to_string()),
                                     };
 
-                                    let value = run_transformations(ast, value, transforms_idx);
+                                    let value = run_transformations(ast, runtime, value, transforms_idx)?;
                                     
                                     // Push to values
                                     values.push(value)
@@ -154,15 +128,52 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
     }
 }
 
-fn run_transformations(ast: &mut Ast, mut data: Data, transforms: &Vec<AstIndex>) -> Data {
+fn run_expression(ast: &mut Ast, runtime: &mut RuntimeContext, expression: AstIndex) -> Result<Data, String> {
+    let expression_cell = ast.get(expression);
+    let expression_ref = &*expression_cell.borrow_mut();
+
+    if let AstElement::Expression(_, expression) = expression_ref {
+        match expression {
+            Expression::Literal(literal, transforms) => {
+                let literal = Data::from(literal.clone());
+                let literal = run_transformations(ast, runtime, literal, transforms)?;
+                Ok(literal)
+            }
+            Expression::Reference(reference, transforms) => {
+                // TODO handle dot operator references 
+                let token = reference.get(0).unwrap();
+                let reference_key = token.label().unwrap();
+
+                // We clone the data, because all transformation happen out of place
+                let reference = runtime.get(reference_key).clone();
+
+                // Apply transformations
+                let reference = run_transformations(ast, runtime, reference, transforms)?;
+
+                Ok(reference)
+            }
+        }
+    } else {
+        Err("Runtime: Expected an expression".to_string())
+    }
+}
+
+fn run_transformations(ast: &mut Ast, runtime: &mut RuntimeContext, mut data: Data, transforms: &Vec<AstIndex>) -> Result<Data, String> {
     for transform in transforms {
         let transform_cell = ast.get(*transform);
         let transform_ref = &*transform_cell.borrow_mut();
 
         if let AstElement::Transform(_, transform) = transform_ref {
-            data = data.apply_transform(transform);
+            // Get Arguments 
+            let mut arguments: Vec<Data> = vec![];
+            for argument in transform.arguments() {
+                let arg = run_expression(ast, runtime, *argument)?;
+                arguments.push(arg);
+            }
+
+            data = data.apply_transform(transform, arguments);
         }
     }
 
-    data
+    Ok(data)
 }

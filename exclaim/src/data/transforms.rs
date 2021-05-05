@@ -2,11 +2,31 @@ use crate::ast::transforms::Transform;
 
 use super::Data;
 
-pub fn apply_transform(data: Data, transform: &Transform) -> Data {
+pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) -> Data {
+    // match transform signature: (name, num_arguments)
     match transform.signature() {
         ("lowercase", 0) => lowercase(data),
         ("uppercase", 0) => uppercase(data),
+        ("at", 1) => at(data, arguments.get(0).unwrap()),
         _ => panic!("Transform '{:?}' does not exist.", transform),
+    }
+}
+
+fn at(data: Data, index: &Data) -> Data {
+    let index = match index {
+        Data::Uint(num) => *num,
+        _ => panic!("at only takes a positive integer as an argument: {:?}.", index)
+    };
+
+    match data {    
+        Data::String(string) => {
+            if index >= string.len() {
+                panic!("at index is out of bounds: {}, length = {}", index, string.len())
+            }
+
+            Data::String(string.chars().nth(index).unwrap().to_string())
+        },
+        _ => panic!("at does not transform the given data: {:?}", data),
     }
 }
 

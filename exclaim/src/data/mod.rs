@@ -27,8 +27,8 @@ pub enum Data {
 }
 
 impl Data {
-    pub fn apply_transform(self, transform: &Transform) -> Data {
-        apply_transform(self, transform)
+    pub fn apply_transform(self, transform: &Transform, arguments: Vec<Data>) -> Data {
+        apply_transform(self, transform, arguments)
     }
 
     pub fn is_scalar(&self) -> bool {

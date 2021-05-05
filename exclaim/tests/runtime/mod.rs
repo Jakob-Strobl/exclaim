@@ -78,3 +78,12 @@ fn render_transformed_assignment() {
     let output = exclaim::run(input);
     assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_transform_argument() {
+    let input = r#"{{ write! "ABCDEFG" | at(2) }}"#;
+    let expected = "C";
+
+    let output = exclaim::run(input);
+    assert_eq!(&output, expected)
+}

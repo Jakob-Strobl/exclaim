@@ -14,19 +14,27 @@ impl Transform {
         Transform(label, arguments)
     }
 
-    pub fn signature(&self) -> (&str, usize) {
-        (self.name(), self.1.len())
-    }
-
-    pub fn has_arguments(&self) -> bool {
-        self.1.len() != 0
-    }
-
     pub fn name(&self) -> &str {
         match self.0.label() {
             Some(name) => name,
             None => panic!("Expected transform to have a name; token is not a label.")
         }
+    }
+
+    pub fn arguments(&self) -> &Vec<ExpressionIndex> {
+        &self.1
+    }
+
+    pub fn num_arguments(&self) -> usize {
+        self.1.len()
+    }
+
+    pub fn signature(&self) -> (&str, usize) {
+        (self.name(), self.num_arguments())
+    }
+
+    pub fn has_arguments(&self) -> bool {
+        self.1.len() != 0
     }
 }
 
