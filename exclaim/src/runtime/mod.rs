@@ -4,40 +4,27 @@ use crate::data::traits::Renderable;
 use crate::data::DataContext;
 use crate::data::types::DataType;
 
-pub struct Runtime {
-    output: String,
-    pub context: DataContext,
-}
+mod scope;
+use scope::ScopeContext;
 
-impl Runtime {
-    fn new() -> Runtime {
-        Runtime {
-            output: String::new(),
-            context: DataContext::new(),
-        }
-    }
+mod runtime;
+use runtime::RuntimeContext;
 
-    fn render(&mut self, item: &dyn Renderable) {
-        self.output.push_str(&item.render())
-    }
-
-    fn render_context(&mut self, key: &str) {
-        let data = self.context.get(key).unwrap();
-        self.output.push_str(&data.render());
-    }
+pub mod Runtime {
+    use super::*;
 
     pub fn run(mut ast: Ast) -> Result<String, String> {
-        let mut runtime = Runtime::new();
+        let mut runtime = RuntimeContext::new();
 
         let mut current_block = ast.head();
         while current_block.is_some() {
             current_block = Runtime::run_block(&mut ast, &mut runtime, current_block)?;
         }
 
-        Ok(runtime.output)
+        Ok(runtime.output())
     }
 
-    fn run_block(ast: &mut Ast, runtime: &mut Runtime, block_idx: Option<AstIndex>) -> Result<Option<AstIndex>, String> {
+    fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block_idx: Option<AstIndex>) -> Result<Option<AstIndex>, String> {
         if let Some(block_idx) = block_idx {
             let element_cell = ast.get(block_idx);
             let mut element_ref = element_cell.borrow_mut();
@@ -63,7 +50,7 @@ impl Runtime {
         }
     }
 
-    fn run_stmt(ast: &mut Ast, runtime: &mut Runtime, stmt_idx: AstIndex) -> Result<(), String> {
+    fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> Result<(), String> {
         let element_cell = ast.get(stmt_idx);
         let mut element_ref = element_cell.borrow_mut();
 
@@ -86,7 +73,7 @@ impl Runtime {
                                         // TODO handle dot operator references 
                                         let variable = reference.get(0).unwrap();
                                         let variable = variable.label().unwrap();
-                                        runtime.render_context(variable);
+                                        runtime.render_from_context(variable);
                                         Ok(())
                                     }
                                 }
@@ -139,7 +126,7 @@ impl Runtime {
 
                         // Add variables to runtime context
                         for (key, value) in variables {
-                            runtime.context.insert(key, value);
+                            runtime.insert(key, value);
                         }
 
                         Ok(())

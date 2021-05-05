@@ -21,7 +21,7 @@ impl DataContext {
         self.data.insert(key, value)
     }
 
-    pub fn get(&mut self, key: &str) -> Option<&DataType> {
+    pub fn get(&self, key: &str) -> Option<&DataType> {
         self.data.get(key)
     }
 
