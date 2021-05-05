@@ -1,7 +1,7 @@
 use super::ScopeContext;
 use super::DataContext;
 use super::Renderable;
-use super::DataType;
+use super::Data;
 
 pub struct RuntimeContext {
     output: String,
@@ -27,7 +27,7 @@ impl RuntimeContext {
         self.scope_ctx.close_scope();
     }
 
-    pub fn insert(&mut self, key: String, value: DataType) {
+    pub fn insert(&mut self, key: String, value: Data) {
         self.scope_ctx.insert(key, value)
     }
 

@@ -2,7 +2,7 @@ use crate::ast::prelude::*;
 use crate::tokens::Token;
 use crate::data::traits::Renderable;
 use crate::data::DataContext;
-use crate::data::types::DataType;
+use crate::data::Data;
 
 mod scope;
 use scope::ScopeContext;
@@ -64,12 +64,22 @@ pub mod Runtime {
                         match &mut *element_ref {
                             AstElement::Expression(_, expr) => {
                                 match expr {
-                                    Expression::Literal(literal, _) => {
-                                        // TODO apply transformations 
-                                        runtime.render(literal);
+                                    Expression::Literal(token, transforms_idx) => {
+                                        let mut literal = Data::from(token.clone());
+
+                                        for transform_idx in transforms_idx {
+                                            let transform_cell = ast.get(*transform_idx);
+                                            let transform_ref = &mut *transform_cell.borrow_mut();
+
+                                            if let AstElement::Transform(_, transform) = transform_ref {
+                                                literal = literal.apply_transform(transform);
+                                            }
+                                        }
+
+                                        runtime.render(&literal);
                                         Ok(())
                                     },
-                                    Expression::Reference(reference, _) => {
+                                    Expression::Reference(reference, tranforms) => {
                                         // TODO handle dot operator references 
                                         let variable = reference.get(0).unwrap();
                                         let variable = variable.label().unwrap();
@@ -88,14 +98,14 @@ pub mod Runtime {
                         let expr_cell = ast.get(*expr_idx);
                         let expr_ref = &mut *expr_cell.borrow_mut();
 
-                        let mut variables: Vec<(String, DataType)> = vec![];
+                        let mut variables: Vec<(String, Data)> = vec![];
 
                         match pat_ref {
                             AstElement::Pattern(_, pat) => {
                                 match pat {
                                     Pattern::Decleration(decls) => {
                                         for decl in decls {
-                                            variables.push((decl.label().unwrap().to_string(), DataType::Any));
+                                            variables.push((decl.label().unwrap().to_string(), Data::Any));
                                         }
                                     }
                                 }
@@ -113,8 +123,8 @@ pub mod Runtime {
                                 match expr {
                                     Expression::Literal(literal, _) => {
                                         variables.get_mut(0).unwrap().1 = match literal {
-                                            Token::StringLiteral(str_lit, _) => DataType::String(str_lit.to_string()),
-                                            Token::NumberLiteral(num, _) => DataType::Uint(*num),
+                                            Token::StringLiteral(str_lit, _) => Data::String(str_lit.to_string()),
+                                            Token::NumberLiteral(num, _) => Data::Uint(*num),
                                             _ => return Err("Runtime Error: Let! token variant unimplemented".to_string()),
                                         };
                                     },

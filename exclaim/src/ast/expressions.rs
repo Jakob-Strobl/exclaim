@@ -34,11 +34,23 @@ impl Serializable for Expression {
 }
 
 // Transform(label: Token, args: Vec<AstIndex>)
+#[derive(Debug)]
 pub struct Transform(Token, Vec<ExpressionIndex>);
 
 impl Transform {
     pub fn new(label: Token, arguments: Vec<ExpressionIndex>) -> Transform {
         Transform(label, arguments)
+    }
+
+    pub fn has_arguments(&self) -> bool {
+        self.1.len() != 0
+    }
+
+    pub fn name(&self) -> &str {
+        match self.0.label() {
+            Some(name) => name,
+            None => panic!("Expected transform to have a name; token is not a label.")
+        }
     }
 }
 

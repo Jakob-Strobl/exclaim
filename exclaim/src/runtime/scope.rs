@@ -1,5 +1,5 @@
 use crate::data::DataContext;
-use crate::data::types::DataType;
+use crate::data::Data;
 
 pub struct ScopeContext {
     scopes: Vec<DataContext>
@@ -27,7 +27,7 @@ impl ScopeContext {
         }
     }
 
-    pub fn get(&mut self, key: &str) -> Option<&DataType> {
+    pub fn get(&mut self, key: &str) -> Option<&Data> {
         for idx in (0..self.scopes.len()).rev() {
             if let Some(data) = self.scopes.get(idx).unwrap().get(key) {
                 return Some(data)
@@ -38,7 +38,7 @@ impl ScopeContext {
     }
 
     // Insert key-value pair in current scope
-    pub fn insert(&mut self, key: String, value: DataType) {
+    pub fn insert(&mut self, key: String, value: Data) {
         let current_idx = self.scopes.len() - 1;
         self.scopes.get_mut(current_idx).unwrap().insert(key, value);
     }
