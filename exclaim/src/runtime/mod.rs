@@ -11,6 +11,8 @@ mod runtime;
 use runtime::RuntimeContext;
 
 pub mod Runtime {
+    use std::vec;
+
     use crate::data::transforms;
 
     use super::*;
@@ -115,14 +117,14 @@ pub mod Runtime {
                         let expr_cell = ast.get(*expr_idx);
                         let expr_ref = &mut *expr_cell.borrow_mut();
 
-                        let mut variables: Vec<(String, Data)> = vec![];
-
+                        // Left hand side of assignment - build declerations
+                        let mut declerations: Vec<String> = vec![];
                         match pat_ref {
                             AstElement::Pattern(_, pat) => {
                                 match pat {
                                     Pattern::Decleration(decls) => {
                                         for decl in decls {
-                                            variables.push((decl.label().unwrap().to_string(), Data::Any));
+                                            declerations.push(decl.label().unwrap().to_string());
                                         }
                                     }
                                 }
@@ -131,19 +133,34 @@ pub mod Runtime {
                         };
 
                         // TODO check pattern matches expression
-                        if variables.len() != 1 {
+                        if declerations.len() != 1 {
                             return Err("Runtime Error: Let! expects patterns of size 1".to_string());
                         }
 
+                        // Right hand side of assignment - compute expressions and get values
+                        let mut values: Vec<Data> = vec![];
                         match expr_ref {
                             AstElement::Expression(_, expr) => {
                                 match expr {
-                                    Expression::Literal(literal, _) => {
-                                        variables.get_mut(0).unwrap().1 = match literal {
+                                    Expression::Literal(literal, transforms_idx) => {
+                                        let mut value = match literal {
                                             Token::StringLiteral(str_lit, _) => Data::String(str_lit.to_string()),
                                             Token::NumberLiteral(num, _) => Data::Uint(*num),
                                             _ => return Err("Runtime Error: Let! token variant unimplemented".to_string()),
                                         };
+
+                                        // Apply transformations
+                                        for transform_idx in transforms_idx {
+                                            let transform_cell = ast.get(*transform_idx);
+                                            let transform_ref = &mut *transform_cell.borrow_mut();
+
+                                            if let AstElement::Transform(_, transform) = transform_ref {
+                                                value = value.apply_transform(transform);
+                                            }
+                                        }
+
+                                        // Push to values
+                                        values.push(value)
                                     },
                                     _ => return Err("Runtime Error: Let! expr variant unimplemented".to_string()),
                                 }
@@ -152,7 +169,7 @@ pub mod Runtime {
                         }
 
                         // Add variables to runtime context
-                        for (key, value) in variables {
+                        for (key, value) in declerations.into_iter().zip(values) {
                             runtime.insert(key, value);
                         }
 
