@@ -9,6 +9,7 @@ use traits::Renderable;
 pub mod transforms;
 use transforms::apply_transform;
 
+#[derive(Debug, Clone)]
 pub enum Data {
     // Reserved - value not initialized
     Any, 

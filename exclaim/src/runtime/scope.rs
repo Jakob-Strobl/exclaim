@@ -27,7 +27,7 @@ impl ScopeContext {
         }
     }
 
-    pub fn get(&mut self, key: &str) -> Option<&Data> {
+    pub fn get(&self, key: &str) -> Option<&Data> {
         for idx in (0..self.scopes.len()).rev() {
             if let Some(data) = self.scopes.get(idx).unwrap().get(key) {
                 return Some(data)

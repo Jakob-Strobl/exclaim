@@ -11,6 +11,8 @@ mod runtime;
 use runtime::RuntimeContext;
 
 pub mod Runtime {
+    use crate::data::transforms;
+
     use super::*;
 
     pub fn run(mut ast: Ast) -> Result<String, String> {
@@ -67,6 +69,7 @@ pub mod Runtime {
                                     Expression::Literal(token, transforms_idx) => {
                                         let mut literal = Data::from(token.clone());
 
+                                        // Apply transformations
                                         for transform_idx in transforms_idx {
                                             let transform_cell = ast.get(*transform_idx);
                                             let transform_ref = &mut *transform_cell.borrow_mut();
@@ -79,11 +82,25 @@ pub mod Runtime {
                                         runtime.render(&literal);
                                         Ok(())
                                     },
-                                    Expression::Reference(reference, tranforms) => {
+                                    Expression::Reference(reference, transforms_idx) => {
                                         // TODO handle dot operator references 
                                         let variable = reference.get(0).unwrap();
                                         let variable = variable.label().unwrap();
-                                        runtime.render_from_context(variable);
+
+                                        // We clone the data, because all transformation happen out of place
+                                        let mut variable = runtime.get(variable).clone();
+
+                                        // Apply transformations
+                                        for transform_idx in transforms_idx {
+                                            let transform_cell = ast.get(*transform_idx);
+                                            let transform_ref = &mut *transform_cell.borrow_mut();
+
+                                            if let AstElement::Transform(_, transform) = transform_ref {
+                                                variable = variable.apply_transform(transform);
+                                            }
+                                        }
+
+                                        runtime.render(&variable);
                                         Ok(())
                                     }
                                 }

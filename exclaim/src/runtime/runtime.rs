@@ -49,6 +49,19 @@ impl RuntimeContext {
         }
     }
 
+    pub fn get(&self, key: &str) -> &Data {
+        if let Some(data) = self.scope_ctx.get(key) {
+            data
+        } else {
+            // Check global context
+            if let Some(data) = self.global_ctx.get(key) {
+                data
+            } else {
+                panic!("get: Error could not find data with the key '{}'", key);
+            }
+        }
+    }
+
     pub fn output(self) -> String {
         self.output
     }
