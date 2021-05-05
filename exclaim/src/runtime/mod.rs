@@ -59,17 +59,12 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
             match stmt {
                 Statement::Write(_action, expression) => {
                     let data = run_expression(ast, runtime, *expression)?;
-
                     runtime.render(&data);
-
                     Ok(())
                 },
-                Statement::Let(_action, pat_idx, expr_idx) => {
+                Statement::Let(_action, pat_idx, expression) => {
                     let pat_cell = ast.get(*pat_idx);
                     let pat_ref = &mut *pat_cell.borrow_mut();
-
-                    let expr_cell = ast.get(*expr_idx);
-                    let expr_ref = &mut *expr_cell.borrow_mut();
 
                     // Left hand side of assignment - build declerations
                     let mut declerations: Vec<String> = vec![];
@@ -86,36 +81,15 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
                         _ => return Err("Runtime Error: Let! expected a pattern".to_string()),
                     };
 
-                    // TODO check pattern matches expression
-                    if declerations.len() != 1 {
-                        return Err("Runtime Error: Let! expects patterns of size 1".to_string());
-                    }
-
                     // Right hand side of assignment - compute expressions and get values
-                    let mut values: Vec<Data> = vec![];
-                    match expr_ref {
-                        AstElement::Expression(_, expr) => {
-                            match expr {
-                                Expression::Literal(literal, transforms_idx) => {
-                                    let value = match literal {
-                                        Token::StringLiteral(str_lit, _) => Data::String(str_lit.to_string()),
-                                        Token::NumberLiteral(num, _) => Data::Uint(*num),
-                                        _ => return Err("Runtime Error: Let! token variant unimplemented".to_string()),
-                                    };
+                    let value = run_expression(ast, runtime, *expression)?;
 
-                                    let value = run_transformations(ast, runtime, value, transforms_idx)?;
-                                    
-                                    // Push to values
-                                    values.push(value)
-                                },
-                                _ => return Err("Runtime Error: Let! expr variant unimplemented".to_string()),
-                            }
-                        }
-                        _ => return Err("Runtime Error: Let! expected an expression".to_string()),
+                    if declerations.len() != value.len() {
+                        return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
                     }
-
+                    
                     // Add variables to runtime context
-                    for (key, value) in declerations.into_iter().zip(values) {
+                    for (key, value) in declerations.into_iter().zip(value) {
                         runtime.insert(key, value);
                     }
 

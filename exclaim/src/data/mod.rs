@@ -11,7 +11,8 @@ use transforms::apply_transform;
 
 #[derive(Debug, Clone)]
 pub enum Data {
-    // Reserved - value not initialized
+    // Reserved - value not initialized 
+    // TODO do we actually need this? 
     Any, 
 
     // Scalar
@@ -38,6 +39,30 @@ impl Data {
             Data::Uint(_) => true,
             Data::Float(_) => true,
             _ => false,
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        match self {
+            Data::Any => 0,
+            Data::Tuple(tup) => tup.len(),
+            Data::Array(arr) => arr.len(),
+            _ => 1,
+        }
+    }
+}
+
+impl IntoIterator for Data {
+    type Item = Data;
+
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            Data::Any => vec![].into_iter(),
+            Data::Tuple(tup) => tup.to_vec().into_iter(),
+            Data::Array(arr) => arr.into_iter(),
+            _ => vec![self].into_iter(),
         }
     }
 }
