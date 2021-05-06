@@ -84,13 +84,15 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> 
                     // Right hand side of assignment - compute expressions and get values
                     let value = run_expression(ast, runtime, *expression)?;
 
-                    if declerations.len() != value.len() {
-                        return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
-                    }
-                    
                     // Add variables to runtime context
-                    for (key, value) in declerations.into_iter().zip(value) {
-                        runtime.insert(key, value);
+                    if declerations.len() == value.len() || declerations.len() != 1 {
+                        for (key, value) in declerations.into_iter().zip(value) {
+                            runtime.insert(key, value);
+                        }
+                    } else if declerations.len() == 1 {
+                        runtime.insert(declerations.pop().unwrap(), value)
+                    } else {
+                        return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
                     }
 
                     Ok(())

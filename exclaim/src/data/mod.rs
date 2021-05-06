@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Debug;
 
 use crate::ast::transforms::Transform;
 use crate::lexer::tokens::Token;
@@ -9,7 +10,7 @@ use traits::Renderable;
 pub mod transforms;
 use transforms::apply_transform;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum Data {
     // Reserved - value not initialized 
     // TODO do we actually need this? 
@@ -25,6 +26,16 @@ pub enum Data {
     Tuple(Box<[Data]>),
     Object(HashMap<String, Data>),
     Array(Vec<Data>),
+}
+
+impl From<Token> for Data {
+    fn from(token: Token) -> Self {
+        match token {
+            Token::StringLiteral(string, _) => Data::String(string),
+            Token::NumberLiteral(number, _) => Data::Uint(number),
+            _ => panic!("Cannot convert token into Data: {:?}", token),
+        }
+    }
 }
 
 impl Data {
@@ -67,12 +78,17 @@ impl IntoIterator for Data {
     }
 }
 
-impl From<Token> for Data {
-    fn from(token: Token) -> Self {
-        match token {
-            Token::StringLiteral(string, _) => Data::String(string),
-            Token::NumberLiteral(number, _) => Data::Uint(number),
-            _ => panic!("Cannot convert token into Data: {:?}", token),
+impl Debug for Data {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Data::Any => write!(f, "Data::Any"),
+            Data::String(string) => write!(f, "\"{}\"", string),
+            Data::Int(num) => write!(f, "{}", num),
+            Data::Uint(num) => write!(f, "{}", num),
+            Data::Float(num) => write!(f, "{}", num),
+            Data::Tuple(tuple) => write!(f, "{:?}", tuple),
+            Data::Object(object) => write!(f, "{:?}", object),
+            Data::Array(array) => write!(f, "{:?}", array),
         }
     }
 }
@@ -87,7 +103,7 @@ impl Renderable for Data {
             Data::Float(num) => num.to_string(),
             Data::Tuple(_) => panic!("DataType::Tuple unimplemented!"),
             Data::Object(_) => panic!("DataType::Object unimplemented!"),
-            Data::Array(_) => panic!("DataType::Array unimplemented!"),
+            Data::Array(array) => format!("{:?}", array),
         }
     }
 }

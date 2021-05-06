@@ -5,6 +5,7 @@ use super::Data;
 pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) -> Data {
     // match transform signature: (name, num_arguments)
     match transform.signature() {
+        ("chars", 0) => chars(data),
         ("lowercase", 0) => lowercase(data),
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
@@ -27,6 +28,13 @@ fn at(data: Data, index: &Data) -> Data {
             Data::String(string.chars().nth(index).unwrap().to_string())
         },
         _ => panic!("at does not transform the given data: {:?}", data),
+    }
+}
+
+fn chars(data: Data) -> Data {
+    match data {
+        Data::String(string) => Data::Array(string.chars().map(|c| Data::String(c.to_string())).collect()),
+        _ => panic!("chars expects string as input")
     }
 }
 

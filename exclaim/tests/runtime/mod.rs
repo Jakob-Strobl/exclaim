@@ -87,3 +87,12 @@ fn render_transform_argument() {
     let output = exclaim::run(input);
     assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_arrays() {
+    let input = r#"{{ write! "ABCDEFG" | chars }}"#;
+    let expected = r#"["A", "B", "C", "D", "E", "F", "G"]"#;
+
+    let output = exclaim::run(input);
+    assert_eq!(&output, expected)
+}
