@@ -9,6 +9,7 @@ type BlockIndex = AstIndex;
 type StatementIndex = AstIndex;
 type Scope = Vec<AstIndex>;
 
+#[derive(Debug)]
 pub enum Block {
     /// Text(text: Token, next_block: Option<AstIndex>)
     Text(Token, Option<BlockIndex>),

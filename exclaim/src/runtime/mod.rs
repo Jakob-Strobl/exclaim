@@ -1,3 +1,4 @@
+use core::panic;
 use std::collections::binary_heap::Drain;
 
 use crate::ast::prelude::*;
@@ -24,9 +25,9 @@ pub fn run(mut ast: Ast) -> Result<String, String> {
     Ok(runtime.output())
 }
 
-fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block_idx: Option<AstIndex>) -> Result<Option<AstIndex>, String> {
-    if let Some(block_idx) = block_idx {
-        let element_cell = ast.get(block_idx);
+fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex>) -> Result<Option<AstIndex>, String> {
+    if let Some(block) = block {
+        let element_cell = ast.get(block);
         let mut element_ref = element_cell.borrow_mut();
 
         match &mut *element_ref {
@@ -36,11 +37,68 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block_idx: Option<AstI
                         runtime.render(text);
                         Ok(*next)
                     },
-                    Block::CodeEnclosed(stmt_idx, next) => {
-                        run_stmt(ast, runtime, *stmt_idx)?;
+                    Block::CodeEnclosed(stmt, next) => {
+                        run_stmt(ast, runtime, *stmt)?;
                         Ok(*next)
                     },
-                    _ => Err("Runtime Error: Block Variant Unimplemented".to_string()),
+                    Block::CodeUnclosed(stmt, scope, next) => {
+                        let stmt_cell = ast.get(*stmt);
+                        let mut stmt_ref = stmt_cell.borrow_mut();
+
+                        match &mut *stmt_ref {
+                            AstElement::Statement(_, stmt) => {
+                                match stmt {
+                                    Statement::Render(_action, pattern, expression) => {
+                                        let pat_cell = ast.get(*pattern);
+                                        let pat_ref = &mut *pat_cell.borrow_mut();
+
+                                        // Left hand side of assignment - build declerations
+                                        let mut declerations: Vec<String> = vec![];
+                                        match pat_ref {
+                                            AstElement::Pattern(_, pattern) => {
+                                                match pattern {
+                                                    Pattern::Decleration(decls) => {
+                                                        for decl in decls {
+                                                            declerations.push(decl.label().unwrap().to_string());
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            _ => return Err("Runtime Error: Let! expected a pattern".to_string()),
+                                        };
+                                        
+                                        // Right hand side of assignment - compute expressions and get values
+                                        let value = run_expression(ast, runtime, *expression)?;
+
+                                        // Open new scope
+                                        runtime.open_scope();
+
+                                        // Get iterator from Data variant 
+                                        for item in value.into_iter() {
+                                            // Insert current value for the iteration
+                                            runtime.insert(declerations.get(0).unwrap().to_string(), item.clone());
+
+                                            // Run iteration
+                                            for nested_block in scope.iter() {
+                                                run_block(ast, runtime, Some(*nested_block))?;
+                                            }
+                                        }
+
+                                        // Close Scope
+                                        runtime.close_scope();
+                                    },
+                                    _ => return Err("Runtime Error: Expected a Render Statement.".to_string()),
+                                }
+                            },
+                            _ => return Err("Runtime Error: Expected a statement.".to_string()),
+                        }
+                        
+                        println!("next is : {:?}", next);
+                        Ok(*next)
+                    }
+                    Block::CodeClosing(_stmt, _next) => {
+                        Ok(None)
+                    },
                 }
             }
             _ => Err("Runtime Error: Expected a block".to_string()),
@@ -50,8 +108,8 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block_idx: Option<AstI
     }
 }
 
-fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt_idx: AstIndex) -> Result<(), String> {
-    let element_cell = ast.get(stmt_idx);
+fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Result<(), String> {
+    let element_cell = ast.get(stmt);
     let mut element_ref = element_cell.borrow_mut();
 
     match &mut *element_ref {

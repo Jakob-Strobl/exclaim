@@ -96,3 +96,21 @@ fn render_arrays() {
     let output = exclaim::run(input);
     assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_render_statement() {
+    let input = r#"{{ render! chs : "ABC" | chars }}
+{{ write! chs }}
+{{!}}"#;
+    let expected = r#"
+A
+
+B
+
+C
+"#;
+
+    let output = exclaim::run(input);
+    // So uhhh, for somereason using the custom pretty assert causes this to crash.
+    pretty_assertions::assert_eq!(&output, expected)
+}
