@@ -101,7 +101,7 @@ impl Renderable for Data {
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),
             Data::Float(num) => num.to_string(),
-            Data::Tuple(_) => panic!("DataType::Tuple unimplemented!"),
+            Data::Tuple(tuple) => format!("{:?}", tuple),
             Data::Object(_) => panic!("DataType::Object unimplemented!"),
             Data::Array(array) => format!("{:?}", array),
         }

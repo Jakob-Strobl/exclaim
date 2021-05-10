@@ -1,6 +1,3 @@
-use core::panic;
-use std::collections::binary_heap::Drain;
-
 use crate::ast::prelude::*;
 use crate::tokens::Token;
 use crate::data::traits::Renderable;
@@ -68,15 +65,17 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                                         };
                                         
                                         // Right hand side of assignment - compute expressions and get values
-                                        let value = run_expression(ast, runtime, *expression)?;
+                                        let values = run_expression(ast, runtime, *expression)?;
 
                                         // Open new scope
                                         runtime.open_scope();
 
                                         // Get iterator from Data variant 
-                                        for item in value.into_iter() {
+                                        for value in values.into_iter() {
                                             // Insert current value for the iteration
-                                            runtime.insert(declerations.get(0).unwrap().to_string(), item.clone());
+                                            for (decl, data) in declerations.iter().zip(value.clone().into_iter()) {
+                                                    runtime.insert(decl.to_string(), data);
+                                            }
 
                                             // Run iteration
                                             for nested_block in scope.iter() {

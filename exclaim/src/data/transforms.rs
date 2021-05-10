@@ -9,6 +9,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("lowercase", 0) => lowercase(data),
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
+        ("enumerate", 0) => enumerate(data),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
@@ -35,6 +36,23 @@ fn chars(data: Data) -> Data {
     match data {
         Data::String(string) => Data::Array(string.chars().map(|c| Data::String(c.to_string())).collect()),
         _ => panic!("chars expects string as input")
+    }
+}
+
+fn enumerate(data: Data) -> Data {
+    match data {
+        Data::Array(array) => {
+            let mut enumerated_array = vec![];
+            let mut index = 0; 
+            
+            for data in array {
+                enumerated_array.push(Data::Tuple(Box::new([data, Data::Uint(index)])));
+                index += 1;
+            }
+
+            Data::Array(enumerated_array)
+        },
+        _ => panic!("enumerate expects an array as input.")
     }
 }
 

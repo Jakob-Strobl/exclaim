@@ -114,3 +114,21 @@ C
     // So uhhh, for somereason using the custom pretty assert causes this to crash.
     pretty_assertions::assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_enumerate() {
+    let input = r#"{{ render! (ch, index) : "ABC" | chars | enumerate }}
+<li>{{ write! index }}: {{ write! ch }}</li>
+{{!}}"#;
+        let expected = r#"
+<li>0: A</li>
+
+<li>1: B</li>
+
+<li>2: C</li>
+"#;
+    
+    let output = exclaim::run(input);
+    // So uhhh, for somereason using the custom pretty assert causes this to crash.
+    pretty_assertions::assert_eq!(&output, expected)
+}
