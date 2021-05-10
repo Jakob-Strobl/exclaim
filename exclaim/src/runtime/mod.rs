@@ -96,8 +96,8 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                         println!("next is : {:?}", next);
                         Ok(*next)
                     }
-                    Block::CodeClosing(_stmt, _next) => {
-                        Ok(None)
+                    Block::CodeClosing(_stmt, next) => {
+                        Ok(*next)
                     },
                 }
             }
