@@ -132,3 +132,21 @@ fn render_enumerate() {
     // So uhhh, for somereason using the custom pretty assert causes this to crash.
     pretty_assertions::assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_tuple_indexing() {
+    let input = r#"{{ render! chars : "ABC" | chars | enumerate }}
+<li>{{ write! chars | at(1) }}: {{ write! chars | at(0) }}</li>
+{{!}}"#;
+        let expected = r#"
+<li>0: A</li>
+
+<li>1: B</li>
+
+<li>2: C</li>
+"#;
+    
+    let output = exclaim::run(input);
+    // So uhhh, for somereason using the custom pretty assert causes this to crash.
+    pretty_assertions::assert_eq!(&output, expected)
+}

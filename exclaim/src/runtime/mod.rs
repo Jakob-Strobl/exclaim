@@ -46,7 +46,7 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                                 match stmt {
                                     Statement::Render(_action, pattern, expression) => {
                                         // Left hand side of assignment - build declerations
-                                        let pattern = run_pattern(ast, runtime, *pattern)?;
+                                        let pattern = run_pattern(ast, *pattern)?;
                                         
                                         // Right hand side of assignment - compute expressions and get values
                                         let values = run_expression(ast, runtime, *expression)?;
@@ -57,9 +57,7 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                                         // Get iterator from Data variant 
                                         for value in values.into_iter() {
                                             // Insert current value for the iteration
-                                            for (decl, data) in pattern.iter().zip(value.clone().into_iter()) {
-                                                runtime.insert(decl.to_string(), data);
-                                            }
+                                            match_pattern(runtime, &pattern, value)?;
 
                                             // Run iteration
                                             for nested_block in scope.iter() {
@@ -105,21 +103,13 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Resu
                 },
                 Statement::Let(_action, pattern, expression) => {
                     // Left hand side of assignment
-                    let mut pattern = run_pattern(ast, runtime, *pattern)?;
+                    let pattern = run_pattern(ast, *pattern)?;
 
                     // Right hand side of assignment - compute expressions and get values
                     let value = run_expression(ast, runtime, *expression)?;
 
                     // Add variables to runtime context
-                    if pattern.len() == value.len() || pattern.len() != 1 {
-                        for (key, value) in pattern.into_iter().zip(value) {
-                            runtime.insert(key, value);
-                        }
-                    } else if pattern.len() == 1 {
-                        runtime.insert(pattern.pop().unwrap(), value)
-                    } else {
-                        return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
-                    }
+                    match_pattern(runtime, &pattern, value)?;
 
                     Ok(())
                 },
@@ -181,7 +171,7 @@ fn run_transformations(ast: &mut Ast, runtime: &mut RuntimeContext, mut data: Da
 }
 
 /// Get declerations from pattern into a vector of strings
-fn run_pattern(ast: &mut Ast, runtime: &mut RuntimeContext, pattern: AstIndex) -> Result<Vec<String>, String> {
+fn run_pattern(ast: &mut Ast, pattern: AstIndex) -> Result<Vec<String>, String> {
     let pat_cell = ast.get(pattern);
     let pat_ref = &mut *pat_cell.borrow_mut();
 
@@ -202,4 +192,16 @@ fn run_pattern(ast: &mut Ast, runtime: &mut RuntimeContext, pattern: AstIndex) -
     Ok(declerations)
 }
 
-// fn match_patterns(ast: &mut Ast, runtime: &mut RuntimeContext, pattern: )
+fn match_pattern(runtime: &mut RuntimeContext, pattern: &Vec<String>, value: Data) -> Result<(), String> {
+    if pattern.len() == value.len() || pattern.len() != 1 {
+        for (key, value) in pattern.into_iter().zip(value) {
+            runtime.insert(key.to_string(), value);
+        }
+    } else if pattern.len() == 1 {
+        runtime.insert(pattern.get(0).unwrap().to_string(), value)
+    } else {
+        return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
+    }
+
+    Ok(())
+}

@@ -6,10 +6,10 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
     // match transform signature: (name, num_arguments)
     match transform.signature() {
         ("chars", 0) => chars(data),
+        ("enumerate", 0) => enumerate(data),
         ("lowercase", 0) => lowercase(data),
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
-        ("enumerate", 0) => enumerate(data),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
@@ -17,7 +17,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
 fn at(data: Data, index: &Data) -> Data {
     let index = match index {
         Data::Uint(num) => *num,
-        _ => panic!("at only takes a positive integer as an argument: {:?}.", index)
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", index)
     };
 
     match data {    
@@ -28,6 +28,14 @@ fn at(data: Data, index: &Data) -> Data {
 
             Data::String(string.chars().nth(index).unwrap().to_string())
         },
+        Data::Tuple(tuple) => {
+            if index >= tuple.len() {
+                println!("tuple: {:?}", tuple);
+                panic!("at index is out of bounds: {}, length = {}", index, tuple.len())
+            }
+
+            tuple[index].clone()
+        }
         _ => panic!("at does not transform the given data: {:?}", data),
     }
 }
