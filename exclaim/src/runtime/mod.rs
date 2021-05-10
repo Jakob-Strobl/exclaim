@@ -1,5 +1,4 @@
 use crate::ast::prelude::*;
-use crate::tokens::Token;
 use crate::data::traits::Renderable;
 use crate::data::DataContext;
 use crate::data::Data;
@@ -46,23 +45,8 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                             AstElement::Statement(_, stmt) => {
                                 match stmt {
                                     Statement::Render(_action, pattern, expression) => {
-                                        let pat_cell = ast.get(*pattern);
-                                        let pat_ref = &mut *pat_cell.borrow_mut();
-
                                         // Left hand side of assignment - build declerations
-                                        let mut declerations: Vec<String> = vec![];
-                                        match pat_ref {
-                                            AstElement::Pattern(_, pattern) => {
-                                                match pattern {
-                                                    Pattern::Decleration(decls) => {
-                                                        for decl in decls {
-                                                            declerations.push(decl.label().unwrap().to_string());
-                                                        }
-                                                    }
-                                                }
-                                            },
-                                            _ => return Err("Runtime Error: Let! expected a pattern".to_string()),
-                                        };
+                                        let pattern = run_pattern(ast, runtime, *pattern)?;
                                         
                                         // Right hand side of assignment - compute expressions and get values
                                         let values = run_expression(ast, runtime, *expression)?;
@@ -73,8 +57,8 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                                         // Get iterator from Data variant 
                                         for value in values.into_iter() {
                                             // Insert current value for the iteration
-                                            for (decl, data) in declerations.iter().zip(value.clone().into_iter()) {
-                                                    runtime.insert(decl.to_string(), data);
+                                            for (decl, data) in pattern.iter().zip(value.clone().into_iter()) {
+                                                runtime.insert(decl.to_string(), data);
                                             }
 
                                             // Run iteration
@@ -119,35 +103,20 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Resu
                     runtime.render(&data);
                     Ok(())
                 },
-                Statement::Let(_action, pat_idx, expression) => {
-                    let pat_cell = ast.get(*pat_idx);
-                    let pat_ref = &mut *pat_cell.borrow_mut();
-
-                    // Left hand side of assignment - build declerations
-                    let mut declerations: Vec<String> = vec![];
-                    match pat_ref {
-                        AstElement::Pattern(_, pat) => {
-                            match pat {
-                                Pattern::Decleration(decls) => {
-                                    for decl in decls {
-                                        declerations.push(decl.label().unwrap().to_string());
-                                    }
-                                }
-                            }
-                        },
-                        _ => return Err("Runtime Error: Let! expected a pattern".to_string()),
-                    };
+                Statement::Let(_action, pattern, expression) => {
+                    // Left hand side of assignment
+                    let mut pattern = run_pattern(ast, runtime, *pattern)?;
 
                     // Right hand side of assignment - compute expressions and get values
                     let value = run_expression(ast, runtime, *expression)?;
 
                     // Add variables to runtime context
-                    if declerations.len() == value.len() || declerations.len() != 1 {
-                        for (key, value) in declerations.into_iter().zip(value) {
+                    if pattern.len() == value.len() || pattern.len() != 1 {
+                        for (key, value) in pattern.into_iter().zip(value) {
                             runtime.insert(key, value);
                         }
-                    } else if declerations.len() == 1 {
-                        runtime.insert(declerations.pop().unwrap(), value)
+                    } else if pattern.len() == 1 {
+                        runtime.insert(pattern.pop().unwrap(), value)
                     } else {
                         return Err("Runtime Error: Let! expects pattern does not match expression.".to_string());
                     }
@@ -210,3 +179,27 @@ fn run_transformations(ast: &mut Ast, runtime: &mut RuntimeContext, mut data: Da
 
     Ok(data)
 }
+
+/// Get declerations from pattern into a vector of strings
+fn run_pattern(ast: &mut Ast, runtime: &mut RuntimeContext, pattern: AstIndex) -> Result<Vec<String>, String> {
+    let pat_cell = ast.get(pattern);
+    let pat_ref = &mut *pat_cell.borrow_mut();
+
+    let mut declerations: Vec<String> = vec![];
+    match pat_ref {
+        AstElement::Pattern(_, pat) => {
+            match pat {
+                Pattern::Decleration(decls) => {
+                    for decl in decls {
+                        declerations.push(decl.label().unwrap().to_string());
+                    }
+                }
+            }
+        },
+        _ => return Err("Runtime Error: Let! expected a pattern".to_string()),
+    };
+
+    Ok(declerations)
+}
+
+// fn match_patterns(ast: &mut Ast, runtime: &mut RuntimeContext, pattern: )
