@@ -196,7 +196,7 @@ version: 0.1
 #[test]
 fn render_sample_product() {
     let input = read_file_to_string("./tests/runtime/input/product.html");
-    let expected = read_file_to_string("./tests/runtime/output/product.html").replace(from, to)
+    let expected = read_file_to_string("./tests/runtime/output/product.html");
 
     let mut page = HashMap::new();
     page.insert("title".to_string(), Data::String("Awesome Product".to_string()));
