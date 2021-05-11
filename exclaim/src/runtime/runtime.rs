@@ -7,15 +7,16 @@ pub struct RuntimeContext {
     output: String,
     scope_ctx: ScopeContext,
     // Global context is data that is not found inside the template 
+    // TODO Instead of using a DataContext, create a more user friendly API for global data. for now, this is fine
     global_ctx: DataContext,
 }
 
 impl RuntimeContext {
-    pub fn new() -> RuntimeContext {
+    pub fn new(global: Option<DataContext>) -> RuntimeContext {
         RuntimeContext {
             output: String::new(),
             scope_ctx: ScopeContext::new(),
-            global_ctx: DataContext::new(),
+            global_ctx: global.unwrap_or(DataContext::new()),
         }
     }
 

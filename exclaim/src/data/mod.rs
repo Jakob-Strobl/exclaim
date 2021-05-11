@@ -61,6 +61,18 @@ impl Data {
             _ => 1,
         }
     }
+
+    pub fn get(&self, key: &str) -> Option<&Data> {
+        match self {
+            Data::Object(object) => {
+                match object.get(key) {
+                    Some(value) => Some(value),
+                    None => None,
+                }
+            },
+            _ => None,
+        }
+    }
 }
 
 impl IntoIterator for Data {
@@ -102,7 +114,7 @@ impl Renderable for Data {
             Data::Uint(num) => num.to_string(),
             Data::Float(num) => num.to_string(),
             Data::Tuple(tuple) => format!("{:?}", tuple),
-            Data::Object(_) => panic!("DataType::Object unimplemented!"),
+            Data::Object(object) => format!("{:?}", object),
             Data::Array(array) => format!("{:?}", array),
         }
     }

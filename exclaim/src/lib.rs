@@ -4,6 +4,8 @@ mod ast;
 use ast::prelude::*;
 
 mod data;
+pub use data::DataContext;
+pub use data::Data;
 
 mod lexer;
 use lexer::lexer::Lexer;
@@ -17,11 +19,11 @@ use semantics::semantics::Semantics;
 
 mod runtime;
 
-pub fn run(input: &str) -> String {
+pub fn run(input: &str, data: Option<DataContext>) -> String {
     let tokens = run_lexer(input);
     let ast = run_parser(tokens);
     let ast = run_semantics(ast);
-    run_runtime(ast)
+    run_runtime(ast, data)
 }
 
 pub fn run_lexer(input: &str) -> Vec<tokens::Token> {
@@ -44,8 +46,8 @@ pub fn run_semantics(input: Ast) -> Ast {
     }
 }
 
-pub fn run_runtime(input: Ast) -> String {
-    match runtime::run(input) {
+pub fn run_runtime(input: Ast, data: Option<DataContext>) -> String {
+    match runtime::run(input, data) {
         Ok(output) => output,
         Err(e) => panic!("Runtime failed with the error: {:?}", e),
     }

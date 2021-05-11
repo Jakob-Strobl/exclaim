@@ -10,6 +10,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("lowercase", 0) => lowercase(data),
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
+        ("get", 1) => get(data, arguments.get(0).unwrap()),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
@@ -37,6 +38,23 @@ fn at(data: Data, index: &Data) -> Data {
             tuple[index].clone()
         }
         _ => panic!("at does not transform the given data: {:?}", data),
+    }
+}
+
+fn get(data: Data, key: &Data) -> Data {
+    let key = match key {
+        Data::String(string) => string,
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", key)
+    };
+
+    match data {
+        Data::Object(object) => {
+            match object.get(key) {
+                Some(value) => value.clone(),
+                None => panic!("The key-value pair does not exist: {:?}", key),
+            }
+        },
+        _ => panic!("get does not transform the given data: {:?}", data)
     }
 }
 
