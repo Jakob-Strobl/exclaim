@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-use crate::common::{
-    PrettyString
-};
+use crate::common::{PrettyString, read_file_to_string};
 
 use exclaim::{
     DataContext,
@@ -193,4 +191,47 @@ version: 0.1
     
     let output = exclaim::run(input, Some(data));
     pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_sample_product() {
+    let input = read_file_to_string("./tests/runtime/input/product.html");
+    let expected = read_file_to_string("./tests/runtime/output/product.html").replace(from, to)
+
+    let mut page = HashMap::new();
+    page.insert("title".to_string(), Data::String("Awesome Product".to_string()));
+    page.insert("header".to_string(), Data::String("Awesome Product: A product".to_string()));
+    page.insert("body".to_string(), Data::String("Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
+    In pharetra, nunc id posuere vestibulum, turpis nunc dapibus eros, vitae malesuada nisi tortor nec turpis. \
+    Vestibulum ex leo, rhoncus bibendum urna.".to_string()));
+
+
+    let mut customers = Vec::new();
+
+    let mut customer = HashMap::new();
+    customer.insert("name".to_string(), Data::String("John Doe".to_string()));
+    customer.insert("review".to_string(), Data::String("Literally 10/10. This product is game changing.".to_string()));
+    customers.push(Data::Object(customer));
+
+    let mut customer = HashMap::new();
+    customer.insert("name".to_string(), Data::String("Jane Doe".to_string()));
+    customer.insert("review".to_string(), Data::String("My husband loves this product!".to_string()));
+    customers.push(Data::Object(customer));
+
+    let mut customer = HashMap::new();
+    customer.insert("name".to_string(), Data::String("Anonymous".to_string()));
+    customer.insert("review".to_string(), Data::String("The product name checks out.".to_string()));
+    customers.push(Data::Object(customer));
+
+    let mut customer = HashMap::new();
+    customer.insert("name".to_string(), Data::String("Reed Salad".to_string()));
+    customer.insert("review".to_string(), Data::String("It's aight".to_string()));
+    customers.push(Data::Object(customer));
+
+    let mut data = DataContext::new();
+    data.insert("page".to_string(), Data::Object(page));
+    data.insert("customers".to_string(), Data::Array(customers));
+
+    let output = exclaim::run(&input, Some(data));
+    pretty_assertions::assert_eq!(&output, &expected)
 }

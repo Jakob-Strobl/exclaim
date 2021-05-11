@@ -11,50 +11,8 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
+        ("take", 1) => take(data, arguments.get(0).unwrap()),
         _ => panic!("Transform '{:?}' does not exist.", transform),
-    }
-}
-
-fn at(data: Data, index: &Data) -> Data {
-    let index = match index {
-        Data::Uint(num) => *num,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", index)
-    };
-
-    match data {    
-        Data::String(string) => {
-            if index >= string.len() {
-                panic!("at index is out of bounds: {}, length = {}", index, string.len())
-            }
-
-            Data::String(string.chars().nth(index).unwrap().to_string())
-        },
-        Data::Tuple(tuple) => {
-            if index >= tuple.len() {
-                println!("tuple: {:?}", tuple);
-                panic!("at index is out of bounds: {}, length = {}", index, tuple.len())
-            }
-
-            tuple[index].clone()
-        }
-        _ => panic!("at does not transform the given data: {:?}", data),
-    }
-}
-
-fn get(data: Data, key: &Data) -> Data {
-    let key = match key {
-        Data::String(string) => string,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", key)
-    };
-
-    match data {
-        Data::Object(object) => {
-            match object.get(key) {
-                Some(value) => value.clone(),
-                None => panic!("The key-value pair does not exist: {:?}", key),
-            }
-        },
-        _ => panic!("get does not transform the given data: {:?}", data)
     }
 }
 
@@ -105,5 +63,65 @@ fn uppercase(data: Data) -> Data {
         Data::Object(_) => panic!("Cannot transform raw Object to uppercase"),
         Data::Array(_) => panic!("Cannot transform raw Array to uppercase"),
         _ => panic!("Lowercase did not like input...")
+    }
+}
+
+fn at(data: Data, index: &Data) -> Data {
+    let index = match index {
+        Data::Uint(num) => *num,
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", index)
+    };
+
+    match data {    
+        Data::String(string) => {
+            if index >= string.len() {
+                panic!("at index is out of bounds: {}, length = {}", index, string.len())
+            }
+
+            Data::String(string.chars().nth(index).unwrap().to_string())
+        },
+        Data::Tuple(tuple) => {
+            if index >= tuple.len() {
+                println!("tuple: {:?}", tuple);
+                panic!("at index is out of bounds: {}, length = {}", index, tuple.len())
+            }
+
+            tuple[index].clone()
+        }
+        _ => panic!("at does not transform the given data: {:?}", data),
+    }
+}
+
+fn get(data: Data, key: &Data) -> Data {
+    let key = match key {
+        Data::String(string) => string,
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", key)
+    };
+
+    match data {
+        Data::Object(object) => {
+            match object.get(key) {
+                Some(value) => value.clone(),
+                None => panic!("The key-value pair does not exist: {:?}", key),
+            }
+        },
+        _ => panic!("get does not transform the given data: {:?}", data)
+    }
+}
+
+fn take(data: Data, uint: &Data) -> Data {
+    let take = match uint {
+        Data::Uint(num) => *num,
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", uint)
+    };
+
+    match data {
+        Data::Array(array) => {
+            let take_slice = array.split_at(take).0;
+            let mut new_array = Vec::with_capacity(take_slice.len());
+            new_array.clone_from(&take_slice.to_vec());
+            Data::Array(new_array)
+        },
+        _ => panic!("take does not transform the given data: {:?}", data)
     }
 }
