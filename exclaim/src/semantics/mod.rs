@@ -31,7 +31,11 @@ macro_rules! unwrap_index {
     };
 }
 
-pub fn analyze(mut ast: Ast) -> SemanticResult<Ast> {
+pub fn run(ast: Ast) -> SemanticResult<Ast> {
+    analyze(ast)
+}
+
+fn analyze(mut ast: Ast) -> SemanticResult<Ast> {
     let mut ctx = SemanticContext::new();
 
     let mut current_block = ast.head();
