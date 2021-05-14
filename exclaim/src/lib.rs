@@ -9,8 +9,8 @@ mod data;
 pub use data::DataContext;
 pub use data::Data;
 
+mod tokens;
 mod lexer;
-use lexer::tokens;
 mod parser;
 mod semantics;
 mod runtime;

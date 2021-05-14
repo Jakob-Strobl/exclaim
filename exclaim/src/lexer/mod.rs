@@ -1,10 +1,7 @@
-use crate::tokens::Token;
+use crate::tokens::*;
 
 pub mod automata;
 use automata::StackMachine;
-
-pub mod tokens;
-use tokens::*;
 
 pub mod tests;
 
