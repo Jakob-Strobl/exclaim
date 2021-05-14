@@ -49,7 +49,6 @@ fn lowercase(data: Data) -> Data {
         Data::Tuple(_) => panic!("Cannot transform raw Tuple to lowercase"),
         Data::Object(_) => panic!("Cannot transform raw Object to lowercase"),
         Data::Array(_) => panic!("Cannot transform raw Array to lowercase"),
-        _ => panic!("Lowercase did not like input...")
     }
 }
 
@@ -62,7 +61,6 @@ fn uppercase(data: Data) -> Data {
         Data::Tuple(_) => panic!("Cannot transform raw Tuple to uppercase"),
         Data::Object(_) => panic!("Cannot transform raw Object to uppercase"),
         Data::Array(_) => panic!("Cannot transform raw Array to uppercase"),
-        _ => panic!("Lowercase did not like input...")
     }
 }
 

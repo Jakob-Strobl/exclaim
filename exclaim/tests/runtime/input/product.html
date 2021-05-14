@@ -7,14 +7,14 @@
     <title>{{ write! page.title }}</title>
 </head>
 <body>
-    {{ let! customers = customers | take(3) }}
+    {{ let! last_customers = customers | take(3) }}
 
     <h1>{{ write! page.header }}</h1>
     <p>{{ write! page.body }}</p>
     
     <h2>Customer Reviews</h2>
     <ul>
-        {{ render! customer : customers }}
+        {{ render! customer : last_customers }}
             <li>
                 <h3>{{ write! customer.name }}</h3>
                 <p>{{ write! customer.review }}</p>

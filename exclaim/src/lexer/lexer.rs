@@ -387,7 +387,6 @@ mod states {
         }
     );
 
-    // TODO support underscore labels
     static STATE_LABEL_ACTION: State = State(
         |stack| {
             let ch = stack.peek();

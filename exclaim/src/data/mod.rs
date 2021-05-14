@@ -12,10 +12,6 @@ use transforms::apply_transform;
 
 #[derive(Clone)]
 pub enum Data {
-    // Reserved - value not initialized 
-    // TODO do we actually need this? 
-    Any, 
-
     // Scalar
     String(String),
     Int(isize),
@@ -55,7 +51,6 @@ impl Data {
 
     pub fn len(&self) -> usize {
         match self {
-            Data::Any => 0,
             Data::Tuple(tup) => tup.len(),
             Data::Array(arr) => arr.len(),
             _ => 1,
@@ -82,7 +77,6 @@ impl IntoIterator for Data {
 
     fn into_iter(self) -> Self::IntoIter {
         match self {
-            Data::Any => vec![].into_iter(),
             Data::Tuple(tup) => tup.to_vec().into_iter(),
             Data::Array(arr) => arr.into_iter(),
             _ => vec![self].into_iter(),
@@ -93,7 +87,6 @@ impl IntoIterator for Data {
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Data::Any => write!(f, "Data::Any"),
             Data::String(string) => write!(f, "\"{}\"", string),
             Data::Int(num) => write!(f, "{}", num),
             Data::Uint(num) => write!(f, "{}", num),
@@ -108,7 +101,6 @@ impl Debug for Data {
 impl Renderable for Data {
     fn render(&self) -> String {
         match self {
-            Data::Any => panic!("DataType::Any can not be rendered!"),
             Data::String(s) => s.to_string(),
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),
