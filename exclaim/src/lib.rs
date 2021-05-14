@@ -15,8 +15,6 @@ mod parser;
 use parser::parser::Parser;
 
 mod semantics;
-use semantics::semantics::Semantics;
-
 mod runtime;
 
 pub fn run(input: &str, data: Option<DataContext>) -> String {
@@ -40,7 +38,7 @@ pub fn run_parser(input: Vec<tokens::Token>) -> Ast {
 }
 
 pub fn run_semantics(input: Ast) -> Ast {
-    match Semantics::analyze(input) {
+    match semantics::analyze(input) {
         Ok(ast) => ast,
         Err(e) => panic!("Semantic Analysis failed with the error: {:?}", e),
     }
