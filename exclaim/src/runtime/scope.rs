@@ -12,10 +12,6 @@ impl ScopeContext {
         }
     }
 
-    pub fn scope_level(&self) -> usize {
-        self.scopes.len()
-    }
-
     pub fn open_scope(&mut self) {
         self.scopes.push(DataContext::new());
     }

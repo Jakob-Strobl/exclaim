@@ -24,11 +24,6 @@ impl StackMachine {
         }
     }
 
-    /// Exposes the entire underlying input as a String
-    pub fn as_string(&self) -> String {
-        self.chars.iter().collect()
-    }
-
     pub fn view_stack(&self) -> &str {
         self.stack.as_str()
     }
@@ -80,10 +75,6 @@ impl StackMachine {
         // Set for new fresh token
         self.stack = String::new();
         self.start = self.current;
-    }
-
-    pub fn get_token(&mut self) -> Option<Token> {
-        self.tokens.pop()
     }
 
     pub fn get_tokens(self) -> Vec<Token> {

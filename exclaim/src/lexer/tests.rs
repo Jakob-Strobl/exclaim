@@ -97,7 +97,7 @@ mod tests {
     #[should_panic(expected = "Lexer<DIGIT>: The expected number contains invalid digit \'a\' with stack \"1234\". On line [0; 7]:\n\t{{ 1234a }}\n\t       ^ expected digit")]
     fn lexer_block_invalid_digit() {
         let input = "{{ 1234a }}";
-        let actual = match lexer::run(input) {
+        let _actual = match lexer::run(input) {
             Ok(tokens) => tokens,
             Err(e) => panic!(e),
         };
@@ -125,7 +125,7 @@ mod tests {
     #[should_panic(expected = "Lexer<LABEL>: The expected label contains digit \'1\' with stack \"b\". On line [0; 4]:\n\t{{ b1234 }}\n\t    ^ expected alphabetic character")]
     fn lexer_block_invalid_label() {
         let input = "{{ b1234 }}";
-        let actual = match lexer::run(input) {
+        let _actual = match lexer::run(input) {
             Ok(tokens) => tokens,
             Err(e) => panic!(e),
         };
@@ -190,7 +190,7 @@ mod tests {
     #[should_panic(expected = "Lexer<LABEL>: The expected action does not match any defined action - invalid action found: \'abc!\'")]
     fn lexer_invalid_action() {
         let input = "{{ abc! }}";
-        let actual = match lexer::run(input) {
+        let _actual = match lexer::run(input) {
             Ok(tokens) => tokens,
             Err(e) => panic!(e),
         };
@@ -383,7 +383,7 @@ mod tests {
     #[should_panic(expected = "Lexer<BLOCK>: Encountered unknown character \'`\'. On line [1; 3]:\n\t{{ `` }}\n\t   ^ unknown character")]
     fn lexer_block_unknown_character() {
         let input = "test\n{{ `` }}\ntest";
-        let actual = match lexer::run(input) {
+        let _actual = match lexer::run(input) {
             Ok(tokens) => tokens,
             Err(e) => panic!(e),
         };

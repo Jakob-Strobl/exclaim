@@ -51,7 +51,7 @@ impl fmt::Debug for Error {
 
 pub enum ErrorKind {
     // Reached a section of the parser that hasn't been implemented
-    Unimplemented,
+    // Unimplemented,
     // End of Token Stream, but we expected another token 
     UnexpectedEndOfTokenStream,
 }
@@ -59,7 +59,7 @@ pub enum ErrorKind {
 impl ErrorKind {
     fn as_str(&self) -> &'static str {
         match *self {
-            ErrorKind::Unimplemented => "reached unimplemented section of parser",
+            // ErrorKind::Unimplemented => "reached unimplemented section of parser",
             ErrorKind::UnexpectedEndOfTokenStream => "unexpected end of token stream",
         }
     }

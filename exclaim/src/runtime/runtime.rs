@@ -36,20 +36,6 @@ impl RuntimeContext {
         self.output.push_str(&item.render())
     }
 
-    pub fn render_from_context(&mut self, key: &str) {
-        // Check scope context first
-        if let Some(data) = self.scope_ctx.get(key) {
-            self.output.push_str(&data.render());
-        } else {
-            // Check global context
-            if let Some(data) = self.global_ctx.get(key) {
-                self.output.push_str(&data.render());
-            } else {
-                panic!("Render From Context: Error could not find data with the key '{}'", key);
-            }
-        }
-    }
-
     pub fn get(&self, key: &str) -> &Data {
         if let Some(data) = self.scope_ctx.get(key) {
             data
