@@ -26,6 +26,8 @@ impl<'a> fmt::Debug for PrettyString<'a> {
   }
 }
 
+// TODO investigate why this causes a crash with new lines and stuff
+// IDEA: Let it assert normally but then print it without the escaped characters? 
 #[macro_export]
 macro_rules! assert_eq {
     ($left:expr, $right:expr) => {

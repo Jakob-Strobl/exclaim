@@ -15,11 +15,7 @@ impl Deref for AstIndex {
 
 impl Serializable for AstIndex {
     fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
-        if let Some(element) = ctx.get(self) {
-            return element.serialize(serde, ctx);
-        }
-
-        None
+        ctx.get(self).borrow().serialize(serde, ctx)
     }
 }
 
@@ -28,6 +24,7 @@ pub mod blocks;
 pub mod statements;
 pub mod expressions;
 pub mod patterns;
+pub mod transforms;
 
 pub mod prelude {
     pub use super::AstIndex;
@@ -37,6 +34,6 @@ pub mod prelude {
     pub use super::blocks::Block;
     pub use super::statements::Statement;
     pub use super::expressions::Expression;
-    pub use super::expressions::Transform;
+    pub use super::transforms::Transform;
     pub use super::patterns::Pattern;
 }

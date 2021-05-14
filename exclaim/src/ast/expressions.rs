@@ -3,7 +3,6 @@ use crate::common::serialize::*;
 use crate::tokens::Token;
 
 type TransformIndex = AstIndex;
-type ExpressionIndex = AstIndex;
 
 pub enum Expression {
     /// Literal(literal: Token)
@@ -30,24 +29,5 @@ impl Serializable for Expression {
                 transforms.serialize(serde, ctx)
             }
         }
-    }
-}
-
-// Transform(label: Token, args: Vec<AstIndex>)
-pub struct Transform(Token, Vec<ExpressionIndex>);
-
-impl Transform {
-    pub fn new(label: Token, arguments: Vec<ExpressionIndex>) -> Transform {
-        Transform(label, arguments)
-    }
-}
-
-impl Serializable for Transform {
-    fn serialize(&self, serde: &mut Serializer, ctx: &dyn IndexSerializable) -> Option<AstIndex> {
-        let _transform =  serde.open_tag("Transform");
-        self.0.serialize(serde, ctx);
-
-        let _arguments = serde.open_tag("Arguments");
-        self.1.serialize(serde, ctx)
     }
 }

@@ -9,6 +9,7 @@ type BlockIndex = AstIndex;
 type StatementIndex = AstIndex;
 type Scope = Vec<AstIndex>;
 
+#[derive(Debug)]
 pub enum Block {
     /// Text(text: Token, next_block: Option<AstIndex>)
     Text(Token, Option<BlockIndex>),
@@ -78,9 +79,11 @@ impl Serializable for Block {
                 statement.serialize(serde, ctx);
                 *next // copy
             }
-            Block::CodeUnclosed(statement, _, next) => {
+            Block::CodeUnclosed(statement, scope, next) => {
                 let _block = serde.open_tag("UnclosedBlock");
                 statement.serialize(serde, ctx);
+                let _scope = serde.open_tag("scope");
+                scope.serialize(serde, ctx);
                 *next // copy
             }
             Block::CodeClosing(statement, next) => {

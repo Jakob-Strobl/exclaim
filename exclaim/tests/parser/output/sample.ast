@@ -96,7 +96,7 @@
     </StringLiteral>
   </TextBlock>
   <UnclosedBlock>
-    <RenderStatment>
+    <RenderStatement>
       <Action>
         <value>Render</value>
         <location>{ 4, 3 }</location>
@@ -115,7 +115,9 @@
         <Transforms>
         </Transforms>
       </ReferenceExpression>
-    </RenderStatment>
+    </RenderStatement>
+    <scope>
+    </scope>
   </UnclosedBlock>
   <TextBlock>
     <StringLiteral>
