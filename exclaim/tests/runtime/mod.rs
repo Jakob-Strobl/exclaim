@@ -235,3 +235,15 @@ fn render_sample_product() {
     let output = exclaim::run(&input, Some(data));
     pretty_assertions::assert_eq!(&output, &expected)
 }
+
+#[test]
+fn render_unicode_alphabetic() {
+    let input = r#"The value for Ψ is {{ write! Ψ }}"#;
+    let expected = r#"The value for Ψ is Psi"#;
+
+    let mut data = DataContext::new();
+    data.insert("Ψ".to_string(), Data::String("Psi".to_string()));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
+}
