@@ -96,7 +96,7 @@ Here's an example of using a ```let!``` block:
 This template was compiled with {{ write! name }} 
 ```
 
-As you can see, we assign the string literal expression ```" Exclaim!"``` to a variable named ```name```.
+As you can see, we assign the string literal expression ```"exclaim!"``` to a variable named ```name```.
 We then write the value of the name on the following line, which gives us:  
 
 ```none
@@ -130,15 +130,17 @@ In the ```render!``` block, we iterate of ```usernames```. For each iteration, w
 
 There is a ```write!``` block and a mysterious ```{{!}}``` block at the end. This mysterious block is a closing block and is sometimes called an "end block" or "null block." This block marks the end of the ```render!``` block. Each ```render!``` block is required to be closed with a ```{{!}}```.
 
-```render!``` blocks are a type of block known as **unclosed blocks**. Unclosed blocks are blocks that create a new scope nested inside the original scope.  
+```render!``` blocks are a type of block known as **unclosed blocks**. Unclosed blocks are blocks that create a new scope nested inside the original scope.
+
 The opposite of unclosed blocks is **enclosed blocks**. ```let!``` and ```write!``` are two examples of enclosed blocks. They do not create a new scope inside the template.
+
 The mysterious ```{{!}}``` block is known as a **closing block**. The closing block *closes* any unclosed block.  
 
 Here's a quick look at how blocks manipulate the scope:
 
 ```none
 // Template Scope
-{{ render! letter : abc }} // Creates a new scope with the variable 'letter' defined inside the scope
+{{ render! name : usernames }} // Creates a new scope with the variable 'name' defined inside the scope
 
 // Render scope 
 
@@ -177,11 +179,11 @@ It would look something like this:
 
 **Input**: ```{{ write! "hello" | uppercase }}```
 
-Here we have a write block that contains the literal expression ```"hello"``` with the ```uppercase``` transformation.  ```uppercase``` turns all alphabetic characters into uppercase characters. So when we execute the following code block, we get the following:
+Here we have a write block that contains the literal expression ```"hello"``` with the ```uppercase``` transformation.  ```uppercase``` turns all alphabetic characters into uppercase characters. So when we execute the code block, the result is this:
 
 **Output**: ```HELLO```
 
-There are many types of transformations, and not all of them work on the same types of data. As transforms stabilize, there will be an easy way to see all kinds of transforms.
+There are many types of transformations, and not all of them work on the same types of data. As transforms stabilize, there will be an easy way to see all kinds of transforms for all types of data.
 
 ## Patterns
 
