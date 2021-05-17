@@ -12,6 +12,9 @@ use transforms::apply_transform;
 
 #[derive(Clone)]
 pub enum Data {
+    // Wrapper
+    Option(Option<Box<Data>>),
+
     // Scalar
     String(String),
     Int(isize),
@@ -87,6 +90,7 @@ impl IntoIterator for Data {
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Data::Option(option) => write!(f, "\"{:?}\"", option),
             Data::String(string) => write!(f, "\"{}\"", string),
             Data::Int(num) => write!(f, "{}", num),
             Data::Uint(num) => write!(f, "{}", num),
@@ -101,6 +105,12 @@ impl Debug for Data {
 impl Renderable for Data {
     fn render(&self) -> String {
         match self {
+            Data::Option(option) => {
+                match option {
+                    Some(value) => format!("Some({})", value.render()),
+                    None => String::from("None"),
+                }
+            },
             Data::String(s) => s.to_string(),
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),

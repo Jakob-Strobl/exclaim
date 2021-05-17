@@ -8,6 +8,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("chars", 0) => chars(data),
         ("enumerate", 0) => enumerate(data),
         ("lowercase", 0) => lowercase(data),
+        ("unwrap", 0) => unwrap(data),
         ("uppercase", 0) => uppercase(data),
         ("at", 1) => at(data, arguments.get(0).unwrap()),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
@@ -43,24 +44,26 @@ fn enumerate(data: Data) -> Data {
 fn lowercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_lowercase()),
-        Data::Int(_) => panic!("Cannot transform raw Int to lowercase"),
-        Data::Uint(_) => panic!("Cannot transform raw Uint to lowercase"),
-        Data::Float(_) => panic!("Cannot transform raw Float to lowercase"),
-        Data::Tuple(_) => panic!("Cannot transform raw Tuple to lowercase"),
-        Data::Object(_) => panic!("Cannot transform raw Object to lowercase"),
-        Data::Array(_) => panic!("Cannot transform raw Array to lowercase"),
+        _ => panic!("Cannot transform input to lowercase"),
+    }
+}
+
+fn unwrap(data: Data) -> Data {
+    match data {
+        Data::Option(option) => {
+            match option {
+                Some(value) => *value, // Deref the Box<T>
+                None => panic!("Tried to unwrap nothing!"),
+            }
+        }
+        _ => panic!("unwrap can only transform Options."),
     }
 }
 
 fn uppercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_uppercase()),
-        Data::Int(_) => panic!("Cannot transform raw Int to uppercase"),
-        Data::Uint(_) => panic!("Cannot transform raw Uint to uppercase"),
-        Data::Float(_) => panic!("Cannot transform raw Float to uppercase"),
-        Data::Tuple(_) => panic!("Cannot transform raw Tuple to uppercase"),
-        Data::Object(_) => panic!("Cannot transform raw Object to uppercase"),
-        Data::Array(_) => panic!("Cannot transform raw Array to uppercase"),
+        _ => panic!("Cannot transform input to uppercase"),
     }
 }
 

@@ -247,3 +247,36 @@ fn render_unicode_alphabetic() {
     let output = exclaim::run(input, Some(data));
     pretty_assertions::assert_eq!(&output, expected)
 }
+
+#[test]
+fn render_option_some() {
+    let input = r#"The value may exist: {{ write! data }}"#;
+    let expected = r#"The value may exist: Some("value")"#;
+
+    let mut data = DataContext::new();
+    data.insert("data".to_string(), Data::String("value".to_string()));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_option_none() {
+    let input = r#"The value may exist: {{ write! data }}"#;
+    let expected = r#"The value may exist: None"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_option_unwrapped() {
+    let input = r#"The value may exist: {{ write! data | unwrap }}"#;
+    let expected = r#"The value may exist: value"#;
+
+    let mut data = DataContext::new();
+    data.insert("data".to_string(), Data::String("value".to_string()));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
+}

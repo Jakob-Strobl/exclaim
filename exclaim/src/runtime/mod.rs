@@ -141,7 +141,7 @@ fn run_expression(ast: &mut Ast, runtime: &mut RuntimeContext, expression: AstIn
                 for ref_idx in 1..references.len() {
                     let key = references.get(ref_idx).unwrap().label().unwrap();
                     current_reference = match current_reference.get(key) {
-                        Some(value) => value,
+                        Some(value) => value.clone(),
                         None => panic!("could not find value for the reference: {:?}", key)
                     };
                 }

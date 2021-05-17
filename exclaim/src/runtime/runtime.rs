@@ -36,15 +36,16 @@ impl RuntimeContext {
         self.output.push_str(&item.render())
     }
 
-    pub fn get(&self, key: &str) -> &Data {
+    pub fn get(&self, key: &str) -> Data {
         if let Some(data) = self.scope_ctx.get(key) {
-            data
+            // Im curious if its faster to heap allocate here when necessary or keep Box<Data> for values in hashmap
+            Data::Option(Some(Box::new(data.clone())))
         } else {
             // Check global context
             if let Some(data) = self.global_ctx.get(key) {
-                data
+                Data::Option(Some(Box::new(data.clone())))
             } else {
-                panic!("get: Error could not find data with the key '{}'", key);
+                Data::Option(None)
             }
         }
     }
