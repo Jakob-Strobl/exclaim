@@ -171,9 +171,9 @@ fn render_global_number() {
 #[test]
 fn render_object() {
     let input = r#"The object contains:
-name: {{ write! object.name }}
+name: {{ write! object.name | unwrap }}
 lang: {{ write! object | unwrap | get("lang") }}
-version: {{ write! object.version }}
+version: {{ write! object.version | unwrap }}
 "#;
     let expected = r#"The object contains:
 name: exclaim

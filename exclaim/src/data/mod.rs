@@ -60,21 +60,24 @@ impl Data {
         }
     }
 
-    pub fn get(&self, key: &str) -> Option<&Data> {
+    pub fn get(&self, key: &str) -> Data {
         match self {
             Data::Object(object) => {
                 match object.get(key) {
-                    Some(value) => Some(value),
-                    None => None,
+                    Some(value) => value.clone(),
+                    None => panic!("Can't find key '{}' from the current object.", key),
                 }
             },
             Data::Option(option) => {
                 match option {
-                    Some(value) => value.get(key),
-                    None => None,
+                    Some(object) => {
+                        let value = object.get(key);
+                        Data::Option(Some(Box::new(value)))
+                    }
+                    None => panic!("Can't find key '{}' from the option, because the option is none.", key),
                 }
             }
-            _ => None,
+            _ => panic!("Can't find key '{}' on data that isn't an object.", key),
         }
     }
 }
