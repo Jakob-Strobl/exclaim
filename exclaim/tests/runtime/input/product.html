@@ -16,8 +16,8 @@
     <ul>
         {{ render! customer : last_customers }}
             <li>
-                <h3>{{ write! customer.name }}</h3>
-                <p>{{ write! customer.review }}</p>
+                <h3>{{ write! customer.name | unwrap }}</h3>
+                <p>{{ write! customer.review | unwrap }}</p>
             </li>
         {{!}}
     </ul>

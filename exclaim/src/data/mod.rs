@@ -64,16 +64,13 @@ impl Data {
         match self {
             Data::Object(object) => {
                 match object.get(key) {
-                    Some(value) => value.clone(),
-                    None => panic!("Can't find key '{}' from the current object.", key),
+                    Some(value) => Data::Option(Some(Box::new(value.clone()))),
+                    None => Data::Option(None),
                 }
             },
             Data::Option(option) => {
                 match option {
-                    Some(object) => {
-                        let value = object.get(key);
-                        Data::Option(Some(Box::new(value)))
-                    }
+                    Some(object) => object.get(key),
                     None => panic!("Can't find key '{}' from the option, because the option is none.", key),
                 }
             }
