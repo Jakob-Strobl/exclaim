@@ -68,6 +68,12 @@ impl Data {
                     None => None,
                 }
             },
+            Data::Option(option) => {
+                match option {
+                    Some(value) => value.get(key),
+                    None => None,
+                }
+            }
             _ => None,
         }
     }
