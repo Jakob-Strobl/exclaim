@@ -1,3 +1,5 @@
+
+
 pub mod common;
 
 mod ast;
@@ -7,16 +9,10 @@ mod data;
 pub use data::DataContext;
 pub use data::Data;
 
+mod tokens;
 mod lexer;
-use lexer::lexer::Lexer;
-use lexer::tokens;
-
 mod parser;
-use parser::parser::Parser;
-
 mod semantics;
-use semantics::semantics::Semantics;
-
 mod runtime;
 
 pub fn run(input: &str, data: Option<DataContext>) -> String {
@@ -26,29 +22,30 @@ pub fn run(input: &str, data: Option<DataContext>) -> String {
     run_runtime(ast, data)
 }
 
-pub fn run_lexer(input: &str) -> Vec<tokens::Token> {
-    let lexer = Lexer::from(input);
-    lexer.tokenize()
+pub fn run_lexer<S: AsRef<str>>(input: S) -> Vec<tokens::Token> {
+    match lexer::run(input) {
+        Ok(tokens) => tokens,
+        Err(e) => panic!("Lexer failed with the error:\n{:?}", e),
+    }
 }
 
 pub fn run_parser(input: Vec<tokens::Token>) -> Ast {
-    let mut parser = Parser::from(input);
-    match Parser::parse(&mut parser) {
+    match parser::run(input) {
         Ok(ast) => ast,
-        Err(e) => panic!("Parser failed with the error: {:?}", e),
+        Err(e) => panic!("Parser failed with the error:\n{:?}", e),
     }
 }
 
 pub fn run_semantics(input: Ast) -> Ast {
-    match Semantics::analyze(input) {
+    match semantics::run(input) {
         Ok(ast) => ast,
-        Err(e) => panic!("Semantic Analysis failed with the error: {:?}", e),
+        Err(e) => panic!("Semantic Analysis failed with the error:\n{:?}", e),
     }
 }
 
 pub fn run_runtime(input: Ast, data: Option<DataContext>) -> String {
     match runtime::run(input, data) {
         Ok(output) => output,
-        Err(e) => panic!("Runtime failed with the error: {:?}", e),
+        Err(e) => panic!("Runtime failed with the error:\n{:?}", e),
     }
 }

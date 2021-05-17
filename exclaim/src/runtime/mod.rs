@@ -23,27 +23,27 @@ pub fn run(mut ast: Ast, data: Option<DataContext>) -> Result<String, String> {
 
 fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex>) -> Result<Option<AstIndex>, String> {
     if let Some(block) = block {
-        let element_cell = ast.get(block);
-        let mut element_ref = element_cell.borrow_mut();
+        let block_cell = ast.get(block);
+        let mut block_ref = block_cell.borrow_mut();
 
-        match &mut *element_ref {
+        match &mut *block_ref {
             AstElement::Block(_, block) => {
                 match block {
                     Block::Text(text, next) => {
                         runtime.render(text);
                         Ok(*next)
                     },
-                    Block::CodeEnclosed(stmt, next) => {
-                        run_stmt(ast, runtime, *stmt)?;
+                    Block::CodeEnclosed(statement, next) => {
+                        run_statement(ast, runtime, *statement)?;
                         Ok(*next)
                     },
-                    Block::CodeUnclosed(stmt, scope, next) => {
-                        let stmt_cell = ast.get(*stmt);
-                        let mut stmt_ref = stmt_cell.borrow_mut();
+                    Block::CodeUnclosed(statement, scope, next) => {
+                        let statement_cell = ast.get(*statement);
+                        let mut statement_ref = statement_cell.borrow_mut();
 
-                        match &mut *stmt_ref {
-                            AstElement::Statement(_, stmt) => {
-                                match stmt {
+                        match &mut *statement_ref {
+                            AstElement::Statement(_, statement) => {
+                                match statement {
                                     Statement::Render(_action, pattern, expression) => {
                                         // Left hand side of assignment - build declerations
                                         let pattern = run_pattern(ast, *pattern)?;
@@ -77,7 +77,7 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
                         println!("next is : {:?}", next);
                         Ok(*next)
                     }
-                    Block::CodeClosing(_stmt, next) => {
+                    Block::CodeClosing(_statement, next) => {
                         Ok(*next)
                     },
                 }
@@ -89,13 +89,13 @@ fn run_block(ast: &mut Ast, runtime: &mut RuntimeContext, block: Option<AstIndex
     }
 }
 
-fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Result<(), String> {
-    let element_cell = ast.get(stmt);
-    let mut element_ref = element_cell.borrow_mut();
+fn run_statement(ast: &mut Ast, runtime: &mut RuntimeContext, statement: AstIndex) -> Result<(), String> {
+    let statement_cell = ast.get(statement);
+    let mut statement_ref = statement_cell.borrow_mut();
 
-    match &mut *element_ref {
-        AstElement::Statement(_, stmt) => {
-            match stmt {
+    match &mut *statement_ref {
+        AstElement::Statement(_, statement) => {
+            match statement {
                 Statement::Write(_action, expression) => {
                     let data = run_expression(ast, runtime, *expression)?;
                     runtime.render(&data);
@@ -113,7 +113,7 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Resu
 
                     Ok(())
                 },
-                _ => Err("Runtime Error: Stmt Variant Unimplemented".to_string()),
+                _ => Err("Runtime Error: statement Variant Unimplemented".to_string()),
             }
         }
         _ => Err("Runtime Error: Expected a statement".to_string()),
@@ -122,9 +122,9 @@ fn run_stmt(ast: &mut Ast, runtime: &mut RuntimeContext, stmt: AstIndex) -> Resu
 
 fn run_expression(ast: &mut Ast, runtime: &mut RuntimeContext, expression: AstIndex) -> Result<Data, String> {
     let expression_cell = ast.get(expression);
-    let expression_ref = &*expression_cell.borrow_mut();
+    let expression_ref = expression_cell.borrow_mut();
 
-    if let AstElement::Expression(_, expression) = expression_ref {
+    if let AstElement::Expression(_, expression) = &*expression_ref {
         match expression {
             Expression::Literal(literal, transforms) => {
                 let literal = Data::from(literal.clone());
@@ -163,9 +163,9 @@ fn run_expression(ast: &mut Ast, runtime: &mut RuntimeContext, expression: AstIn
 fn run_transformations(ast: &mut Ast, runtime: &mut RuntimeContext, mut data: Data, transforms: &Vec<AstIndex>) -> Result<Data, String> {
     for transform in transforms {
         let transform_cell = ast.get(*transform);
-        let transform_ref = &*transform_cell.borrow_mut();
+        let transform_ref = transform_cell.borrow_mut();
 
-        if let AstElement::Transform(_, transform) = transform_ref {
+        if let AstElement::Transform(_, transform) = &*transform_ref {
             // Get Arguments 
             let mut arguments: Vec<Data> = vec![];
             for argument in transform.arguments() {
@@ -182,11 +182,11 @@ fn run_transformations(ast: &mut Ast, runtime: &mut RuntimeContext, mut data: Da
 
 /// Get declerations from pattern into a vector of strings
 fn run_pattern(ast: &mut Ast, pattern: AstIndex) -> Result<Vec<String>, String> {
-    let pat_cell = ast.get(pattern);
-    let pat_ref = &mut *pat_cell.borrow_mut();
+    let pattern_cell = ast.get(pattern);
+    let pattern_ref = pattern_cell.borrow_mut();
 
     let mut declerations: Vec<String> = vec![];
-    match pat_ref {
+    match &*pattern_ref {
         AstElement::Pattern(_, pat) => {
             match pat {
                 Pattern::Decleration(decls) => {

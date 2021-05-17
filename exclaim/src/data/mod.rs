@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::ast::transforms::Transform;
-use crate::lexer::tokens::Token;
+use crate::tokens::Token;
 
 pub mod traits;
 use traits::Renderable;
