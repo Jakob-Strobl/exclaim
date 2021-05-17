@@ -113,7 +113,7 @@ impl Renderable for Data {
         match self {
             Data::Option(option) => {
                 match option {
-                    Some(value) => format!("Some({})", value.render()),
+                    Some(value) => format!("Some({:?})", value),
                     None => String::from("None"),
                 }
             },
