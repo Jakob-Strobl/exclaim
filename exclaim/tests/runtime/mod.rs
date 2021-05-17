@@ -159,7 +159,7 @@ fn render_tuple_indexing() {
 #[test]
 fn render_global_number() {
     let input = r#"The value for x is {{ write! x }}"#;
-    let expected = r#"The value for x is 144"#;
+    let expected = r#"The value for x is Some(144)"#;
 
     let mut data = DataContext::new();
     data.insert("x".to_string(), Data::Uint(144));
@@ -239,7 +239,7 @@ fn render_sample_product() {
 #[test]
 fn render_unicode_alphabetic() {
     let input = r#"The value for Ψ is {{ write! Ψ }}"#;
-    let expected = r#"The value for Ψ is Psi"#;
+    let expected = r#"The value for Ψ is Some(Psi)"#;
 
     let mut data = DataContext::new();
     data.insert("Ψ".to_string(), Data::String("Psi".to_string()));
