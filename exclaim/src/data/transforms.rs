@@ -87,7 +87,9 @@ fn tuple(data: Data) -> Data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
         Data::Tuple(_) => data,
         Data::Object(_) => panic!("Unimplemented"),
-        Data::Array(_) => panic!("Unimplemented"),
+        Data::Array(array) => {
+            Data::Tuple(array.into_boxed_slice())
+        },
         Data::Option(_) => panic!("Unable to call `tuple` on wrapper types.")
     }
 }
