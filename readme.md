@@ -4,7 +4,7 @@ A declarative/functional template language built with Rust.
 Full Unicode support.  
 Zero dependencies (except for testing).  
 
-## Version: Pre-release 1
+## Version: Pre-release 2
 
 ## Info
 
@@ -229,7 +229,9 @@ Again, that's a lot of whitespaces...
 
 ## Data types
 
-The data types used at runtime are broken into two categories: scalar and compound.
+The data types used at runtime are broken into three categories: scalars, compounds, and wrappers.
+
+### Scalars
 
 Scalar types are simple and only hold one value. The following scalars are:
 
@@ -238,8 +240,18 @@ Scalar types are simple and only hold one value. The following scalars are:
 - Float (f64)
 - String
 
+### Compounds
+
 Compound types hold one or more values. The following compound types are:
 
 - Tuples (N-sized)
 - Arrays
 - Objects
+
+### Wrappers
+
+The following types wrap all of Exclaim's data types, hence the name "wrappers".
+
+#### **Options**
+
+Options are taken straight from Rust. Options describe whether a reference to data contains *some* value or *nothing*. If the option is in the state Some, it contains a value, if not, the state is None.
