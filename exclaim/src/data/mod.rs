@@ -12,6 +12,9 @@ use transforms::apply_transform;
 
 #[derive(Clone)]
 pub enum Data {
+    // Wrapper
+    Option(Option<Box<Data>>),
+
     // Scalar
     String(String),
     Int(isize),
@@ -57,15 +60,21 @@ impl Data {
         }
     }
 
-    pub fn get(&self, key: &str) -> Option<&Data> {
+    pub fn get(&self, key: &str) -> Data {
         match self {
             Data::Object(object) => {
                 match object.get(key) {
-                    Some(value) => Some(value),
-                    None => None,
+                    Some(value) => Data::Option(Some(Box::new(value.clone()))),
+                    None => Data::Option(None),
                 }
             },
-            _ => None,
+            Data::Option(option) => {
+                match option {
+                    Some(object) => object.get(key),
+                    None => panic!("Can't find key '{}' from the option, because the option is none.", key),
+                }
+            }
+            _ => panic!("Can't find key '{}' on data that isn't an object.", key),
         }
     }
 }
@@ -87,6 +96,7 @@ impl IntoIterator for Data {
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            Data::Option(option) => write!(f, "\"{:?}\"", option),
             Data::String(string) => write!(f, "\"{}\"", string),
             Data::Int(num) => write!(f, "{}", num),
             Data::Uint(num) => write!(f, "{}", num),
@@ -101,6 +111,12 @@ impl Debug for Data {
 impl Renderable for Data {
     fn render(&self) -> String {
         match self {
+            Data::Option(option) => {
+                match option {
+                    Some(value) => format!("Some({:?})", value),
+                    None => String::from("None"),
+                }
+            },
             Data::String(s) => s.to_string(),
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),

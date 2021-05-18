@@ -8,8 +8,8 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("chars", 0) => chars(data),
         ("enumerate", 0) => enumerate(data),
         ("lowercase", 0) => lowercase(data),
+        ("unwrap", 0) => unwrap(data),
         ("uppercase", 0) => uppercase(data),
-        ("at", 1) => at(data, arguments.get(0).unwrap()),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
         ("take", 1) => take(data, arguments.get(0).unwrap()),
         _ => panic!("Transform '{:?}' does not exist.", transform),
@@ -43,67 +43,62 @@ fn enumerate(data: Data) -> Data {
 fn lowercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_lowercase()),
-        Data::Int(_) => panic!("Cannot transform raw Int to lowercase"),
-        Data::Uint(_) => panic!("Cannot transform raw Uint to lowercase"),
-        Data::Float(_) => panic!("Cannot transform raw Float to lowercase"),
-        Data::Tuple(_) => panic!("Cannot transform raw Tuple to lowercase"),
-        Data::Object(_) => panic!("Cannot transform raw Object to lowercase"),
-        Data::Array(_) => panic!("Cannot transform raw Array to lowercase"),
+        _ => panic!("Cannot transform input to lowercase"),
+    }
+}
+
+fn unwrap(data: Data) -> Data {
+    match data {
+        Data::Option(option) => {
+            match option {
+                Some(value) => *value, // Deref the Box<T>
+                None => panic!("Tried to unwrap nothing!"),
+            }
+        }
+        _ => panic!("unwrap can only transform Options."),
     }
 }
 
 fn uppercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_uppercase()),
-        Data::Int(_) => panic!("Cannot transform raw Int to uppercase"),
-        Data::Uint(_) => panic!("Cannot transform raw Uint to uppercase"),
-        Data::Float(_) => panic!("Cannot transform raw Float to uppercase"),
-        Data::Tuple(_) => panic!("Cannot transform raw Tuple to uppercase"),
-        Data::Object(_) => panic!("Cannot transform raw Object to uppercase"),
-        Data::Array(_) => panic!("Cannot transform raw Array to uppercase"),
-    }
-}
-
-fn at(data: Data, index: &Data) -> Data {
-    let index = match index {
-        Data::Uint(num) => *num,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", index)
-    };
-
-    match data {    
-        Data::String(string) => {
-            if index >= string.len() {
-                panic!("at index is out of bounds: {}, length = {}", index, string.len())
-            }
-
-            Data::String(string.chars().nth(index).unwrap().to_string())
-        },
-        Data::Tuple(tuple) => {
-            if index >= tuple.len() {
-                println!("tuple: {:?}", tuple);
-                panic!("at index is out of bounds: {}, length = {}", index, tuple.len())
-            }
-
-            tuple[index].clone()
-        }
-        _ => panic!("at does not transform the given data: {:?}", data),
+        _ => panic!("Cannot transform input to uppercase"),
     }
 }
 
 fn get(data: Data, key: &Data) -> Data {
-    let key = match key {
-        Data::String(string) => string,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", key)
-    };
-
-    match data {
-        Data::Object(object) => {
-            match object.get(key) {
-                Some(value) => value.clone(),
-                None => panic!("The key-value pair does not exist: {:?}", key),
+    match key {
+        Data::String(key) => {
+            match data {
+                Data::Object(object) => {
+                    match object.get(key) {
+                        Some(value) => Data::Option(Some(Box::new(value.clone()))),
+                        None => Data::Option(None),
+                    }
+                },
+                _ => panic!("get does not transform the given data: {:?}", data)
             }
         },
-        _ => panic!("get does not transform the given data: {:?}", data)
+        Data::Uint(index) => {
+            match data {
+                Data::Array(array) => {
+                    if *index >= array.len() {
+                        return Data::Option(None)
+                    }
+
+                    Data::Option(Some(Box::new(array[*index].clone())))
+                }    
+                Data::Tuple(tuple) => {
+                    if *index >= tuple.len() {
+                        return Data::Option(None)
+                    }
+        
+                    Data::Option(Some(Box::new(tuple[*index].clone())))
+                }
+                _ => panic!("at does not transform the given data: {:?}", data),
+            }
+        }
+        _ => panic!("get only takes a string as an argument: {:?}.", key)
     }
 }
 

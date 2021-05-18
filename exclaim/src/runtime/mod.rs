@@ -140,10 +140,7 @@ fn run_expression(ast: &mut Ast, runtime: &mut RuntimeContext, expression: AstIn
                 // Not exactly a fan of this and could be avoided with better structures 
                 for ref_idx in 1..references.len() {
                     let key = references.get(ref_idx).unwrap().label().unwrap();
-                    current_reference = match current_reference.get(key) {
-                        Some(value) => value,
-                        None => panic!("could not find value for the reference: {:?}", key)
-                    };
+                    current_reference = current_reference.get(key);
                 }
 
                 // We clone the data, because all transformation happen out of place

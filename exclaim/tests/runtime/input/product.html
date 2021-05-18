@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ write! page.title }}</title>
+    <title>{{ write! page.title | unwrap }}</title>
 </head>
 <body>
-    {{ let! last_customers = customers | take(3) }}
+    {{ let! last_customers = customers | unwrap | take(3) }}
 
-    <h1>{{ write! page.header }}</h1>
-    <p>{{ write! page.body }}</p>
+    <h1>{{ write! page.header | unwrap }}</h1>
+    <p>{{ write! page.body | unwrap }}</p>
     
     <h2>Customer Reviews</h2>
     <ul>
         {{ render! customer : last_customers }}
             <li>
-                <h3>{{ write! customer.name }}</h3>
-                <p>{{ write! customer.review }}</p>
+                <h3>{{ write! customer.name | unwrap }}</h3>
+                <p>{{ write! customer.review | unwrap }}</p>
             </li>
         {{!}}
     </ul>

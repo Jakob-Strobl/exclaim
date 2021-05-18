@@ -86,8 +86,8 @@ fn render_transformed_assignment() {
 
 #[test]
 fn render_transform_argument() {
-    let input = r#"{{ write! "ABCDEFG" | at(2) }}"#;
-    let expected = "C";
+    let input = r#"{{ write! "ABCDEFG" | chars | get(2) }}"#;
+    let expected = "Some(\"C\")";
 
     let output = exclaim::run(input, None);
     assert_eq!(&output, expected)
@@ -141,7 +141,7 @@ fn render_enumerate() {
 #[test]
 fn render_tuple_indexing() {
     let input = r#"{{ render! chars : "ABC" | chars | enumerate }}
-<li>{{ write! chars | at(1) }}: {{ write! chars | at(0) }}</li>
+<li>{{ write! chars | get(1) | unwrap }}: {{ write! chars | get(0) | unwrap }}</li>
 {{!}}"#;
     let expected = r#"
 <li>0: A</li>
@@ -159,7 +159,7 @@ fn render_tuple_indexing() {
 #[test]
 fn render_global_number() {
     let input = r#"The value for x is {{ write! x }}"#;
-    let expected = r#"The value for x is 144"#;
+    let expected = r#"The value for x is Some(144)"#;
 
     let mut data = DataContext::new();
     data.insert("x".to_string(), Data::Uint(144));
@@ -171,9 +171,9 @@ fn render_global_number() {
 #[test]
 fn render_object() {
     let input = r#"The object contains:
-name: {{ write! object.name }}
-lang: {{ write! object | get("lang") }}
-version: {{ write! object.version }}
+name: {{ write! object.name | unwrap }}
+lang: {{ write! object | unwrap | get("lang") | unwrap }}
+version: {{ write! object.version | unwrap }}
 "#;
     let expected = r#"The object contains:
 name: exclaim
@@ -239,10 +239,43 @@ fn render_sample_product() {
 #[test]
 fn render_unicode_alphabetic() {
     let input = r#"The value for Ψ is {{ write! Ψ }}"#;
-    let expected = r#"The value for Ψ is Psi"#;
+    let expected = r#"The value for Ψ is Some("Psi")"#;
 
     let mut data = DataContext::new();
     data.insert("Ψ".to_string(), Data::String("Psi".to_string()));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_option_some() {
+    let input = r#"The value may exist: {{ write! data }}"#;
+    let expected = r#"The value may exist: Some("value")"#;
+
+    let mut data = DataContext::new();
+    data.insert("data".to_string(), Data::String("value".to_string()));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_option_none() {
+    let input = r#"The value may exist: {{ write! data }}"#;
+    let expected = r#"The value may exist: None"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_option_unwrapped() {
+    let input = r#"The value may exist: {{ write! data | unwrap }}"#;
+    let expected = r#"The value may exist: value"#;
+
+    let mut data = DataContext::new();
+    data.insert("data".to_string(), Data::String("value".to_string()));
     
     let output = exclaim::run(input, Some(data));
     pretty_assertions::assert_eq!(&output, expected)
