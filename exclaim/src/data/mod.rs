@@ -121,7 +121,22 @@ impl Renderable for Data {
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),
             Data::Float(num) => num.to_string(),
-            Data::Tuple(tuple) => format!("{:?}", tuple),
+            Data::Tuple(tuple) => {
+                let mut render = String::from("(");
+                for index in 0..tuple.len() {
+                    render.push_str(&format!("{:?}, ", tuple.get(index).unwrap()))
+                }
+
+                // Remove ', ' at end 
+                if tuple.len() > 0 {
+                    render.pop();
+                    render.pop();
+                }
+
+                render.push(')');
+
+                render
+            }
             Data::Object(object) => format!("{:?}", object),
             Data::Array(array) => format!("{:?}", array),
         }
