@@ -86,8 +86,8 @@ fn render_transformed_assignment() {
 
 #[test]
 fn render_transform_argument() {
-    let input = r#"{{ write! "ABCDEFG" | at(2) }}"#;
-    let expected = "C";
+    let input = r#"{{ write! "ABCDEFG" | chars | get(2) }}"#;
+    let expected = "Some(\"C\")";
 
     let output = exclaim::run(input, None);
     assert_eq!(&output, expected)
@@ -141,7 +141,7 @@ fn render_enumerate() {
 #[test]
 fn render_tuple_indexing() {
     let input = r#"{{ render! chars : "ABC" | chars | enumerate }}
-<li>{{ write! chars | at(1) }}: {{ write! chars | at(0) }}</li>
+<li>{{ write! chars | get(1) | unwrap }}: {{ write! chars | get(0) | unwrap }}</li>
 {{!}}"#;
     let expected = r#"
 <li>0: A</li>
