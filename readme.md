@@ -92,11 +92,11 @@ Here's an example of using a ```let!``` block:
 **Input:**  
 
 ```none
-{{ let! name = "exclaim!" }}
+{{ let! name = "Exclaim!" }}
 This template was compiled with {{ write! name }} 
 ```
 
-As you can see, we assign the string literal expression ```"exclaim!"``` to a variable named ```name```.
+As you can see, we assign the string literal expression ```"Exclaim!"``` to a variable named ```name```.
 We then write the value of the name on the following line, which gives us:  
 
 ```none
