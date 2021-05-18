@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::ast::transforms::Transform;
 
 use super::Data;
@@ -66,7 +68,14 @@ fn object(data: Data) -> Data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
         Data::Tuple(_) => panic!("Unimplemented"),
         Data::Object(_) => data,
-        Data::Array(_) => panic!("Unimplemented"),
+        Data::Array(array) => {
+            let mut object = HashMap::with_capacity(array.len());
+            for (index, item) in array.iter().enumerate() {
+                object.insert(index.to_string(), item.clone());
+            }
+
+            Data::Object(object)
+        },
         Data::Option(_) => panic!("Unable to call `object` on wrapper types.")
     }
 }
@@ -142,7 +151,7 @@ fn get(data: Data, key: &Data) -> Data {
         
                     Data::Option(Some(Box::new(tuple[*index].clone())))
                 }
-                _ => panic!("at does not transform the given data: {:?}", data),
+                _ => panic!("get does not transform the given data: {:?}", data),
             }
         }
         _ => panic!("get only takes a string as an argument: {:?}.", key)
