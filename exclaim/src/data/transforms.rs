@@ -96,7 +96,7 @@ fn at(data: Data, index: &Data) -> Data {
 fn get(data: Data, key: &Data) -> Data {
     let key = match key {
         Data::String(string) => string,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", key)
+        _ => panic!("get only takes a string as an argument: {:?}.", key)
     };
 
     match data {
