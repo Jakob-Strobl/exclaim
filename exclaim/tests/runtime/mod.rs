@@ -343,7 +343,7 @@ fn render_object_to_array() {
 #[test]
 fn render_array_to_tuple() {
     let input = r#"An array into a tuple: {{ write! "ABC" | chars | tuple }}"#;
-    let expected = r#"An array into tuple: ("A", "B", "C")"#;
+    let expected = r#"An array into a tuple: ("A", "B", "C")"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -352,7 +352,7 @@ fn render_array_to_tuple() {
 #[test]
 fn render_array_to_object() {
     let input = r#"An array into an object: {{ write! "ABC" | chars | object }}"#;
-    let expected = r#"An array into object: {"0":"A", "1":"B", "2":"C"}"#;
+    let expected = r#"An array into an object: {"0":"A", "1":"B", "2":"C"}"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
