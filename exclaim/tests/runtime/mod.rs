@@ -286,7 +286,7 @@ fn render_option_unwrapped() {
 #[test]
 fn render_uint_to_string() {
     let input = r#"A number into digits: {{ write! 1234 | string | chars }}"#;
-    let expected = r#"The value may exist: ["1", "2", "3", "4"] "#;
+    let expected = r#"A number into digits: ["1", "2", "3", "4"]"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -342,8 +342,8 @@ fn render_object_to_array() {
 
 #[test]
 fn render_array_to_tuple() {
-    let input = r#"A number into digits: {{ write! "ABC" | chars | tuple }}"#;
-    let expected = r#"The value may exist: ("A", "B", "C")"#;
+    let input = r#"An array into a tuple: {{ write! "ABC" | chars | tuple }}"#;
+    let expected = r#"An array into tuple: ("A", "B", "C")"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -351,8 +351,8 @@ fn render_array_to_tuple() {
 
 #[test]
 fn render_array_to_object() {
-    let input = r#"A number into digits: {{ write! "ABC" | chars | object }}"#;
-    let expected = r#"The value may exist: {"0":"A", "1":"B", "2":"C"}"#;
+    let input = r#"An array into an object: {{ write! "ABC" | chars | object }}"#;
+    let expected = r#"An array into object: {"0":"A", "1":"B", "2":"C"}"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -360,8 +360,8 @@ fn render_array_to_object() {
 
 #[test]
 fn render_array_to_array() {
-    let input = r#"A number into digits: {{ write! "ABC" | chars | array }}"#;
-    let expected = r#"The value may exist: ["A", "B", "C"]"#;
+    let input = r#"An array into an array: {{ write! "ABC" | chars | array }}"#;
+    let expected = r#"An array into an array: ["A", "B", "C"]"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
