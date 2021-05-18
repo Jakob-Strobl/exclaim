@@ -102,8 +102,8 @@ fn get(data: Data, key: &Data) -> Data {
     match data {
         Data::Object(object) => {
             match object.get(key) {
-                Some(value) => value.clone(),
-                None => panic!("The key-value pair does not exist: {:?}", key),
+                Some(value) => Data::Option(Some(Box::new(value.clone()))),
+                None => Data::Option(None),
             }
         },
         _ => panic!("get does not transform the given data: {:?}", data)
