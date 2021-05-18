@@ -12,9 +12,6 @@ use transforms::apply_transform;
 
 #[derive(Clone)]
 pub enum Data {
-    // Wrapper
-    Option(Option<Box<Data>>),
-
     // Scalar
     String(String),
     Int(isize),
@@ -25,6 +22,9 @@ pub enum Data {
     Tuple(Box<[Data]>),
     Object(HashMap<String, Data>),
     Array(Vec<Data>),
+
+    // Wrapper
+    Option(Option<Box<Data>>),
 }
 
 impl From<Token> for Data {

@@ -8,6 +8,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("chars", 0) => chars(data),
         ("enumerate", 0) => enumerate(data),
         ("lowercase", 0) => lowercase(data),
+        ("string", 0) => string(data),
         ("unwrap", 0) => unwrap(data),
         ("uppercase", 0) => uppercase(data),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
@@ -44,6 +45,17 @@ fn lowercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_lowercase()),
         _ => panic!("Cannot transform input to lowercase"),
+    }
+}
+
+fn string(data: Data) -> Data {
+    match data {
+        Data::Uint(number) => {
+            Data::String(number.to_string())
+        }
+        Data::Tuple(_) | Data::Object(_) | Data::Array(_) => panic!("Unable to call `string` on compound types."),
+        Data::Option(_) => panic!("Unable to call `string` on wrapper types."),
+        _ => panic!("Invalid input type for `string`.")
     }
 }
 
