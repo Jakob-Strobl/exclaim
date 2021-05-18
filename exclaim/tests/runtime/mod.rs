@@ -280,3 +280,89 @@ fn render_option_unwrapped() {
     let output = exclaim::run(input, Some(data));
     pretty_assertions::assert_eq!(&output, expected)
 }
+
+
+// Scalar to Scalar tests
+#[test]
+fn render_uint_to_string() {
+    let input = r#"A number into digits: {{ write! 1234 | string | chars }}"#;
+    let expected = r#"The value may exist: ["1", "2", "3", "4"] "#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+// #[test]
+// fn render_float_to_string() {
+//     // TODO add support for floats.
+//     let input = r#"A number into digits: {{ write! 3.14 | string | chars }}"#;
+//     let expected = r#"The value may exist: ["3", ".", "1", "4"] "#;
+    
+//     let output = exclaim::run(input, None);
+//     pretty_assertions::assert_eq!(&output, expected)
+// }
+
+fn render_string_to_uint() {
+    // TODO
+}
+
+fn render_string_to_int() {
+    // TODO
+}  
+
+fn render_string_to_float() {
+    // TODO
+}
+
+
+// Compound to Compound tests
+fn render_tuple_to_tuple() {
+    // TODO
+}
+
+fn render_tuple_to_object() {
+    // TODO
+}
+
+fn render_tuple_to_array() {
+    // TODO
+}
+
+fn render_object_to_tuple() {
+    // TODO
+}
+
+fn render_object_to_object() {
+    // TODO
+}
+
+fn render_object_to_array() {
+    // TODO
+}
+
+#[test]
+fn render_array_to_tuple() {
+    let input = r#"A number into digits: {{ write! "ABC" | chars | tuple }}"#;
+    let expected = r#"The value may exist: ("A", "B", "C")"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_array_to_object() {
+    let input = r#"A number into digits: {{ write! "ABC" | chars | object }}"#;
+    let expected = r#"The value may exist: {"0":"A", "1":"B", "2":"C"}"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_array_to_array() {
+    let input = r#"A number into digits: {{ write! "ABC" | chars | array }}"#;
+    let expected = r#"The value may exist: ["A", "B", "C"]"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
