@@ -5,15 +5,28 @@ use super::Data;
 pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) -> Data {
     // match transform signature: (name, num_arguments)
     match transform.signature() {
+        ("array", 0) => array(data),
         ("chars", 0) => chars(data),
         ("enumerate", 0) => enumerate(data),
         ("lowercase", 0) => lowercase(data),
+        ("object", 0) => object(data),
         ("string", 0) => string(data),
+        ("tuple", 0) => tuple(data),
         ("unwrap", 0) => unwrap(data),
         ("uppercase", 0) => uppercase(data),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
         ("take", 1) => take(data, arguments.get(0).unwrap()),
         _ => panic!("Transform '{:?}' does not exist.", transform),
+    }
+}
+
+fn array(data: Data) -> Data {
+    match data {
+        Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
+        Data::Tuple(_) => panic!("Unimplemented"),
+        Data::Object(_) => panic!("Unimplemented"),
+        Data::Array(_) => data,
+        Data::Option(_) => panic!("Unable to call `array` on wrapper types.")
     }
 }
 
@@ -48,6 +61,16 @@ fn lowercase(data: Data) -> Data {
     }
 }
 
+fn object(data: Data) -> Data {
+    match data {
+        Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
+        Data::Tuple(_) => panic!("Unimplemented"),
+        Data::Object(_) => data,
+        Data::Array(_) => panic!("Unimplemented"),
+        Data::Option(_) => panic!("Unable to call `object` on wrapper types.")
+    }
+}
+
 fn string(data: Data) -> Data {
     match data {
         Data::Uint(number) => {
@@ -56,6 +79,16 @@ fn string(data: Data) -> Data {
         Data::Tuple(_) | Data::Object(_) | Data::Array(_) => panic!("Unable to call `string` on compound types."),
         Data::Option(_) => panic!("Unable to call `string` on wrapper types."),
         _ => panic!("Invalid input type for `string`.")
+    }
+}
+
+fn tuple(data: Data) -> Data {
+    match data {
+        Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
+        Data::Tuple(_) => data,
+        Data::Object(_) => panic!("Unimplemented"),
+        Data::Array(_) => panic!("Unimplemented"),
+        Data::Option(_) => panic!("Unable to call `tuple` on wrapper types.")
     }
 }
 
