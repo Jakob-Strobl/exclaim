@@ -361,7 +361,7 @@ fn render_tuple_to_array() {
 #[test]
 fn render_object_to_tuple() {
     let input = r#"Account details: {{ let! (keys, values) = account | unwrap | tuple }}{{ write! keys }} | {{ write! values }}"#;
-    let expected = r#"Account details: ["name", "location", "dob"] | ["Earth", "Milky Way Galaxy", "???"]"#;
+    let expected = r#"Account details: ["dob", "location", "name"] | ["???", "Milky Way Galaxy", "Earth"]"#;
 
     let mut data = DataContext::new();
     let mut object = BTreeMap::new();
@@ -376,8 +376,8 @@ fn render_object_to_tuple() {
 
 #[test]
 fn render_object_to_object() {
-    let input = r#"Account details: {{ let! object = account | unwrap | object }}{{ write! object.location | unwrap }}"#;
-    let expected = r#"Account details: Milky Way Galaxy"#;
+    let input = r#"Account details: {{ write! account | unwrap | object }}"#;
+    let expected = r#"Account details: {"dob": "???", "location": "Milky Way Galaxy", "name": "Earth"}"#;
 
     let mut data = DataContext::new();
     let mut object = BTreeMap::new();
@@ -393,7 +393,7 @@ fn render_object_to_object() {
 #[test]
 fn render_object_to_array() {
     let input = r#"Account details: {{ let! array = account | unwrap | array }}{{ write! array }}"#;
-    let expected = r#"Account details: [("name", "Earth"), ("location", "Milky Way Galaxy"), ("dob", "???")]"#;
+    let expected = r#"Account details: [("dob", "???"), ("location", "Milky Way Galaxy"), ("name", "Earth")]"#;
 
     let mut data = DataContext::new();
     let mut object = BTreeMap::new();
@@ -417,8 +417,8 @@ fn render_array_to_tuple() {
 
 #[test]
 fn render_array_to_object() {
-    let input = r#"An array into an object: {{ let! object = "ABC" | chars | object }}{{ write! object | get("0") | unwrap }}"#;
-    let expected = r#"An array into an object: A"#;
+    let input = r#"An array into an object: {{ write! "ABC" | chars | object }}"#;
+    let expected = r#"An array into an object: {"0": "A", "1": "B", "2": "C"}"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
