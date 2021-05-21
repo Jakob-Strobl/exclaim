@@ -316,16 +316,43 @@ fn render_string_to_float() {
 
 
 // Compound to Compound tests
+#[test]
 fn render_tuple_to_tuple() {
-    // TODO
+    let input = r#"The 2D position is: {{ write! position | unwrap | tuple }}"#;
+    let expected = r#"The 2D position is: (2, 5)"#;
+
+    let mut data = DataContext::new();
+    let position = Box::new([Data::Uint(2), Data::Uint(5)]);
+    data.insert("position".to_string(), Data::Tuple(position));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_tuple_to_object() {
-    // TODO
+    let input = r#"The 2D position is: {{ let! object = position | unwrap | object }}{{ write! object | get("0") | unwrap }}, {{ write! object | get("1") | unwrap }}"#;
+    let expected = r#"The 2D position is: 2, 5"#;
+
+    let mut data = DataContext::new();
+    let position = Box::new([Data::Uint(2), Data::Uint(5)]);
+    data.insert("position".to_string(), Data::Tuple(position));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_tuple_to_array() {
-    // TODO
+    let input = r#"The 2D position is: {{ write! position | unwrap | array }}"#;
+    let expected = r#"The 2D position is: [2, 5]"#;
+
+    let mut data = DataContext::new();
+    let position = Box::new([Data::Uint(2), Data::Uint(5)]);
+    data.insert("position".to_string(), Data::Tuple(position));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
 fn render_object_to_tuple() {

@@ -25,7 +25,9 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
 fn array(data: Data) -> Data {
     match data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
-        Data::Tuple(_) => panic!("Unimplemented"),
+        Data::Tuple(tuple) => {
+            Data::Array(tuple.to_vec())
+        },
         Data::Object(_) => panic!("Unimplemented"),
         Data::Array(_) => data,
         Data::Option(_) => panic!("Unable to call `array` on wrapper types.")
@@ -66,7 +68,14 @@ fn lowercase(data: Data) -> Data {
 fn object(data: Data) -> Data {
     match data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
-        Data::Tuple(_) => panic!("Unimplemented"),
+        Data::Tuple(tuple) => {
+            let mut object = HashMap::with_capacity(tuple.len());
+            for (index, item) in tuple.iter().enumerate() {
+                object.insert(index.to_string(), item.clone());
+            }
+
+            Data::Object(object)
+        },
         Data::Object(_) => data,
         Data::Array(array) => {
             let mut object = HashMap::with_capacity(array.len());
