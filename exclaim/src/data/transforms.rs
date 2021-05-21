@@ -28,7 +28,16 @@ fn array(data: Data) -> Data {
         Data::Tuple(tuple) => {
             Data::Array(tuple.to_vec())
         },
-        Data::Object(_) => panic!("Unimplemented"),
+        Data::Object(object) => {
+            let mut array = vec![];
+            for (key, value) in object.into_iter() {
+                let key = Data::String(key);
+                let pair = Data::Tuple(Box::new([key, value]));
+                array.push(pair);
+            }
+
+            Data::Array(array)
+        },
         Data::Array(_) => data,
         Data::Option(_) => panic!("Unable to call `array` on wrapper types.")
     }
@@ -104,7 +113,20 @@ fn tuple(data: Data) -> Data {
     match data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
         Data::Tuple(_) => data,
-        Data::Object(_) => panic!("Unimplemented"),
+        Data::Object(object) => {
+            let mut keys = vec![];
+            let mut values = vec![];
+
+            for (key, value) in object.iter() {
+                keys.push(Data::String(key.to_string()));
+                values.push(value.clone());
+            }
+
+            let keys = Data::Array(keys);
+            let values = Data::Array(values);
+
+            Data::Tuple(Box::new([keys, values]))
+        },
         Data::Array(array) => {
             Data::Tuple(array.into_boxed_slice())
         },

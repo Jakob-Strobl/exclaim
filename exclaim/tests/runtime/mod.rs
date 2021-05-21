@@ -355,16 +355,52 @@ fn render_tuple_to_array() {
     pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_object_to_tuple() {
-    // TODO
+    let input = r#"Account details: {{ let! (keys, values) = account | unwrap | tuple }}{{ write! keys }} | {{ write! values }}"#;
+    let expected = r#"Account details: ["name", "location", "dob"] | ["Earth", "Milky Way Galaxy", "???"]"#;
+
+    let mut data = DataContext::new();
+    let mut object = HashMap::new();
+    object.insert("name".to_string(), Data::String("Earth".to_string()));
+    object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
+    object.insert("dob".to_string(), Data::String("???".to_string()));
+    data.insert("account".to_string(), Data::Object(object));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_object_to_object() {
-    // TODO
+    let input = r#"Account details: {{ let! object = account | unwrap | object }}{{ write! object.location | unwrap }}"#;
+    let expected = r#"Account details: Milky Way Galaxy"#;
+
+    let mut data = DataContext::new();
+    let mut object = HashMap::new();
+    object.insert("name".to_string(), Data::String("Earth".to_string()));
+    object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
+    object.insert("dob".to_string(), Data::String("???".to_string()));
+    data.insert("account".to_string(), Data::Object(object));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_object_to_array() {
-    // TODO
+    let input = r#"Account details: {{ let! array = account | unwrap | array }}{{ write! array }}"#;
+    let expected = r#"Account details: [("name", "Earth"), ("location", "Milky Way Galaxy"), ("dob", "???")]"#;
+
+    let mut data = DataContext::new();
+    let mut object = HashMap::new();
+    object.insert("name".to_string(), Data::String("Earth".to_string()));
+    object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
+    object.insert("dob".to_string(), Data::String("???".to_string()));
+    data.insert("account".to_string(), Data::Object(object));
+    
+    let output = exclaim::run(input, Some(data));
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
 #[test]
