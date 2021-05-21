@@ -10,10 +10,13 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("array", 0) => array(data),
         ("chars", 0) => chars(data),
         ("enumerate", 0) => enumerate(data),
+        ("float", 0) => float(data),
+        ("int", 0) => int(data),
         ("lowercase", 0) => lowercase(data),
         ("object", 0) => object(data),
         ("string", 0) => string(data),
         ("tuple", 0) => tuple(data),
+        ("uint", 0) => uint(data),
         ("unwrap", 0) => unwrap(data),
         ("uppercase", 0) => uppercase(data),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
@@ -64,6 +67,26 @@ fn enumerate(data: Data) -> Data {
             Data::Array(enumerated_array)
         },
         _ => panic!("enumerate expects an array as input.")
+    }
+}
+
+fn float(data: Data) -> Data {
+    match data {
+        Data::String(string) => {
+            let number: f64 = string.parse().unwrap();
+            Data::Float(number)
+        }
+        _ => panic!("unimplemented"),
+    }
+}
+
+fn int(data: Data) -> Data {
+    match data {
+        Data::String(string) => {
+            let number: isize = string.parse().unwrap();
+            Data::Int(number)
+        }
+        _ => panic!("unimplemented"),
     }
 }
 
@@ -131,6 +154,16 @@ fn tuple(data: Data) -> Data {
             Data::Tuple(array.into_boxed_slice())
         },
         Data::Option(_) => panic!("Unable to call `tuple` on wrapper types.")
+    }
+}
+
+fn uint(data: Data) -> Data {
+    match data {
+        Data::String(string) => {
+            let number: usize = string.parse().unwrap();
+            Data::Uint(number)
+        }
+        _ => panic!("unimplemented"),
     }
 }
 

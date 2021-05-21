@@ -305,16 +305,31 @@ fn render_uint_to_string() {
 //     pretty_assertions::assert_eq!(&output, expected)
 // }
 
+#[test]
 fn render_string_to_uint() {
-    // TODO
+    let input = r#"A number into uint: {{ write! "2021" | uint }}"#;
+    let expected = r#"A number into uint: 2021"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
 fn render_string_to_int() {
-    // TODO
+    let input = r#"A number into int: {{ write! "-2021" | int }}"#;
+    let expected = r#"A number into int: -2021"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
 }  
 
+#[test]
 fn render_string_to_float() {
-    // TODO
+    let input = r#"A number into uint: {{ write! "3.14" | float }}"#;
+    let expected = r#"A number into uint: 3.14"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
 }
 
 
