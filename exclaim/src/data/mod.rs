@@ -104,7 +104,22 @@ impl Debug for Data {
             Data::Int(num) => write!(f, "{}", num),
             Data::Uint(num) => write!(f, "{}", num),
             Data::Float(num) => write!(f, "{}", num),
-            Data::Tuple(tuple) => write!(f, "{:?}", tuple),
+            Data::Tuple(tuple) => {
+                let mut render = String::from("(");
+                for data in tuple.iter() {
+                    render.push_str(&format!("{:?}, ", data))
+                }
+
+                // Remove ', ' at end 
+                if tuple.len() > 0 {
+                    render.pop();
+                    render.pop();
+                }
+
+                render.push(')');
+
+                write!(f, "{}", render)
+            },
             Data::Object(object) => write!(f, "{:?}", object),
             Data::Array(array) => write!(f, "{:?}", array),
         }
@@ -126,8 +141,8 @@ impl Renderable for Data {
             Data::Float(num) => num.to_string(),
             Data::Tuple(tuple) => {
                 let mut render = String::from("(");
-                for index in 0..tuple.len() {
-                    render.push_str(&format!("{:?}, ", tuple.get(index).unwrap()))
+                for data in tuple.iter() {
+                    render.push_str(&format!("{:?}, ", data))
                 }
 
                 // Remove ', ' at end 
@@ -139,7 +154,7 @@ impl Renderable for Data {
                 render.push(')');
 
                 render
-            }
+            },
             Data::Object(object) => format!("{:?}", object),
             Data::Array(array) => format!("{:?}", array),
         }
