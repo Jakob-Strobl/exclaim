@@ -284,31 +284,11 @@ fn render_option_unwrapped() {
     pretty_assertions::assert_eq!(&output, expected)
 }
 
-
 // Scalar to Scalar tests
 #[test]
-fn render_uint_to_string() {
-    let input = r#"A number into digits: {{ write! 1234 | string | chars }}"#;
-    let expected = r#"A number into digits: ["1", "2", "3", "4"]"#;
-    
-    let output = exclaim::run(input, None);
-    pretty_assertions::assert_eq!(&output, expected)
-}
-
-// #[test]
-// fn render_float_to_string() {
-//     // TODO add support for floats.
-//     let input = r#"A number into digits: {{ write! 3.14 | string | chars }}"#;
-//     let expected = r#"The value may exist: ["3", ".", "1", "4"] "#;
-    
-//     let output = exclaim::run(input, None);
-//     pretty_assertions::assert_eq!(&output, expected)
-// }
-
-#[test]
 fn render_string_to_uint() {
-    let input = r#"A number into uint: {{ write! "2021" | uint }}"#;
-    let expected = r#"A number into uint: 2021"#;
+    let input = r#"A string into uint: {{ write! "2021" | uint }}"#;
+    let expected = r#"A string into uint: 2021"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -316,8 +296,8 @@ fn render_string_to_uint() {
 
 #[test]
 fn render_string_to_int() {
-    let input = r#"A number into int: {{ write! "-2021" | int }}"#;
-    let expected = r#"A number into int: -2021"#;
+    let input = r#"A string into int: {{ write! "-2021" | int }}"#;
+    let expected = r#"A string into int: -2021"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
@@ -325,13 +305,98 @@ fn render_string_to_int() {
 
 #[test]
 fn render_string_to_float() {
-    let input = r#"A number into uint: {{ write! "3.14" | float }}"#;
-    let expected = r#"A number into uint: 3.14"#;
+    let input = r#"A string into float: {{ write! "3.14" | float }}"#;
+    let expected = r#"A string into float: 3.14"#;
     
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
 }
 
+#[test]
+fn render_int_to_string() {
+    // TODO add support for ints.
+    let input = r#"A int into digits: {{ write! -1234 | string | chars }}"#;
+    let expected = r#"A int into digits: ["-", "1", "2", "3", "4"]"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+#[should_panic]
+fn render_int_to_uint() {
+    // TODO add support for ints.
+    let input = r#"A int into uint: {{ write! -1234 | uint }}"#;
+    
+    let output = exclaim::run(input, None);
+}
+
+#[test]
+fn render_int_to_float() {
+    // TODO add support for ints.
+    let input = r#"A int into float: {{ write! -1234 | float }}"#;
+    let expected = r#"A int into float: -1234"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_uint_to_string() {
+    let input = r#"A uint into digits: {{ write! 1234 | string | chars }}"#;
+    let expected = r#"A uint into digits: ["1", "2", "3", "4"]"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_uint_to_int() {
+    let input = r#"A uint into int: {{ write! 1234 | int }}"#;
+    let expected = r#"A uint into int: 1234"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_uint_to_float() {
+    let input = r#"A uint into float: {{ write! 1234 | float }}"#;
+    let expected = r#"A uint into float: 1234"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_float_to_string() {
+    // TODO add support for floats.
+    let input = r#"A float into digits: {{ write! 3.14 | string | chars }}"#;
+    let expected = r#"A float into digits: ["3", ".", "1", "4"]"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_float_to_int() {
+    // TODO add support for floats.
+    let input = r#"A float into int: {{ write! -3.14 | int }}"#;
+    let expected = r#"A float into int: -3"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn render_float_to_uint() {
+    // TODO add support for floats.
+    let input = r#"A float into uint: {{ write! 3.14 | uint }}"#;
+    let expected = r#"A float into uint: 3"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
 
 // Compound to Compound tests
 #[test]
