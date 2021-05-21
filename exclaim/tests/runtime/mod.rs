@@ -1,6 +1,9 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
-use crate::common::{PrettyString, read_file_to_string};
+use crate::common::{
+    PrettyString, 
+    read_file_to_string
+};
 
 use exclaim::{
     DataContext,
@@ -181,7 +184,7 @@ lang: rust
 version: 0.1
 "#;
 
-    let mut object = HashMap::new();
+    let mut object = BTreeMap::new();
     object.insert("name".to_string(), Data::String("exclaim".to_string()));
     object.insert("lang".to_string(), Data::String("rust".to_string()));
     object.insert("version".to_string(), Data::Float(0.1));
@@ -198,7 +201,7 @@ fn render_sample_product() {
     let input = read_file_to_string("./tests/runtime/input/product.html");
     let expected = read_file_to_string("./tests/runtime/output/product.html");
 
-    let mut page = HashMap::new();
+    let mut page = BTreeMap::new();
     page.insert("title".to_string(), Data::String("Awesome Product".to_string()));
     page.insert("header".to_string(), Data::String("Awesome Product: A product".to_string()));
     page.insert("body".to_string(), Data::String("Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
@@ -208,22 +211,22 @@ fn render_sample_product() {
 
     let mut customers = Vec::new();
 
-    let mut customer = HashMap::new();
+    let mut customer = BTreeMap::new();
     customer.insert("name".to_string(), Data::String("John Doe".to_string()));
     customer.insert("review".to_string(), Data::String("Literally 10/10. This product is game changing.".to_string()));
     customers.push(Data::Object(customer));
 
-    let mut customer = HashMap::new();
+    let mut customer = BTreeMap::new();
     customer.insert("name".to_string(), Data::String("Jane Doe".to_string()));
     customer.insert("review".to_string(), Data::String("My husband loves this product!".to_string()));
     customers.push(Data::Object(customer));
 
-    let mut customer = HashMap::new();
+    let mut customer = BTreeMap::new();
     customer.insert("name".to_string(), Data::String("Anonymous".to_string()));
     customer.insert("review".to_string(), Data::String("The product name checks out.".to_string()));
     customers.push(Data::Object(customer));
 
-    let mut customer = HashMap::new();
+    let mut customer = BTreeMap::new();
     customer.insert("name".to_string(), Data::String("Reed Salad".to_string()));
     customer.insert("review".to_string(), Data::String("It's aight".to_string()));
     customers.push(Data::Object(customer));
@@ -361,7 +364,7 @@ fn render_object_to_tuple() {
     let expected = r#"Account details: ["name", "location", "dob"] | ["Earth", "Milky Way Galaxy", "???"]"#;
 
     let mut data = DataContext::new();
-    let mut object = HashMap::new();
+    let mut object = BTreeMap::new();
     object.insert("name".to_string(), Data::String("Earth".to_string()));
     object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
     object.insert("dob".to_string(), Data::String("???".to_string()));
@@ -377,7 +380,7 @@ fn render_object_to_object() {
     let expected = r#"Account details: Milky Way Galaxy"#;
 
     let mut data = DataContext::new();
-    let mut object = HashMap::new();
+    let mut object = BTreeMap::new();
     object.insert("name".to_string(), Data::String("Earth".to_string()));
     object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
     object.insert("dob".to_string(), Data::String("???".to_string()));
@@ -393,7 +396,7 @@ fn render_object_to_array() {
     let expected = r#"Account details: [("name", "Earth"), ("location", "Milky Way Galaxy"), ("dob", "???")]"#;
 
     let mut data = DataContext::new();
-    let mut object = HashMap::new();
+    let mut object = BTreeMap::new();
     object.insert("name".to_string(), Data::String("Earth".to_string()));
     object.insert("location".to_string(), Data::String("Milky Way Galaxy".to_string()));
     object.insert("dob".to_string(), Data::String("???".to_string()));

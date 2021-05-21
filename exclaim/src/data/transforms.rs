@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use crate::ast::transforms::Transform;
 
@@ -78,7 +78,7 @@ fn object(data: Data) -> Data {
     match data {
         Data::String(_) | Data::Int(_) | Data::Uint(_) | Data::Float(_) => panic!("Unable to call `array` on scalar types."),
         Data::Tuple(tuple) => {
-            let mut object = HashMap::with_capacity(tuple.len());
+            let mut object = BTreeMap::new();
             for (index, item) in tuple.iter().enumerate() {
                 object.insert(index.to_string(), item.clone());
             }
@@ -87,7 +87,7 @@ fn object(data: Data) -> Data {
         },
         Data::Object(_) => data,
         Data::Array(array) => {
-            let mut object = HashMap::with_capacity(array.len());
+            let mut object = BTreeMap::new();
             for (index, item) in array.iter().enumerate() {
                 object.insert(index.to_string(), item.clone());
             }

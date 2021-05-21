@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::collections::{
+    BTreeMap,
+    HashMap,
+};
 use std::fmt::Debug;
 
 use crate::ast::transforms::Transform;
@@ -20,7 +23,7 @@ pub enum Data {
 
     // Compound Types
     Tuple(Box<[Data]>),
-    Object(HashMap<String, Data>),
+    Object(BTreeMap<String, Data>),
     Array(Vec<Data>),
 
     // Wrapper
