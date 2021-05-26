@@ -77,12 +77,63 @@ mod tests {
     }
 
     #[test]
-    fn lexer_block_digit() {
+    fn lexer_block_uint() {
         let input = "{{ 1234 }}";
         let expected = vec![
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
-            Token::NumberLiteral(1234, Location::new(0,3)),
+            Token::NumberLiteral(Number::Uint(1234), Location::new(0,3)),
             Token::Operator(Op::BlockClose, Location::new(0,8)),
+        ];
+
+        let actual = match lexer::run(input) {
+            Ok(tokens) => tokens,
+            Err(e) => panic!(e),
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn lexer_block_int() {
+        let input = "{{ -1234 }}";
+        let expected = vec![
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(Number::Int(-1234), Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,9)),
+        ];
+
+        let actual = match lexer::run(input) {
+            Ok(tokens) => tokens,
+            Err(e) => panic!(e),
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn lexer_block_float() {
+        let input = "{{ 12.34 }}";
+        let expected = vec![
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(Number::Float(12.34), Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,9)),
+        ];
+
+        let actual = match lexer::run(input) {
+            Ok(tokens) => tokens,
+            Err(e) => panic!(e),
+        };
+
+        assert_eq!(actual, expected);
+    }
+
+    #[test]
+    fn lexer_block_negative_float() {
+        let input = "{{ -12.34 }}";
+        let expected = vec![
+            Token::Operator(Op::BlockOpen, Location::new(0,0)),
+            Token::NumberLiteral(Number::Float(-12.34), Location::new(0,3)),
+            Token::Operator(Op::BlockClose, Location::new(0,10)),
         ];
 
         let actual = match lexer::run(input) {
@@ -201,11 +252,11 @@ mod tests {
         let input = "{{ 1 && test && 3 }}";
         let expected = vec![
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
-            Token::NumberLiteral(1, Location::new(0,3)),
+            Token::NumberLiteral(Number::Uint(1), Location::new(0,3)),
             Token::Operator(Op::And, Location::new(0,5)),
             Token::Label(String::from("test"), Location::new(0,8)),
             Token::Operator(Op::And, Location::new(0,13)),
-            Token::NumberLiteral(3, Location::new(0,16)),
+            Token::NumberLiteral(Number::Uint(3), Location::new(0,16)),
             Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
@@ -245,7 +296,7 @@ mod tests {
             Token::Operator(Op::Comma, Location::new(0,7)),
             Token::StringLiteral(String::from("test"), Location::new(0,9)),
             Token::Operator(Op::Comma, Location::new(0,15)),
-            Token::NumberLiteral(2, Location::new(0,17)),
+            Token::NumberLiteral(Number::Uint(2), Location::new(0,17)),
             Token::Operator(Op::BlockClose, Location::new(0,19)),
         ];
 
@@ -323,9 +374,9 @@ mod tests {
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
             Token::Label(String::from("falsy"), Location::new(0,3)),
             Token::Operator(Op::Assign, Location::new(0,9)),
-            Token::NumberLiteral(1, Location::new(0,11)),
+            Token::NumberLiteral(Number::Uint(1), Location::new(0,11)),
             Token::Operator(Op::Equality, Location::new(0,13)),
-            Token::NumberLiteral(2, Location::new(0,16)),
+            Token::NumberLiteral(Number::Uint(2), Location::new(0,16)),
             Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
@@ -344,9 +395,9 @@ mod tests {
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
             Token::Label(String::from("truthy"), Location::new(0,3)),
             Token::Operator(Op::Assign, Location::new(0,10)),
-            Token::NumberLiteral(1, Location::new(0,12)),
+            Token::NumberLiteral(Number::Uint(1), Location::new(0,12)),
             Token::Operator(Op::Inequality, Location::new(0,14)),
-            Token::NumberLiteral(2, Location::new(0,17)),
+            Token::NumberLiteral(Number::Uint(2), Location::new(0,17)),
             Token::Operator(Op::BlockClose, Location::new(0,19)),
         ];
 
@@ -363,11 +414,11 @@ mod tests {
         let input = "{{ 1 || test || 3 }}";
         let expected = vec![
             Token::Operator(Op::BlockOpen, Location::new(0,0)),
-            Token::NumberLiteral(1, Location::new(0,3)),
+            Token::NumberLiteral(Number::Uint(1), Location::new(0,3)),
             Token::Operator(Op::Or, Location::new(0,5)),
             Token::Label(String::from("test"),Location::new(0,8)),
             Token::Operator(Op::Or, Location::new(0,13)),
-            Token::NumberLiteral(3, Location::new(0,16)),
+            Token::NumberLiteral(Number::Uint(3), Location::new(0,16)),
             Token::Operator(Op::BlockClose, Location::new(0,18)),
         ];
 
@@ -426,9 +477,9 @@ mod tests {
             Token::Operator(Op::Pipe, Location::new(1,30)),
             Token::Label(String::from("take"), Location::new(1,32)),
             Token::Operator(Op::ParenOpen, Location::new(1,36)),
-            Token::NumberLiteral(1, Location::new(1,37)),
+            Token::NumberLiteral(Number::Uint(1), Location::new(1,37)),
             Token::Operator(Op::Comma, Location::new(1,38)),
-            Token::NumberLiteral(5, Location::new(1,39)),
+            Token::NumberLiteral(Number::Uint(5), Location::new(1,39)),
             Token::Operator(Op::ParenClose, Location::new(1,40)),
             Token::Operator(Op::BlockClose, Location::new(1,42)),
             token_string_literal("\n<li>", (1, 44)),

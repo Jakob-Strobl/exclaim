@@ -5,7 +5,10 @@ use std::collections::{
 use std::fmt::Debug;
 
 use crate::ast::transforms::Transform;
-use crate::tokens::Token;
+use crate::tokens::{ 
+    Token,
+    Number,
+};
 
 pub mod traits;
 use traits::Renderable;
@@ -34,7 +37,13 @@ impl From<Token> for Data {
     fn from(token: Token) -> Self {
         match token {
             Token::StringLiteral(string, _) => Data::String(string),
-            Token::NumberLiteral(number, _) => Data::Uint(number),
+            Token::NumberLiteral(number, _) => {
+                match number {
+                    Number::Uint(uint) => Data::Uint(uint),
+                    Number::Int(int) => Data::Int(int),
+                    Number::Float(float) => Data::Float(float),
+                }
+            },
             _ => panic!("Cannot convert token into Data: {:?}", token),
         }
     }

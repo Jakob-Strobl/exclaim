@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::ast::AstIndex;
 use crate::common::Location;
 use crate::common::serialize::*;
@@ -7,11 +9,47 @@ use crate::data::traits::Renderable;
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     StringLiteral(String, Location),
-    NumberLiteral(usize, Location),
+    NumberLiteral(Number, Location),
 
     Label(String, Location),
     Operator(Op, Location),
     Action(Action, Location),
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum Number {
+    Uint(usize),
+    Int(isize),
+    Float(f64),
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Action {
+    End,
+    Let, 
+    Render,
+    Write,
+}
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Op {
+    And,            // &&
+    Assign,         // =
+    BlockClose,     // }}
+    BlockClosePrime,// } Reserved
+    BlockOpen,      // {{
+    BlockOpenPrime, // { Reserved
+    ClosureOpen,    // [ Reserved
+    ClosureClose,   // ] Reserved
+    Comma,          // , 
+    Dot,            // . 
+    Each,           // :
+    Equality,       // ==
+    Inequality,     // !=
+    Or,             // || 
+    ParenOpen,      // (
+    ParenClose,     // )
+    Pipe,           // | (Chain function operations)
 }
 
 impl Token {
@@ -22,7 +60,7 @@ impl Token {
         }
     }
 
-    pub fn number_literal(&self) -> Option<&usize> {
+    pub fn number_literal(&self) -> Option<&Number> {
         match self {
             Token::NumberLiteral(literal, _) => Some(literal),
             _ => None
@@ -95,34 +133,13 @@ impl Renderable for Token {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Action {
-    End,
-    Let, 
-    Render,
-    Write,
+impl Display for Number {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Number::Uint(uint) => write!(f, "{}", uint),
+            Number::Int(int) => write!(f, "{}", int),
+            Number::Float(float) => write!(f, "{}", float),
+        }
+    }
 }
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-pub enum Op {
-    And,            // &&
-    Assign,         // =
-    BlockClose,     // }}
-    BlockClosePrime,// } Reserved
-    BlockOpen,      // {{
-    BlockOpenPrime, // { Reserved
-    ClosureOpen,    // [ Reserved
-    ClosureClose,   // ] Reserved
-    Comma,          // , 
-    Dot,            // . 
-    Each,           // :
-    Equality,       // ==
-    Inequality,     // !=
-    Or,             // || 
-    ParenOpen,      // (
-    ParenClose,     // )
-    Pipe,           // | (Chain function operations)
-}
-
-
 
