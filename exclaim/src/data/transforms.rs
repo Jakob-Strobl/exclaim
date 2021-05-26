@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use crate::ast::transforms::Transform;
+use crate::{ast::transforms::Transform, data::traits::Renderable};
 
 use super::Data;
 
@@ -9,6 +9,13 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
     match transform.name() {
         "array" => array(data),
         "chars" => chars(data),
+        "concat" => {
+            match transform.num_arguments() {
+                0 => concat(data),
+                1 => concat_scalar(data, arguments.get(0).unwrap()),
+                _ => panic!("Wrong number of arguments for concat"),
+            }
+        }
         "enumerate" => enumerate(data),
         "float" => float(data),
         "get" => {
@@ -25,6 +32,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         "take" => {
             match transform.num_arguments() {
                 1 => take(data, arguments.get(0).unwrap()),
+                2 => take_lower_upper(data, arguments.get(0).unwrap(), arguments.get(1).unwrap()),
                 _ => panic!("Wrong number of arguments for take"),
             }
         },
@@ -65,6 +73,44 @@ fn chars(data: Data) -> Data {
         Data::String(string) => Data::Array(string.chars().map(|c| Data::String(c.to_string())).collect()),
         _ => panic!("chars expects string as input")
     }
+}
+
+fn concat(data: Data) -> Data {
+    match data {
+        Data::Array(array) => {
+            let mut concatenated = String::new();
+
+            for data in array {
+                if data.is_scalar() {
+                    concatenated.push_str(&data.render())
+                } else {
+                    panic!("Found non-scalar element while concatenating an array")
+                }
+            }
+
+            Data::String(concatenated)
+        },
+        _ => panic!("chars expects string as input")
+    }
+}
+
+fn concat_scalar(mut data: Data, scalar: &Data) -> Data {
+    let scalar = match scalar {
+        Data::String(string) => string.to_string(),
+        Data::Int(int) => int.to_string(),
+        Data::Uint(uint) => uint.to_string(),
+        Data::Float(float) => float.to_string(),
+        _ => panic!("Concat can only take scalars as an argument"),
+    };
+
+    match &mut data {
+        Data::String(string) => {
+            string.push_str(&scalar);
+        },
+        _ => panic!("concat expects string as input")
+    }
+
+    data
 }
 
 fn enumerate(data: Data) -> Data {
@@ -235,6 +281,36 @@ fn take(data: Data, uint: &Data) -> Data {
         _ => panic!("take does not transform the given data: {:?}", data)
     }
 }
+
+fn take_lower_upper(data: Data, lower: &Data, upper: &Data) -> Data {
+    let lower = match lower {
+        Data::Uint(num) => *num,
+        _ => panic!("take only takes a unsigned integer as an argument: {:?}.", lower)
+    };
+
+    let upper = match upper {
+        Data::Uint(num) => *num,
+        _ => panic!("take only takes a unsigned integer as an argument: {:?}.", upper)
+    };
+
+    match data {
+        Data::Array(array) => {
+            if lower >= array.len() {
+                panic!("Lower range is greater than the length of the array: {} >= {}", upper, array.len())
+            }
+            // Only Greater Than since the upper bound is exclusive
+            if upper > array.len() {
+                panic!("Upper range is greater than the length of the array: {} >= {}", upper, array.len())
+            }
+
+            let sub_array = array[lower..upper].to_vec();
+
+            Data::Array(sub_array)
+        },
+        _ => panic!("take does not transform the given data: {:?}", data)
+    }
+}
+
 
 fn tuple(data: Data) -> Data {
     match data {

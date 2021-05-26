@@ -523,3 +523,30 @@ fn render_string_length() {
     let output = exclaim::run(input, None);
     pretty_assertions::assert_eq!(&output, expected)
 }
+
+#[test]
+fn runtime_string_concat_array() {
+    let input = r#"{{ write! "ABCDEFG" | chars | concat }}"#;
+    let expected = r#"ABCDEFG"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn runtime_string_concat_argument() {
+    let input = r#"{{ let! name = "Earth" }}{{ write! "Hello, " | concat(name) | concat("!") }}"#;
+    let expected = r#"Hello, Earth!"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
+
+#[test]
+fn runtime_take_upper_lower() {
+    let input = r#"The string {{ write! "ABCDEFG" }} sliced from 2..5: {{ write! "ABCDEFG" | chars | take(2,5) | concat }}"#;
+    let expected = r#"The string ABCDEFG sliced from 2..5: CDE"#;
+    
+    let output = exclaim::run(input, None);
+    pretty_assertions::assert_eq!(&output, expected)
+}
