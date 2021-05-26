@@ -123,8 +123,14 @@ fn object(data: Data) -> Data {
 
 fn string(data: Data) -> Data {
     match data {
-        Data::Uint(number) => {
-            Data::String(number.to_string())
+        Data::Uint(uint) => {
+            Data::String(uint.to_string())
+        }
+        Data::Int(int) => {
+            Data::String(int.to_string())
+        }
+        Data::Float(float) => {
+            Data::String(float.to_string())
         }
         Data::Tuple(_) | Data::Object(_) | Data::Array(_) => panic!("Unable to call `string` on compound types."),
         Data::Option(_) => panic!("Unable to call `string` on wrapper types."),
