@@ -21,6 +21,9 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         ("uppercase", 0) => uppercase(data),
         ("get", 1) => get(data, arguments.get(0).unwrap()),
         ("take", 1) => take(data, arguments.get(0).unwrap()),
+
+        // Reserved transformation names
+        ("map", 0) | ("filter", 0) | ("reduce", 0) => panic!("Transformation is reserved."),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
