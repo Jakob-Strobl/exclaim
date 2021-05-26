@@ -82,9 +82,16 @@ fn float(data: Data) -> Data {
 
 fn int(data: Data) -> Data {
     match data {
+        Data::Int(_) => data,
         Data::String(string) => {
             let number: isize = string.parse().unwrap();
             Data::Int(number)
+        }
+        Data::Uint(uint) => {
+            Data::Int(uint as isize)
+        }
+        Data::Float(float) => {
+            Data::Int(float as isize)
         }
         _ => panic!("unimplemented"),
     }
@@ -123,6 +130,7 @@ fn object(data: Data) -> Data {
 
 fn string(data: Data) -> Data {
     match data {
+        Data::String(_) => data,
         Data::Uint(uint) => {
             Data::String(uint.to_string())
         }
