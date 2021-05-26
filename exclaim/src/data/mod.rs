@@ -25,9 +25,9 @@ pub enum Data {
     Float(f64),
 
     // Compound Types
+    Array(Vec<Data>),
     Tuple(Box<[Data]>),
     Object(BTreeMap<String, Data>),
-    Array(Vec<Data>),
 
     // Wrapper
     Option(Option<Box<Data>>),
@@ -66,8 +66,8 @@ impl Data {
 
     pub fn len(&self) -> usize {
         match self {
-            Data::Tuple(tup) => tup.len(),
             Data::Array(arr) => arr.len(),
+            Data::Tuple(tup) => tup.len(),
             _ => 1,
         }
     }
@@ -98,8 +98,8 @@ impl IntoIterator for Data {
 
     fn into_iter(self) -> Self::IntoIter {
         match self {
-            Data::Tuple(tup) => tup.to_vec().into_iter(),
             Data::Array(arr) => arr.into_iter(),
+            Data::Tuple(tup) => tup.to_vec().into_iter(),
             _ => vec![self].into_iter(),
         }
     }
@@ -113,6 +113,7 @@ impl Debug for Data {
             Data::Int(num) => write!(f, "{}", num),
             Data::Uint(num) => write!(f, "{}", num),
             Data::Float(num) => write!(f, "{}", num),
+            Data::Array(array) => write!(f, "{:?}", array),
             Data::Tuple(tuple) => {
                 let mut render = String::from("(");
                 for data in tuple.iter() {
@@ -130,7 +131,6 @@ impl Debug for Data {
                 write!(f, "{}", render)
             },
             Data::Object(object) => write!(f, "{:?}", object),
-            Data::Array(array) => write!(f, "{:?}", array),
         }
     }
 }
@@ -148,6 +148,7 @@ impl Renderable for Data {
             Data::Int(num) => num.to_string(),
             Data::Uint(num) => num.to_string(),
             Data::Float(num) => num.to_string(),
+            Data::Array(array) => format!("{:?}", array),
             Data::Tuple(tuple) => {
                 let mut render = String::from("(");
                 for data in tuple.iter() {
@@ -165,7 +166,6 @@ impl Renderable for Data {
                 render
             },
             Data::Object(object) => format!("{:?}", object),
-            Data::Array(array) => format!("{:?}", array),
         }
     }
 }

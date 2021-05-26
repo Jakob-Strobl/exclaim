@@ -322,8 +322,16 @@ fn render_int_to_string() {
 }
 
 #[test]
-#[should_panic]
 fn render_int_to_uint() {
+    // yeah...
+    let input = r#"A int into uint: {{ write! 1234 | int | uint }}"#;
+    
+    let output = exclaim::run(input, None);
+}
+
+#[test]
+#[should_panic(expected="Unable to transform a negative integer into an unsigned integer")]
+fn render_negative_int_to_uint() {
     let input = r#"A int into uint: {{ write! -1234 | uint }}"#;
     
     let output = exclaim::run(input, None);

@@ -72,11 +72,19 @@ fn enumerate(data: Data) -> Data {
 
 fn float(data: Data) -> Data {
     match data {
+        Data::Float(_) => data,
         Data::String(string) => {
             let number: f64 = string.parse().unwrap();
             Data::Float(number)
         }
-        _ => panic!("unimplemented"),
+        Data::Uint(uint) => {
+            Data::Float(uint as f64)
+        }
+        Data::Int(int) => {
+            Data::Float(int as f64)
+        }
+        Data::Array(_) | Data::Tuple(_) | Data::Object(_) => panic!("Unable to call `float` transformation on compound types."),
+        Data::Option(_) => panic!("Unable to call `float` transformation on wrapper types."),
     }
 }
 
@@ -93,7 +101,8 @@ fn int(data: Data) -> Data {
         Data::Float(float) => {
             Data::Int(float as isize)
         }
-        _ => panic!("unimplemented"),
+        Data::Array(_) | Data::Tuple(_) | Data::Object(_) => panic!("Unable to call `int` transformation on compound types."),
+        Data::Option(_) => panic!("Unable to call `int` transformation on wrapper types."),
     }
 }
 
@@ -142,7 +151,6 @@ fn string(data: Data) -> Data {
         }
         Data::Tuple(_) | Data::Object(_) | Data::Array(_) => panic!("Unable to call `string` on compound types."),
         Data::Option(_) => panic!("Unable to call `string` on wrapper types."),
-        _ => panic!("Invalid input type for `string`.")
     }
 }
 
@@ -173,9 +181,22 @@ fn tuple(data: Data) -> Data {
 
 fn uint(data: Data) -> Data {
     match data {
+        Data::Uint(_) => data,
         Data::String(string) => {
             let number: usize = string.parse().unwrap();
             Data::Uint(number)
+        }
+        Data::Int(int) => {
+            if int < 0 {
+                panic!("Unable to transform a negative integer into an unsigned integer")
+            }
+            Data::Uint(int as usize)
+        }
+        Data::Float(float) => {
+            if float < 0.0 {
+                panic!("Unable to transform a negative float into an unsigned integer")
+            }
+            Data::Uint(float as usize)
         }
         _ => panic!("unimplemented"),
     }
