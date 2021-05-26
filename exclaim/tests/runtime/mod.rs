@@ -314,7 +314,6 @@ fn render_string_to_float() {
 
 #[test]
 fn render_int_to_string() {
-    // TODO add support for ints.
     let input = r#"A int into digits: {{ write! -1234 | string | chars }}"#;
     let expected = r#"A int into digits: ["-", "1", "2", "3", "4"]"#;
     
@@ -325,7 +324,6 @@ fn render_int_to_string() {
 #[test]
 #[should_panic]
 fn render_int_to_uint() {
-    // TODO add support for ints.
     let input = r#"A int into uint: {{ write! -1234 | uint }}"#;
     
     let output = exclaim::run(input, None);
@@ -333,7 +331,6 @@ fn render_int_to_uint() {
 
 #[test]
 fn render_int_to_float() {
-    // TODO add support for ints.
     let input = r#"A int into float: {{ write! -1234 | float }}"#;
     let expected = r#"A int into float: -1234"#;
     
@@ -370,7 +367,6 @@ fn render_uint_to_float() {
 
 #[test]
 fn render_float_to_string() {
-    // TODO add support for floats.
     let input = r#"A float into digits: {{ write! 3.14 | string | chars }}"#;
     let expected = r#"A float into digits: ["3", ".", "1", "4"]"#;
     
@@ -380,7 +376,6 @@ fn render_float_to_string() {
 
 #[test]
 fn render_float_to_int() {
-    // TODO add support for floats.
     let input = r#"A float into int: {{ write! -3.14 | int }}"#;
     let expected = r#"A float into int: -3"#;
     
@@ -390,7 +385,6 @@ fn render_float_to_int() {
 
 #[test]
 fn render_float_to_uint() {
-    // TODO add support for floats.
     let input = r#"A float into uint: {{ write! 3.14 | uint }}"#;
     let expected = r#"A float into uint: 3"#;
     
