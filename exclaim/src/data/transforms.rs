@@ -6,24 +6,34 @@ use super::Data;
 
 pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) -> Data {
     // match transform signature: (name, num_arguments)
-    match transform.signature() {
-        ("array", 0) => array(data),
-        ("chars", 0) => chars(data),
-        ("enumerate", 0) => enumerate(data),
-        ("float", 0) => float(data),
-        ("int", 0) => int(data),
-        ("lowercase", 0) => lowercase(data),
-        ("object", 0) => object(data),
-        ("string", 0) => string(data),
-        ("tuple", 0) => tuple(data),
-        ("uint", 0) => uint(data),
-        ("unwrap", 0) => unwrap(data),
-        ("uppercase", 0) => uppercase(data),
-        ("get", 1) => get(data, arguments.get(0).unwrap()),
-        ("take", 1) => take(data, arguments.get(0).unwrap()),
+    match transform.name() {
+        "array" => array(data),
+        "chars" => chars(data),
+        "enumerate" => enumerate(data),
+        "float" => float(data),
+        "int" => int(data),
+        "lowercase" => lowercase(data),
+        "object" => object(data),
+        "string" => string(data),
+        "tuple" => tuple(data),
+        "uint" => uint(data),
+        "unwrap" => unwrap(data),
+        "uppercase" => uppercase(data),
+        "get" => {
+            match transform.num_arguments() {
+                1 => get(data, arguments.get(0).unwrap()),
+                _ => panic!("Wrong number of arguments for get"),
+            }
+        },
+        "take" => {
+            match transform.num_arguments() {
+                1 => take(data, arguments.get(0).unwrap()),
+                _ => panic!("Wrong number of arguments for take"),
+            }
+        },
 
         // Reserved transformation names
-        ("map", 0) | ("filter", 0) | ("reduce", 0) => panic!("Transformation is reserved."),
+        "map" | "filter" | "reduce" => panic!("Transformation is reserved."),
         _ => panic!("Transform '{:?}' does not exist.", transform),
     }
 }
