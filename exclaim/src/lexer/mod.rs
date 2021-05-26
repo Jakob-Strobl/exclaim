@@ -161,13 +161,17 @@ static STATE_BLOCK: State = State(
                 stack.accept_token(Token::Operator(Op::ParenClose, stack.location()));
                 Ok(&STATE_BLOCK)
             },
+            '-' => {
+                stack.push();
+                Ok(&STATE_INT)
+            }
             _ => {
                 if ch.is_alphabetic() {
                     stack.push();
                     Ok(&STATE_LABEL_ACTION)
                 } else if ch.is_numeric() {
                     stack.push();
-                    Ok(&STATE_DIGIT)
+                    Ok(&STATE_UINT)
                 } else if ch.is_whitespace() {
                     stack.skip();
                     Ok(&STATE_BLOCK)
@@ -360,12 +364,15 @@ static STATE_LABEL_ACTION: State = State(
     }
 );
 
-static STATE_DIGIT: State = State(
+static STATE_UINT: State = State(
     |stack| {
         let ch = stack.peek();
         if ch.is_numeric() {
             stack.push();
-            Ok(&STATE_DIGIT)
+            Ok(&STATE_UINT)
+        } else if ch == '.' {
+            stack.push();
+            Ok(&STATE_FLOAT)
         } else if ch.is_alphabetic() {
             panic!(State::get_error_msg(
                 stack, 
@@ -375,7 +382,54 @@ static STATE_DIGIT: State = State(
         } else {
             // Accept Number 
             let number: usize = stack.view_stack().parse::<usize>().unwrap();
-            let token = Token::NumberLiteral(number, stack.location());
+            let token = Token::NumberLiteral(Number::Uint(number), stack.location());
+            stack.accept_token(token);
+            Ok(&STATE_BLOCK)
+        }
+    }
+);
+
+static STATE_INT: State = State(
+    |stack| {
+        let ch = stack.peek();
+        if ch.is_numeric() {
+            stack.push();
+            Ok(&STATE_INT)
+        } else if ch == '.' {
+            stack.push();
+            Ok(&STATE_FLOAT)
+        } else if ch.is_alphabetic() {
+            panic!(State::get_error_msg(
+                stack, 
+                &format!("Lexer<DIGIT>: The expected number contains invalid digit '{}' with stack \"{}\".", ch, stack.view_stack()),
+                "expected digit",
+            ));
+        } else {
+            // Accept Number 
+            let number: isize = stack.view_stack().parse::<isize>().unwrap();
+            let token = Token::NumberLiteral(Number::Int(number), stack.location());
+            stack.accept_token(token);
+            Ok(&STATE_BLOCK)
+        }
+    }
+);
+
+static STATE_FLOAT: State = State(
+    |stack| {
+        let ch = stack.peek();
+        if ch.is_numeric() {
+            stack.push();
+            Ok(&STATE_FLOAT)
+        } else if ch.is_alphabetic() {
+            panic!(State::get_error_msg(
+                stack, 
+                &format!("Lexer<DIGIT>: The expected number contains invalid digit '{}' with stack \"{}\".", ch, stack.view_stack()),
+                "expected digit",
+            ));
+        } else {
+            // Accept Number 
+            let number: f64 = stack.view_stack().parse::<f64>().unwrap();
+            let token = Token::NumberLiteral(Number::Float(number), stack.location());
             stack.accept_token(token);
             Ok(&STATE_BLOCK)
         }
