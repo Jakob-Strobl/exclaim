@@ -11,26 +11,26 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
         "chars" => chars(data),
         "enumerate" => enumerate(data),
         "float" => float(data),
-        "int" => int(data),
-        "lowercase" => lowercase(data),
-        "object" => object(data),
-        "string" => string(data),
-        "tuple" => tuple(data),
-        "uint" => uint(data),
-        "unwrap" => unwrap(data),
-        "uppercase" => uppercase(data),
         "get" => {
             match transform.num_arguments() {
                 1 => get(data, arguments.get(0).unwrap()),
                 _ => panic!("Wrong number of arguments for get"),
             }
         },
+        "int" => int(data),
+        "lowercase" => lowercase(data),
+        "object" => object(data),
+        "string" => string(data),
         "take" => {
             match transform.num_arguments() {
                 1 => take(data, arguments.get(0).unwrap()),
                 _ => panic!("Wrong number of arguments for take"),
             }
         },
+        "tuple" => tuple(data),
+        "uint" => uint(data),
+        "unwrap" => unwrap(data),
+        "uppercase" => uppercase(data),
 
         // Reserved transformation names
         "map" | "filter" | "reduce" => panic!("Transformation is reserved."),
