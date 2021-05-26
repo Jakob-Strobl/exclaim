@@ -18,6 +18,7 @@ pub fn apply_transform(data: Data, transform: &Transform, arguments: Vec<Data>) 
             }
         },
         "int" => int(data),
+        "len" => len(data),
         "lowercase" => lowercase(data),
         "object" => object(data),
         "string" => string(data),
@@ -101,6 +102,42 @@ fn float(data: Data) -> Data {
     }
 }
 
+fn get(data: Data, key: &Data) -> Data {
+    match key {
+        Data::String(key) => {
+            match data {
+                Data::Object(object) => {
+                    match object.get(key) {
+                        Some(value) => Data::Option(Some(Box::new(value.clone()))),
+                        None => Data::Option(None),
+                    }
+                },
+                _ => panic!("get does not transform the given data: {:?}", data)
+            }
+        },
+        Data::Uint(index) => {
+            match data {
+                Data::Array(array) => {
+                    if *index >= array.len() {
+                        return Data::Option(None)
+                    }
+
+                    Data::Option(Some(Box::new(array[*index].clone())))
+                }    
+                Data::Tuple(tuple) => {
+                    if *index >= tuple.len() {
+                        return Data::Option(None)
+                    }
+        
+                    Data::Option(Some(Box::new(tuple[*index].clone())))
+                }
+                _ => panic!("get does not transform the given data: {:?}", data),
+            }
+        }
+        _ => panic!("get only takes a string as an argument: {:?}.", key)
+    }
+}
+
 fn int(data: Data) -> Data {
     match data {
         Data::Int(_) => data,
@@ -117,6 +154,21 @@ fn int(data: Data) -> Data {
         Data::Array(_) | Data::Tuple(_) | Data::Object(_) => panic!("Unable to call `int` transformation on compound types."),
         Data::Option(_) => panic!("Unable to call `int` transformation on wrapper types."),
     }
+}
+
+fn len(data: Data) -> Data {
+    let length = match data {
+        Data::String(string) => string.len(),
+        Data::Int(_) => panic!("Unable to call `len` on Int."),
+        Data::Uint(_) => panic!("Unable to call `len` on Uint."),
+        Data::Float(_) => panic!("Unable to call `len` on Float."),
+        Data::Array(array) => array.len(),
+        Data::Tuple(tuple) => tuple.len(),
+        Data::Object(_) => panic!("Unable to call `len` on Object."),
+        Data::Option(_) => panic!("Unable to call `len` on wrapper types."),
+    };
+
+    Data::Uint(length)
 }
 
 fn lowercase(data: Data) -> Data {
@@ -164,6 +216,23 @@ fn string(data: Data) -> Data {
         }
         Data::Tuple(_) | Data::Object(_) | Data::Array(_) => panic!("Unable to call `string` on compound types."),
         Data::Option(_) => panic!("Unable to call `string` on wrapper types."),
+    }
+}
+
+fn take(data: Data, uint: &Data) -> Data {
+    let take = match uint {
+        Data::Uint(num) => *num,
+        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", uint)
+    };
+
+    match data {
+        Data::Array(array) => {
+            let take_slice = array.split_at(take).0;
+            let mut new_array = Vec::with_capacity(take_slice.len());
+            new_array.clone_from(&take_slice.to_vec());
+            Data::Array(new_array)
+        },
+        _ => panic!("take does not transform the given data: {:?}", data)
     }
 }
 
@@ -231,58 +300,5 @@ fn uppercase(data: Data) -> Data {
     match data {
         Data::String(string) => Data::String(string.to_uppercase()),
         _ => panic!("Cannot transform input to uppercase"),
-    }
-}
-
-fn get(data: Data, key: &Data) -> Data {
-    match key {
-        Data::String(key) => {
-            match data {
-                Data::Object(object) => {
-                    match object.get(key) {
-                        Some(value) => Data::Option(Some(Box::new(value.clone()))),
-                        None => Data::Option(None),
-                    }
-                },
-                _ => panic!("get does not transform the given data: {:?}", data)
-            }
-        },
-        Data::Uint(index) => {
-            match data {
-                Data::Array(array) => {
-                    if *index >= array.len() {
-                        return Data::Option(None)
-                    }
-
-                    Data::Option(Some(Box::new(array[*index].clone())))
-                }    
-                Data::Tuple(tuple) => {
-                    if *index >= tuple.len() {
-                        return Data::Option(None)
-                    }
-        
-                    Data::Option(Some(Box::new(tuple[*index].clone())))
-                }
-                _ => panic!("get does not transform the given data: {:?}", data),
-            }
-        }
-        _ => panic!("get only takes a string as an argument: {:?}.", key)
-    }
-}
-
-fn take(data: Data, uint: &Data) -> Data {
-    let take = match uint {
-        Data::Uint(num) => *num,
-        _ => panic!("at only takes a unsigned integer as an argument: {:?}.", uint)
-    };
-
-    match data {
-        Data::Array(array) => {
-            let take_slice = array.split_at(take).0;
-            let mut new_array = Vec::with_capacity(take_slice.len());
-            new_array.clone_from(&take_slice.to_vec());
-            Data::Array(new_array)
-        },
-        _ => panic!("take does not transform the given data: {:?}", data)
     }
 }
